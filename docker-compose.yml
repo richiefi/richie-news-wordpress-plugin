@@ -23,8 +23,11 @@ services:
       WORDPRESS_DB_HOST: db:3306
       WORDPRESS_DB_USER: wordpress
       WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DEBUG: 1
     volumes:
-      #- /Users/markku/Projects/wordpress-local/wp-content:/var/www/html/wp-content
-      - /Users/markku/Projects/wordpress-local/richie-news-feed:/var/www/html/wp-content/plugins/richie-news-feed
+      - ./wp-content:/var/www/html/wp-content
+      - ./richie-news-feed:/var/www/html/wp-content/plugins/richie-news-feed
+      - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+
 volumes:
     db_data: {}
