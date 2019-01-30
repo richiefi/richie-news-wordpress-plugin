@@ -26,7 +26,7 @@ services:
       WORDPRESS_DEBUG: 1
     volumes:
       - ./wp-content:/var/www/html/wp-content
-      - ./richie-news-feed:/var/www/html/wp-content/plugins/richie-news-feed
+      - ./richie-news:/var/www/html/wp-content/plugins/richie-news
       - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
 
 volumes:

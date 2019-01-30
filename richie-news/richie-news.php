@@ -10,10 +10,10 @@
  *
  * @link              https://www.richie.fi
  * @since             1.0.0
- * @package           Richie_News_Feed
+ * @package           Richie_News
  *
  * @wordpress-plugin
- * Plugin Name:       Richie News Feed
+ * Plugin Name:       Richie News
  * Plugin URI:        https://www.richie.fi
  * Description:       Provides content feed in Richie json format
  * Version:           1.0.0
@@ -21,7 +21,7 @@
  * Author URI:        https://www.richie.fi
  * License:           Richie OY
  * License URI:       https://www.richie.fi
- * Text Domain:       richie-news-feed
+ * Text Domain:       richie-news
  * Domain Path:       /languages
  */
 
@@ -35,34 +35,34 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'RICHIE_NEWS_FEED_VERSION', '1.0.0' );
+define( 'Richie_News_VERSION', '1.0.0' );
 
 /**
  * The code that runs during plugin activation.
- * This action is documented in includes/class-richie-news-feed-activator.php
+ * This action is documented in includes/class-richie-news-activator.php
  */
-function activate_richie_news_feed() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-richie-news-feed-activator.php';
-	Richie_News_Feed_Activator::activate();
+function activate_Richie_News() {
+	require_once plugin_dir_path( __FILE__ ) . 'includes/class-richie-news-activator.php';
+	Richie_News_Activator::activate();
 }
 
 /**
  * The code that runs during plugin deactivation.
- * This action is documented in includes/class-richie-news-feed-deactivator.php
+ * This action is documented in includes/class-richie-news-deactivator.php
  */
-function deactivate_richie_news_feed() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-richie-news-feed-deactivator.php';
-	Richie_News_Feed_Deactivator::deactivate();
+function deactivate_Richie_News() {
+	require_once plugin_dir_path( __FILE__ ) . 'includes/class-richie-news-deactivator.php';
+	Richie_News_Deactivator::deactivate();
 }
 
-register_activation_hook( __FILE__, 'activate_richie_news_feed' );
-register_deactivation_hook( __FILE__, 'deactivate_richie_news_feed' );
+register_activation_hook( __FILE__, 'activate_Richie_News' );
+register_deactivation_hook( __FILE__, 'deactivate_Richie_News' );
 
 /**
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and public-facing site hooks.
  */
-require plugin_dir_path( __FILE__ ) . 'includes/class-richie-news-feed.php';
+require plugin_dir_path( __FILE__ ) . 'includes/class-richie-news.php';
 
 /**
  * Begins execution of the plugin.
@@ -73,10 +73,10 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-richie-news-feed.php';
  *
  * @since    1.0.0
  */
-function run_richie_news_feed() {
+function run_Richie_News() {
 
-	$plugin = new Richie_News_Feed();
+	$plugin = new Richie_News();
 	$plugin->run();
 
 }
-run_richie_news_feed();
+run_Richie_News();

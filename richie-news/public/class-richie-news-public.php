@@ -6,8 +6,8 @@
  * @link       https://www.richie.fi
  * @since      1.0.0
  *
- * @package    Richie_News_Feed
- * @subpackage Richie_News_Feed/public
+ * @package    Richie_News
+ * @subpackage Richie_News/public
  */
 
 
@@ -17,11 +17,11 @@
  * Defines the plugin name, version, and two examples hooks for how to
  * enqueue the public-facing stylesheet and JavaScript.
  *
- * @package    Richie_News_Feed
- * @subpackage Richie_News_Feed/public
+ * @package    Richie_News
+ * @subpackage Richie_News/public
  * @author     Markku Uusitupa <markku@richie.fi>
  */
-class Richie_News_Feed_Public {
+class Richie_News_Public {
 
 	/**
 	 * The ID of this plugin.
@@ -94,15 +94,15 @@ class Richie_News_Feed_Public {
 		 * This function is provided for demonstration purposes only.
 		 *
 		 * An instance of this class should be passed to the run() function
-		 * defined in Richie_News_Feed_Loader as all of the hooks are defined
+		 * defined in Richie_News_Loader as all of the hooks are defined
 		 * in that particular class.
 		 *
-		 * The Richie_News_Feed_Loader will then create the relationship
+		 * The Richie_News_Loader will then create the relationship
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/richie-news-feed-public.css', array(), $this->version, 'all' );
+		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/richie-news-public.css', array(), $this->version, 'all' );
 
 	}
 
@@ -117,15 +117,15 @@ class Richie_News_Feed_Public {
 		 * This function is provided for demonstration purposes only.
 		 *
 		 * An instance of this class should be passed to the run() function
-		 * defined in Richie_News_Feed_Loader as all of the hooks are defined
+		 * defined in Richie_News_Loader as all of the hooks are defined
 		 * in that particular class.
 		 *
-		 * The Richie_News_Feed_Loader will then create the relationship
+		 * The Richie_News_Loader will then create the relationship
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-news-feed-public.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-news-public.js', array( 'jquery' ), $this->version, false );
 
 	}
 

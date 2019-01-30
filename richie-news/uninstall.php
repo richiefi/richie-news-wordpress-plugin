@@ -22,7 +22,7 @@
  * @link       https://www.richie.fi
  * @since      1.0.0
  *
- * @package    Richie_News_Feed
+ * @package    Richie_News
  */
 
 // If uninstall not called from WordPress, then exit.
