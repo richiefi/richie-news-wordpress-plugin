@@ -10,6 +10,7 @@
  * @subpackage Richie_News_Feed/public
  */
 
+
 /**
  * The public-facing functionality of the plugin.
  *
@@ -48,11 +49,39 @@ class Richie_News_Feed_Public {
 	 * @param      string    $version    The version of this plugin.
 	 */
 	public function __construct( $plugin_name, $version ) {
-
+    require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-news-article.php';
 		$this->plugin_name = $plugin_name;
-		$this->version = $version;
+    $this->version = $version;
+  }
 
-	}
+  function feed_route_handler($data) {
+    $args = array(
+      'numberposts' => 10,
+      'suppress_filters' => false
+    );
+    $posts = get_posts($args);
+    $articles = array();
+    foreach ($posts as $content_post) {
+      $post = get_post($content_post);
+      $article = new Richie_News_Article($post);
+      array_push($articles, $article);
+    }
+
+    return array('articles' => $articles);
+  }
+
+  /**
+	 * Register rest api route for richie feed
+	 *
+	 * @since    1.0.0
+	 */
+  public function register_richie_rest_api() {
+    apply_filters("pmpro_has_membership_access_filter", true);
+    register_rest_route( 'richie/v1', '/news', array(
+      'methods' => 'GET',
+      'callback' => array($this, 'feed_route_handler'),
+    ) );
+  }
 
 	/**
 	 * Register the stylesheets for the public-facing side of the site.
@@ -101,3 +130,5 @@ class Richie_News_Feed_Public {
 	}
 
 }
+
+

@@ -175,6 +175,8 @@ class Richie_News_Feed {
 
         $plugin_public = new Richie_News_Feed_Public( $this->get_plugin_name(), $this->get_version() );
 
+        $this->loader->add_action( 'rest_api_init', $plugin_public, 'register_richie_rest_api');
+
     }
 
     /**
