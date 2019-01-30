@@ -141,4 +141,17 @@ class Richie_News_Admin {
         require_once plugin_dir_path( __FILE__ ). 'partials/richie-news-admin-display.php';
     }
 
+    public function validate($input) {
+        // All checkboxes inputs
+        $valid = array();
+
+        //paywall
+        $valid['metered_pmpro_level'] = isset($input['metered-level']) ? $input['metered-level'] : 0;
+        $valid['member_only_pmpro_level'] = isset($input['member-only-level']) ? $input['member-only-level'] : 0;
+        return $valid;
+     }
+
+    public function options_update() {
+        register_setting($this->plugin_name, $this->plugin_name, array($this, 'validate'));
+     }
 }
