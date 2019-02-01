@@ -2,3 +2,9 @@
  * All of the CSS for your public-facing functionality should be
  * included in this file.
  */
+
+ .richie-content-wrapper {
+   padding: 20px;
+   max-width: 800px;
+   margin: 20px auto;
+ }
