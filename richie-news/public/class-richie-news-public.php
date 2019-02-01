@@ -88,13 +88,30 @@ class Richie_News_Public {
     * @since    1.0.0
     */
     public function register_richie_rest_api() {
-        apply_filters("pmpro_has_membership_access_filter", true);
+        // clean up headers
+        remove_action('wp_head', 'rsd_link'); // remove really simple discovery link
+        remove_action('wp_head', 'wp_generator'); // remove wordpress version
+        remove_action('wp_head', 'feed_links', 2); // remove rss feed links (make sure you add them in yourself if youre using feedblitz or an rss service)
+        remove_action('wp_head', 'feed_links_extra', 3); // removes all extra rss feed links
+        remove_action('wp_head', 'index_rel_link'); // remove link to index page
+        remove_action('wp_head', 'wlwmanifest_link'); // remove wlwmanifest.xml (needed to support windows live writer)
+        remove_action('wp_head', 'start_post_rel_link', 10, 0); // remove random post link
+        remove_action('wp_head', 'parent_post_rel_link', 10, 0); // remove parent post link
+        remove_action('wp_head', 'adjacent_posts_rel_link', 10, 0); // remove the next and previous post links
+        remove_action('wp_head', 'adjacent_posts_rel_link_wp_head', 10, 0 );
+        remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+        remove_action( 'wp_print_styles', 'print_emoji_styles' );
+        remove_action('wp_head', 'wp_shortlink_wp_head', 10, 0); // Remove shortlink
+
         register_rest_route( 'richie/v1', '/news', array(
             'methods' => 'GET',
             'callback' => array($this, 'feed_route_handler'),
-            ) );
-        }
-
+            'permission_callback' => function () {
+                // TODO: access control
+                return TRUE;
+            }
+        ) );
+    }
         /**
         * Register the stylesheets for the public-facing side of the site.
         *
@@ -141,6 +158,7 @@ class Richie_News_Public {
 
         }
 
-    }
+
+}
 
 
