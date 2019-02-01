@@ -68,15 +68,15 @@ class Richie_News_Public {
 
     function feed_route_handler($data) {
         $args = array(
-            'numberposts' => 10,
-            'suppress_filters' => false
+            'numberposts' => -1,
         );
         $posts = get_posts($args);
+
         $articles = array();
+        $article = new Richie_News_Article($this->richie_news_options);
         foreach ($posts as $content_post) {
             $post = get_post($content_post);
-            $article = new Richie_News_Article($post, $this->richie_news_options);
-            array_push($articles, $article);
+            array_push($articles, $article->generate_article($post));
         }
 
         return array('articles' => $articles);
