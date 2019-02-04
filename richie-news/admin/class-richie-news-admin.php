@@ -148,10 +148,68 @@ class Richie_News_Admin {
         //paywall
         $valid['metered_pmpro_level'] = isset($input['metered-level']) ? $input['metered-level'] : 0;
         $valid['member_only_pmpro_level'] = isset($input['member-only-level']) ? $input['member-only-level'] : 0;
+        if (isset( $input['access_token']) && ! empty($input['access_token'])) {
+            $valid['access_token'] = $input['access_token'];
+        }
         return $valid;
      }
 
     public function options_update() {
+        $options = get_option( $this->plugin_name );
+        if ( ! isset($options['access_token'])) {
+            $options['access_token'] = bin2hex(random_bytes(16));
+            update_option($this->plugin_name, $options);
+        }
+
         register_setting($this->plugin_name, $this->plugin_name, array($this, 'validate'));
-     }
+
+        add_settings_section ('richie_news_general', __('General settings', $this->plugin_name), null, $this->plugin_name);
+        add_settings_field('richie_news_access_token', __('Access token', $this->plugin_name), array($this, 'access_token_render'), $this->plugin_name, 'richie_news_general');
+
+        add_settings_section ('richie_news_paywall', __('Paywall', $this->plugin_name), null, $this->plugin_name);
+        add_settings_field('richie_news_metered_pmpro_level', __('Metered level', $this->plugin_name), array($this, 'metered_level_render'), $this->plugin_name, 'richie_news_paywall');
+        add_settings_field('richie_news_member_only_pmpro_level', __('Member only level', $this->plugin_name), array($this, 'member_only_level_render'), $this->plugin_name, 'richie_news_paywall');
+    }
+
+    public function access_token_render() {
+        $options = get_option( $this->plugin_name );
+        ?>
+        <input class="regular-text" type='text' name='<?php echo $this->plugin_name; ?>[access_token]' value='<?php echo $options['access_token']; ?>'>
+        <?php
+    }
+
+    public function metered_level_render() {
+        $options = get_option( $this->plugin_name );
+        $current_level = $options['metered_pmpro_level'];
+        $pmpro_levels = pmpro_getAllLevels();
+        ?>
+        <select name="<?php echo $this->plugin_name; ?>[metered-level]" id="<?php echo $this->plugin_name; ?>-metered-level">
+            <option value="0"><?php esc_attr_e('Not used', $this->plugin_name );?></option>
+            <?php
+                foreach ( $pmpro_levels as $level ) {
+                    $selected = selected( $current_level, $level->id, FALSE);
+                    echo "<option value='{$level->id}' {$selected}>{$level->name}</option>";
+                }
+            ?>
+        </select>
+        <?php
+    }
+
+    public function member_only_level_render() {
+        $options = get_option( $this->plugin_name );
+        $current_level = $options['member_only_pmpro_level'];
+        $pmpro_levels = pmpro_getAllLevels();
+        ?>
+        <select name="<?php echo $this->plugin_name; ?>[member-only-level]" id="<?php echo $this->plugin_name; ?>-member-only-level">
+            <option value="0"><?php esc_attr_e('Not used', $this->plugin_name );?></option>
+            <?php
+                foreach ( $pmpro_levels as $level ) {
+                    $selected = selected( $current_level, $level->id, FALSE);
+                    echo "<option value='{$level->id}' {$selected}>{$level->name}</option>";
+                }
+            ?>
+        </select>
+        <?php
+    }
+
 }
