@@ -11,14 +11,72 @@ class Richie_News_Article {
 
     function __construct($richie_news_options) {
         $this->news_options = $richie_news_options;
+
+        function start_wp_head_buffer() {
+            ob_start();
+        }
+        add_action('wp_head','start_wp_head_buffer',0);
+
+        function end_wp_head_buffer() {
+            global $richie_cached_head;
+            if (empty($richie_cached_head)) {
+                $richie_cached_head = ob_get_clean();
+            } else {
+                ob_end_clean();
+            }
+            remove_action('wp_head', 'start_wp_head_buffer');
+            remove_action('wp_head', 'end_wp_head_buffer');
+        }
+        add_action('wp_head','end_wp_head_buffer', PHP_INT_MAX); //PHP_INT_MAX will ensure this action is called after all other actions that can modify head
+        add_action('wp_head', array($this, 'cached_head'), PHP_INT_MAX);
+
+
+        function start_wp_footer_buffer() {
+            ob_start();
+        }
+        add_action('wp_footer','start_wp_footer_buffer', 0);
+
+        function end_wp_footer_buffer() {
+            global $richie_cached_footer;
+            if (empty($richie_cached_footer)) {
+                $richie_cached_footer = ob_get_clean();
+            } else {
+                ob_end_clean();
+            }
+            remove_action('wp_footer', 'start_wp_footer_buffer');
+            remove_action('wp_footer', 'end_wp_footer_buffer');
+        }
+        add_action('wp_footer','end_wp_footer_buffer', PHP_INT_MAX); //PHP_INT_MAX will ensure this action is called after all other actions that can modify head
+        add_action('wp_footer', array($this, 'cached_footer'), PHP_INT_MAX);
+
     }
+
+    public function cached_head() {
+        global $richie_cached_head;
+        echo $richie_cached_head;
+    }
+
+    public function cached_footer() {
+        global $richie_cached_footer;
+        echo $richie_cached_footer;
+    }
+
+
+    public function richie_pmpro_has_membership_access_filter( $hasaccess, $mypost, $myuser, $post_membership_levels ) {
+        return true;
+    }
+
     private function render_template($name, $post_id) {
-        global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID, $wp_styles;
+        global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID, $wp_styles, $wp_filter;
         require_once plugin_dir_path( __FILE__ ) . 'class-richie-news-template-loader.php';
         $richie_news_template_loader = new Richie_News_Template_Loader;
         $wp_query = new WP_Query(array(
             'p' => $post_id
         ));
+
+        // add pmpro filter which overrides access and always returns true
+        // this way it won't filter the content and always returns full content
+        add_filter( 'pmpro_has_membership_access_filter', array($this, 'richie_pmpro_has_membership_access_filter'), 20, 4 );
 
         ob_start();
         $richie_news_template_loader
@@ -45,7 +103,7 @@ class Richie_News_Article {
         $user_data = get_userdata($post->post_author);
         $category = get_the_category($post_id);
 
-        $article->id = wp_generate_uuid4();
+        $article->id = $post->guid;
         $article->title = $post->post_title;
         $article->summary = $post->post_excerpt;
         if ($category) {
