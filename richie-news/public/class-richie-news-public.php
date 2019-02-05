@@ -107,8 +107,10 @@ class Richie_News_Public {
             'methods' => 'GET',
             'callback' => array($this, 'feed_route_handler'),
             'permission_callback' => function () {
-                // TODO: access control
-                return TRUE;
+                if (isset( $_GET['token']) && $this->richie_news_options['access_token'] === $_GET['token']) {
+                    return true;
+                }
+                return false;
             }
         ) );
     }
