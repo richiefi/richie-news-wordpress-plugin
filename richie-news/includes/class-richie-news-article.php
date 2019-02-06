@@ -96,12 +96,17 @@ class Richie_News_Article {
         $post = $my_post;
 
         $article = new stdClass();
-        $this->article = $article;
 
         // get metadata
         $post_id = $post->ID;
         $user_data = get_userdata($post->post_author);
         $category = get_the_category($post_id);
+
+        $thumbnail_id = get_post_thumbnail_id($post_id);
+
+        if ( $thumbnail_id ) {
+            $article->image_url = wp_get_attachment_url($thumbnail_id);
+        }
 
         $article->id = $post->guid;
         $article->title = $post->post_title;
