@@ -49,6 +49,17 @@ class Richie_News_Article {
         add_action('wp_footer','end_wp_footer_buffer', PHP_INT_MAX); //PHP_INT_MAX will ensure this action is called after all other actions that can modify head
         add_action('wp_footer', array($this, 'cached_footer'), PHP_INT_MAX);
 
+        function get_assets() {
+            global $wp_styles, $wp_scripts, $feed_assets;
+            $feed_assets = array();
+            foreach ( $wp_styles->queue as $handle) {
+                array_push($feed_assets, $wp_styles->registered[$handle]->src);
+            }
+            foreach ( $wp_scripts->queue as $handle) {
+                array_push($feed_assets, $wp_scripts->registered[$handle]->src);
+            }
+        }
+        add_action( 'wp_enqueue_scripts', 'get_assets', PHP_INT_MAX);
     }
 
     public function cached_head() {
@@ -82,6 +93,7 @@ class Richie_News_Article {
         $richie_news_template_loader
             ->get_template_part($name);
 
+        // get_template_part($name);
         $rendered_content = ob_get_clean();
         wp_reset_query();
         wp_reset_postdata();
@@ -91,7 +103,7 @@ class Richie_News_Article {
 
 
     public function generate_article($my_post) {
-        global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID;
+        global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID, $feed_assets;
 
         $post = $my_post;
 
@@ -114,6 +126,7 @@ class Richie_News_Article {
         if ($category) {
             $article->kicker = $category[0]->name;
         }
+
         $article->date = (new DateTime($post->post_date_gmt))->format('c');
         $article->updated_date = (new DateTime($post->post_modified_gmt))->format('c');
         $article->share_link_url = get_permalink($post_id);
@@ -138,8 +151,56 @@ class Richie_News_Article {
             $article->metered_paywall = self::METERED_PAYWALL_FREE_VALUE;
         }
 
+        $rendered_content = $this->render_template('richie-news-article', $post_id);
 
-        $article->content_html_document = $this->render_template('richie-news-article', $post_id);
+        $urls = array_unique(wp_extract_urls($rendered_content));
+        $photos = array();
+        $assets = array();
+
+        if ( $urls ) {
+            foreach ( $urls as $url) {
+                $local_url = remove_query_arg( 'ver', str_replace('/wp-content', 'assets', wp_make_link_relative($url)));
+                if ( empty($local_url) ) {
+                    continue;
+                }
+
+                $attachment = attachment_url_to_postid($url);
+                if ( $attachment ) {
+                    $item = get_post($attachment);
+                    if ( wp_attachment_is_image($item) ) {
+                        $rendered_content = str_replace($url, $local_url, $rendered_content);
+                        array_push($photos, array(
+                            'caption' => wp_get_attachment_caption($item->ID),
+                            'local_name' => $local_url,
+                            'remote_url' => wp_get_attachment_url($attachment),
+                        ));
+                    } else {
+                        $rendered_content = str_replace($url, $local_url, $rendered_content);
+                        array_push($assets, array(
+                            'local_name' => $local_url,
+                            'remote_url' => wp_get_attachment_url($attachment)
+                        ));
+                    }
+                } else {
+                    // not an attachment
+                    // foreach ( array_unique($feed_assets) as $asset) {
+                    //     if (strpos($url, $asset) === 0) {
+                    //         $rendered_content = str_replace($url, $local_url, $rendered_content);
+                    //         array_push($assets, array(
+                    //             'local_name' => $local_url,
+                    //             'remote_url' => $url
+                    //         ));
+                    //     }
+
+                    // }
+                }
+            }
+
+        }
+
+        $article->content_html_document = $rendered_content;
+        $article->assets = $assets;
+        $article->photos = array($photos);
         return $article;
     }
 }
