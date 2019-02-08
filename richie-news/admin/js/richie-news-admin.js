@@ -52,7 +52,6 @@
               source_items: $(this).sortable('toArray', {attribute: 'data-source-id'})
             }
             $.post(ajaxurl, data, function(response){
-
             });
         }
       });
@@ -60,9 +59,11 @@
       $('.feed-source-list').on('click', '.remove-source-item', function() {
         var data = {
           action: 'remove_source_item',
-          id: $(this).parents('tr').data('data-source-id')
+          source_id: $(this).parents('tr').data('source-id')
         }
-        alert(JSON.stringify(data));
+        $.post(ajaxurl, data, function(response) {
+          window.location.reload();
+        });
       })
     });
 })( jQuery );

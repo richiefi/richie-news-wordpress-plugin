@@ -60,6 +60,8 @@ class Richie_News_Admin {
         $this->sources_option_name = $plugin_name . '_sources';
 
         add_action('wp_ajax_list_update_order', array($this, 'order_source_list'));
+        add_action('wp_ajax_remove_source_item', array($this, 'remove_source_item'));
+
     }
 
     /**
@@ -333,6 +335,35 @@ class Richie_News_Admin {
         $updated = update_option($this->sources_option_name, $option);
         add_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
 
+        wp_send_json_success($updated);
+    }
+
+    public function remove_source_item() {
+        if ( !isset($_POST['source_id']) ) {
+            echo 'Missing source id';
+            wp_die();
+        }
+
+        $source_id = intval($_POST['source_id']);
+        $option = get_option($this->sources_option_name);
+        $current_list = isset($option['sources']) ? $option['sources'] : array();
+        foreach($current_list as $k=>$v) {
+            foreach ($current_list[$k] as $key=>$value) {
+                echo $key . ':' . $value;
+              if ($key === "id") {
+                  if ($value == $source_id) {
+                    unset($current_list[$k]); //Delete from Array
+                  }
+                  break;
+              }
+            }
+        }
+        $option['sources'] = $current_list;
+
+        //skip validate source
+        remove_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
+        $updated = update_option($this->sources_option_name, $option);
+        add_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
         wp_send_json_success($updated);
     }
 
