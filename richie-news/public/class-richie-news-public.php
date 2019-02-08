@@ -72,6 +72,7 @@ class Richie_News_Public {
         $posts = array();
         foreach( $this->richie_news_sources as $source ) {
             $args = array(
+                'cat' => $source['categories'],
                 'numberposts' => $source['number_of_posts'],
             );
             $source_posts = get_posts($args);
