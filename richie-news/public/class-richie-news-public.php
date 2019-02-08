@@ -51,6 +51,7 @@ class Richie_News_Public {
 
     private $richie_news_options;
 
+    private $richie_news_sources;
 	/**
     * Initialize the class and set its properties.
     *
@@ -63,20 +64,25 @@ class Richie_News_Public {
 		$this->plugin_name = $plugin_name;
         $this->version = $version;
         $this->richie_news_options = get_option($plugin_name);
-
+        $sourcelist = get_option($plugin_name . '_sources');
+        $this->richie_news_sources = isset($sourcelist['sources']) ? $sourcelist['sources'] : array();
     }
 
     function feed_route_handler($data) {
-        $args = array(
-            'numberposts' => -1,
-        );
-        $posts = get_posts($args);
-
+        $posts = array();
+        foreach( $this->richie_news_sources as $source ) {
+            $args = array(
+                'numberposts' => $source['number_of_posts'],
+            );
+            $source_posts = get_posts($args);
+            $posts = array_unique(array_merge($posts, $source_posts), SORT_REGULAR);
+        }
         $articles = array();
         $article = new Richie_News_Article($this->richie_news_options);
         foreach ($posts as $content_post) {
             $post = get_post($content_post);
-            array_push($articles, $article->generate_article($post));
+            $a = $article->generate_article($post);
+            array_push($articles, $a);
         }
 
         return array('articles' => $articles);
@@ -113,6 +119,10 @@ class Richie_News_Public {
                 return false;
             }
         ) );
+
+        // register_rest_route( 'richie/v1', '/assets', array(
+
+        // ));
     }
         /**
         * Register the stylesheets for the public-facing side of the site.
