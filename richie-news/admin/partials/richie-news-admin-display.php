@@ -14,16 +14,38 @@
 ?>
 
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
+<?php
+$active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
+?>
 
 <div class="wrap">
     <h2><?php echo esc_html(get_admin_page_title()); ?></h2>
-    <form method="post" name="richie-news-options" action="options.php">
+    <h2 class="nav-tab-wrapper">
+        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=settings' ) ?>" class="nav-tab <?php echo $active_tab == 'settings' || '' ? 'nav-tab-active' : ''; ?>">Settings</a>
+        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=sources' ) ?>" class="nav-tab <?php echo $active_tab == 'sources' ? 'nav-tab-active' : ''; ?>">News sources</a>
+    </h2>
 
-        <?php
-            settings_fields($this->plugin_name);
-            do_settings_sections($this->plugin_name);
-        ?>
+    <?php if ( $active_tab === 'settings' ) : ?>
+        <form method="post" name="richie-news-options" action="options.php">
 
-        <?php submit_button('Save all changes', 'primary','submit', TRUE); ?>
-    </form>
+            <?php
+                settings_fields($this->settings_option_name);
+                do_settings_sections($this->settings_option_name);
+            ?>
+
+            <?php submit_button('Save all changes', 'primary','submit', TRUE); ?>
+        </form>
+
+    <?php else : ?>
+        <h3><?php _e('News sources') ?></h3>
+        <?php echo $this->source_list() ?>
+        <hr>
+        <form method="post" name="richie-news-source-form" action="options.php">
+            <?php
+                settings_fields($this->sources_option_name);
+                do_settings_sections($this->sources_option_name);
+                submit_button('Add source', 'primary','submit', TRUE);
+            ?>
+        </form>
+    <?php endif; ?>
 </div>

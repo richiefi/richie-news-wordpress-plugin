@@ -40,6 +40,10 @@ class Richie_News_Admin {
     */
     private $version;
 
+    private $settings_option_name;
+    private $sources_option_name;
+    private $settings_page_slug;
+
     /**
     * Initialize the class and set its properties.
     *
@@ -51,7 +55,11 @@ class Richie_News_Admin {
 
         $this->plugin_name = $plugin_name;
         $this->version = $version;
+        $this->settings_page_slug = $plugin_name;
+        $this->settings_option_name = $plugin_name;
+        $this->sources_option_name = $plugin_name . '_sources';
 
+        add_action('wp_ajax_list_update_order', array($this, 'order_source_list'));
     }
 
     /**
@@ -97,7 +105,8 @@ class Richie_News_Admin {
         */
 
         wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-news-admin.js', array( 'jquery' ), $this->version, false );
-
+        wp_enqueue_script( 'jquery-ui-core' );
+        wp_enqueue_script( 'jquery-ui-sortable' );
     }
 
     /**
@@ -116,7 +125,7 @@ class Richie_News_Admin {
         *        Administration Menus: http://codex.wordpress.org/Administration_Menus
         *
         */
-        add_options_page( 'Richie News Settings', 'Richie News', 'manage_options', $this->plugin_name, array($this, 'load_admin_page_content') );
+        add_options_page( 'Richie News Settings', 'Richie News', 'manage_options', $this->settings_page_slug, array($this, 'load_admin_page_content') );
     }
 
     /**
@@ -130,7 +139,7 @@ class Richie_News_Admin {
         *  Documentation : https://codex.wordpress.org/Plugin_API/Filter_Reference/plugin_action_links_(plugin_file_name)
         */
         $settings_link = array(
-            '<a href="' . admin_url( 'options-general.php?page=' . $this->plugin_name ) . '">' . __('Settings', $this->plugin_name) . '</a>',
+            '<a href="' . admin_url( 'options-general.php?page=' . $this->settings_page_slug ) . '">' . __('Settings', $this->plugin_name) . '</a>',
         );
         return array_merge(  $settings_link, $links );
 
@@ -141,34 +150,89 @@ class Richie_News_Admin {
         require_once plugin_dir_path( __FILE__ ). 'partials/richie-news-admin-display.php';
     }
 
-    public function validate($input) {
-        // All checkboxes inputs
+    public function validate_settings($input) {
         $valid = array();
 
         //paywall
-        $valid['metered_pmpro_level'] = isset($input['metered-level']) ? $input['metered-level'] : 0;
-        $valid['member_only_pmpro_level'] = isset($input['member-only-level']) ? $input['member-only-level'] : 0;
+        $valid['metered_pmpro_level'] = isset($input['metered-level']) ? intval($input['metered-level']) : 0;
+        $valid['member_only_pmpro_level'] = isset($input['member-only-level']) ? intval($input['member-only-level']) : 0;
         if (isset( $input['access_token']) && ! empty($input['access_token'])) {
-            $valid['access_token'] = $input['access_token'];
+            $valid['access_token'] = sanitize_text_field($input['access_token']);
         }
         return $valid;
-     }
+    }
 
-    public function options_update() {
-        $options = get_option( $this->plugin_name );
-        if ( ! isset($options['access_token'])) {
-            $options['access_token'] = bin2hex(random_bytes(16));
-            update_option($this->plugin_name, $options);
+    public function validate_source($input) {
+        $current_option = get_option($this->sources_option_name, array(
+            'sources' => array()
+        ));
+        add_settings_error(
+            $this->sources_option_name,
+            esc_attr( 'sources_error' ),
+            __('not ready yet'),
+            'error'
+        );
+
+        $sources = isset($current_option['sources']) ? $current_option['sources'] : array();
+        $next_id = 0;
+
+        foreach ( $sources as $source ) {
+            if ( $source['id'] >= $next_id ) {
+                $next_id = $source['id'] + 1;
+            }
         }
 
-        register_setting($this->plugin_name, $this->plugin_name, array($this, 'validate'));
+        if ( isset( $input['source_name'] ) &&
+             isset( $input['source_categories'] ) &&
+             isset( $input['number_of_posts'] ) ) {
+            array_push($sources, array(
+                'id' => $next_id,
+                'name' => sanitize_text_field($input['source_name']),
+                'categories' => $input['source_categories'],
+                'number_of_posts' => intval($input['number_of_posts'])
+            ));
+        }
+        return array(
+            'sources' => $sources
+        );
+    }
 
-        add_settings_section ('richie_news_general', __('General settings', $this->plugin_name), null, $this->plugin_name);
-        add_settings_field('richie_news_access_token', __('Access token', $this->plugin_name), array($this, 'access_token_render'), $this->plugin_name, 'richie_news_general');
+    public function options_update() {
+        // run on admin_init
 
-        add_settings_section ('richie_news_paywall', __('Paywall', $this->plugin_name), null, $this->plugin_name);
-        add_settings_field('richie_news_metered_pmpro_level', __('Metered level', $this->plugin_name), array($this, 'metered_level_render'), $this->plugin_name, 'richie_news_paywall');
-        add_settings_field('richie_news_member_only_pmpro_level', __('Member only level', $this->plugin_name), array($this, 'member_only_level_render'), $this->plugin_name, 'richie_news_paywall');
+        register_setting($this->settings_option_name, $this->settings_option_name, array(
+            'sanitize_callback' => array($this, 'validate_settings'))
+        );
+
+        register_setting($this->sources_option_name, $this->sources_option_name, array(
+            'sanitize_callback' => array($this, 'validate_source'))
+        );
+
+        $options = get_option( $this->settings_option_name );
+        if ( ! isset($options['access_token'])) {
+            $options['access_token'] = bin2hex(random_bytes(16));
+            update_option($this->settings_option_name, $options);
+        }
+
+        $general_section_name = 'richie_news_general';
+        $paywall_section_name = 'richie_news_paywall';
+        $sources_section_name = 'richie_news_source';
+
+        // create general section
+        add_settings_section ($general_section_name, __('General settings', $this->plugin_name), null, $this->settings_option_name);
+        add_settings_field('richie_news_access_token', __('Access token', $this->plugin_name), array($this, 'access_token_render'), $this->settings_option_name, $general_section_name);
+
+        // create paywall section
+        add_settings_section ($paywall_section_name, __('Paywall', $this->plugin_name), null, $this->settings_option_name);
+        add_settings_field('richie_news_metered_pmpro_level', __('Metered level', $this->plugin_name), array($this, 'metered_level_render'), $this->settings_option_name, $paywall_section_name);
+        add_settings_field('richie_news_member_only_pmpro_level', __('Member only level', $this->plugin_name), array($this, 'member_only_level_render'), $this->settings_option_name, $paywall_section_name);
+
+        // create source section
+        add_settings_section ($sources_section_name, __('Add new feed source', $this->plugin_name), null, $this->sources_option_name);
+        add_settings_field('richie_news_source_name', __('Name', $this->plugin_name), array($this, 'source_name_render'), $this->sources_option_name, $sources_section_name);
+        add_settings_field('richie_news_source_category', __('Categories', $this->plugin_name), array($this, 'category_list_render'), $this->sources_option_name, $sources_section_name);
+        add_settings_field('richie_news_source_amount', __('Number of posts', $this->plugin_name), array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
+        //add_settings_field('richie_news_source_amount', __('Post amount', $this->plugin_name), )
     }
 
     public function access_token_render() {
@@ -210,6 +274,109 @@ class Richie_News_Admin {
             ?>
         </select>
         <?php
+    }
+
+    public function source_name_render() {
+        ?>
+        <input class="regular-text" type='text' name='<?php echo $this->sources_option_name; ?>[source_name]'>
+        <?php
+    }
+
+    public function category_list_render() {
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-news-category-walker.php';
+
+        $custom_walker = new Richie_Walker_Category_Checklist(null, $this->sources_option_name.'[source_categories][]');
+        ?>
+        <ul>
+        <?php wp_category_checklist( 0, 0, false, false, $custom_walker ); ?>
+        </ul>
+        <?php
+    }
+
+    public function number_of_posts_render() {
+        ?>
+            <input class="small-text" type='text' name='<?php echo $this->sources_option_name ; ?>[number_of_posts]'>
+            <span class="description"><?php esc_attr_e( 'Amount of posts included in the feed', $this->plugin_name ); ?></span>
+        <?php
+    }
+
+    public function order_source_list() {
+        if ( !isset($_POST['source_items']) ) {
+            echo 'Missing source list';
+            wp_die();
+        }
+        $option = get_option($this->sources_option_name);
+        $current_list = isset($option['sources']) ? $option['sources'] : array();
+        $new_order = $_POST['source_items'];
+        $new_list = array();
+
+        if ( count($current_list) == count($sources)) {
+            $error = new WP_Error('-1', 'Current list and received list size doesn\'t match');
+            wp_send_json_error( $error, 400 );
+        }
+
+        $map = null;
+
+        foreach( $new_order as $id ) {
+            $item = array_search($id, array_column($current_list, 'id'));
+            if ( isset($item) ) {
+                array_push($new_list, $current_list[$item]);
+            } else {
+                $error = new WP_Error('-1', 'Something wrong');
+                wp_send_json_error ( $error, 500);
+            }
+        }
+
+        $option['sources'] = $new_list;
+        // skip validate source
+        remove_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
+        $updated = update_option($this->sources_option_name, $option);
+        add_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
+
+        wp_send_json_success($updated);
+    }
+
+
+    public function source_list() {
+        $options = get_option($this->sources_option_name);
+        if ( isset($options['sources']) && ! empty( $options['sources'] ) ): ?>
+            <table class="widefat feed-source-list sortable-list">
+                <thead>
+                    <th style="width: 30px;"></th>
+                    <th>Name</th>
+                    <th>Categories</th>
+                    <th>Number of posts</th>
+                    <th>Actions</th>
+                </thead>
+                <tbody>
+                <?php
+                foreach( $options['sources'] as $key => $source) {
+                    $categories = get_categories(array(
+                        'include' => $source['categories']
+                    ));
+                    $category_names = array();
+                    foreach ( $categories as $cat ) {
+                        array_push( $category_names, $cat->name );
+                    }
+                    ?>
+                    <tr id="source-<?php echo $source['id']; ?>" data-source-id="<?php echo $source['id'] ?>" class="source-item">
+                        <td><span class="dashicons dashicons-menu"></span></td>
+                        <td><?php echo $source['name'] ?></td>
+                        <td><?php echo implode(', ', $category_names) ?></td>
+                        <td><?php echo $source['number_of_posts']; ?> posts</td>
+                        <td>
+                            <a href="#" class="remove-source-item"">Remove</a>
+                        </td>
+                    </tr>
+                    <?php
+                }
+                ?>
+                </tbody>
+            </table>
+        <?php
+        else:
+            echo _e('<em>No sources configured. Add news feed sources with the form bellow.</em>');
+        endif;
     }
 
 }

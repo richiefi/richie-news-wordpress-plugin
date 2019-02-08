@@ -28,5 +28,41 @@
 	 * Although scripts in the WordPress core, Plugins and Themes may be
 	 * practising this, we should strive to set a better example in our own work.
 	 */
+    $(function() {
+      $('.sortable-list tbody').sortable({
+        items: '.source-item',
+        opacity: 0.5,
+        cursor: 'pointer',
+        axis: 'y',
+        helper: function(e, tr)
+        {
+          var $originals = tr.children();
+          var $helper = tr.clone();
+          $helper.children().each(function(index)
+          {
+            // Set helper cell sizes to match the original sizes
+            $(this).width($originals.eq(index).width());
+          });
+          return $helper;
+        },
+        update: function() {
 
+            var data = {
+              action: 'list_update_order',
+              source_items: $(this).sortable('toArray', {attribute: 'data-source-id'})
+            }
+            $.post(ajaxurl, data, function(response){
+
+            });
+        }
+      });
+
+      $('.feed-source-list').on('click', '.remove-source-item', function() {
+        var data = {
+          action: 'remove_source_item',
+          id: $(this).parents('tr').data('data-source-id')
+        }
+        alert(JSON.stringify(data));
+      })
+    });
 })( jQuery );
