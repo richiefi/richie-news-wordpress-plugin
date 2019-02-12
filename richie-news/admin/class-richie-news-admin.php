@@ -184,15 +184,30 @@ class Richie_News_Admin {
             }
         }
 
-        if ( isset( $input['source_name'] ) &&
-             isset( $input['source_categories'] ) &&
-             isset( $input['number_of_posts'] ) ) {
-            array_push($sources, array(
+        if (
+            isset( $input['source_name'] ) &&
+            isset( $input['number_of_posts'] ) &&
+            ! empty ( $input['source_name'] &&
+            intval( $input['number_of_posts']) > 0 )
+        ) {
+
+            $source = array(
                 'id' => $next_id,
                 'name' => sanitize_text_field($input['source_name']),
-                'categories' => $input['source_categories'],
                 'number_of_posts' => intval($input['number_of_posts'])
-            ));
+            );
+
+            if (isset($input['source_categories']) && ! empty($input['source_categories'])) {
+                $source['categories'] = $input['source_categories'];
+            }
+            array_push($sources, $source);
+        } else {
+            add_settings_error(
+                $this->sources_option_name,
+                esc_attr( 'sources_error' ),
+                __('Name and number of posts are required'),
+                'error'
+            );
         }
         return array(
             'sources' => $sources
@@ -382,18 +397,22 @@ class Richie_News_Admin {
                 <tbody>
                 <?php
                 foreach( $options['sources'] as $key => $source) {
-                    $categories = get_categories(array(
-                        'include' => $source['categories']
-                    ));
                     $category_names = array();
-                    foreach ( $categories as $cat ) {
-                        array_push( $category_names, $cat->name );
+                    if (! empty($source['categories'])) {
+                        $categories = get_categories(array(
+                            'include' => $source['categories']
+                        ));
+                        foreach ( $categories as $cat ) {
+                            array_push( $category_names, $cat->name );
+                        }
+                    } else {
+                        array_push( $category_names, 'All categories');
                     }
                     ?>
                     <tr id="source-<?php echo $source['id']; ?>" data-source-id="<?php echo $source['id'] ?>" class="source-item">
                         <td><span class="dashicons dashicons-menu"></span></td>
                         <td><?php echo $source['name'] ?></td>
-                        <td><?php echo implode(', ', $category_names) ?></td>
+                        <td><?php echo implode(', ', $category_names); ?></td>
                         <td><?php echo $source['number_of_posts']; ?> posts</td>
                         <td>
                             <a href="#" class="remove-source-item"">Remove</a>
