@@ -72,9 +72,11 @@ class Richie_News_Public {
         $posts = array();
         foreach( $this->richie_news_sources as $source ) {
             $args = array(
-                'cat' => $source['categories'],
                 'numberposts' => $source['number_of_posts'],
             );
+            if ( isset( $source['categories'] ) && ! empty( $source['categories'] ) ) {
+                $args['cat'] = $source['categories'];
+            }
             $source_posts = get_posts($args);
             $posts = array_unique(array_merge($posts, $source_posts), SORT_REGULAR);
         }
