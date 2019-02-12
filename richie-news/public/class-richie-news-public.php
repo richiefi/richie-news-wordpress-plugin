@@ -81,14 +81,45 @@ class Richie_News_Public {
             $posts = array_unique(array_merge($posts, $source_posts), SORT_REGULAR);
         }
         $articles = array();
-        $article = new Richie_News_Article($this->richie_news_options);
         foreach ($posts as $content_post) {
-            $post = get_post($content_post);
-            $a = $article->generate_article($post);
-            array_push($articles, $a);
+            $updated_date = (new DateTime($content_post->post_date_gmt))->format('c');
+
+            array_push($articles, array(
+                'id' => $content_post->ID,
+                'last_updated' => $updated_date
+            ));
         }
 
-        return array('articles' => $articles);
+        $last_updated = strtotime( max( array_column($articles, 'last_updated' ) ) );
+        // $if_modified_since = null;
+        // if (isset($_ENV['HTTP_IF_MODIFIED_SINCE']))
+        //     $if_modified_since = strtotime(substr($_ENV['HTTP_IF_MODIFIED_SINCE'], 5));
+        // if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']))
+        //     $if_modified_since = strtotime(substr($_SERVER['HTTP_IF_MODIFIED_SINCE'], 5));
+        // if ($if_modified_since && $if_modified_since >= $last_updated) {
+        //     header($_SERVER['SERVER_PROTOCOL'] . ' 304 Not Modified');
+        //     wp_send_json();
+        // }
+        header( 'Last-Modified: ' . date( 'D, d M Y H:i:s', $last_updated ) );
+        return array('article_ids' => $articles );
+    }
+
+    public function article_route_handler($data) {
+        $article = new Richie_News_Article($this->richie_news_options);
+        $post = get_post($data['id']);
+        if ( empty( $post ) ) {
+            return new WP_Error( 'no_id', 'Invalid article id', array( 'status' => 404 ) );
+        } else {
+            $generated_article = $article->generate_article($post);
+            return $generated_article;
+        }
+    }
+
+    public function check_permission() {
+        if (isset( $_GET['token']) && $this->richie_news_options['access_token'] === $_GET['token']) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -115,13 +146,21 @@ class Richie_News_Public {
         register_rest_route( 'richie/v1', '/news', array(
             'methods' => 'GET',
             'callback' => array($this, 'feed_route_handler'),
-            'permission_callback' => function () {
-                if (isset( $_GET['token']) && $this->richie_news_options['access_token'] === $_GET['token']) {
-                    return true;
-                }
-                return false;
-            }
+            'permission_callback' => array($this, 'check_permission')
         ) );
+
+        register_rest_route( 'richie/v1', '/article/(?P<id>\d+)', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'article_route_handler'),
+            'permission_callback' => array($this, 'check_permission'),
+            'args' => array(
+                'id' => array(
+                  'validate_callback' => function($param, $request, $key) {
+                    return is_numeric( $param );
+                  }
+                ),
+            ),
+        ));
 
         // register_rest_route( 'richie/v1', '/assets', array(
 
