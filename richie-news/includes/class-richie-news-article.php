@@ -49,6 +49,7 @@ class Richie_News_Article {
         add_action('wp_footer','end_wp_footer_buffer', PHP_INT_MAX); //PHP_INT_MAX will ensure this action is called after all other actions that can modify head
         add_action('wp_footer', array($this, 'cached_footer'), PHP_INT_MAX);
 
+
         function get_assets() {
             global $wp_styles, $wp_scripts, $feed_assets;
             $feed_assets = array();
@@ -78,7 +79,7 @@ class Richie_News_Article {
     }
 
     private function render_template($name, $post_id) {
-        global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID, $wp_styles, $wp_filter;
+        global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID, $wp_styles, $wp_scripts, $wp_filter;
         require_once plugin_dir_path( __FILE__ ) . 'class-richie-news-template-loader.php';
         $richie_news_template_loader = new Richie_News_Template_Loader;
         $wp_query = new WP_Query(array(
@@ -106,8 +107,9 @@ class Richie_News_Article {
         global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID, $feed_assets;
 
         $post = $my_post;
-
+        $hash = md5(serialize($my_post));
         $article = new stdClass();
+        $article->hash = $hash;
 
         // get metadata
         $post_id = $post->ID;
@@ -156,11 +158,31 @@ class Richie_News_Article {
             $article->metered_paywall = self::METERED_PAYWALL_FREE_VALUE;
         }
 
-        $rendered_content = $this->render_template('richie-news-article', $post_id);
+        $content_url = add_query_arg( array(
+            'richie_news' => 1,
+            'token' =>  $this->news_options['access_token']
+        ), get_permalink($post_id));
 
-        $urls = array_unique(wp_extract_urls($rendered_content));
         $photos = array();
         $assets = array();
+
+        $transient_key = 'richie_news_' . $hash;
+        $rendered_content = get_transient($transient_key);
+
+        if ( empty($rendered_content) ) {
+            $response = wp_remote_get(str_replace('localhost:8000', '192.168.0.104:8000', $content_url), array ( 'sslverify' => false));
+
+            if ( is_array( $response ) && ! is_wp_error( $response ) ) {
+                $rendered_content = $response['body'];
+                set_transient($transient_key, $rendered_content, 60 * 10);
+                $article->from_cache = false;
+            }
+        } else {
+            $article->from_cache = true;
+        }
+
+        $urls = array_unique(wp_extract_urls($rendered_content));
+
 
         if ( $urls ) {
             foreach ( $urls as $url) {
@@ -170,14 +192,16 @@ class Richie_News_Article {
                 }
 
                 $attachment = attachment_url_to_postid($url);
+
                 if ( $attachment ) {
                     $item = get_post($attachment);
+                    $metadata = get_post_meta($item->ID);
                     if ( wp_attachment_is_image($item) ) {
                         $rendered_content = str_replace($url, $local_url, $rendered_content);
                         array_push($photos, array(
                             'caption' => wp_get_attachment_caption($item->ID),
                             'local_name' => $local_url,
-                            'remote_url' => wp_get_attachment_url($attachment),
+                            'remote_url' => wp_get_attachment_url($attachment)
                         ));
                     } else {
                         $rendered_content = str_replace($url, $local_url, $rendered_content);
@@ -201,9 +225,11 @@ class Richie_News_Article {
                 }
             }
 
+            $article->content_html_document = $rendered_content;
         }
 
-        $article->content_html_document = $rendered_content;
+        // $rendered_content = $this->render_template('richie-news-article', $post_id);
+
         $article->assets = $assets;
         $article->photos = array($photos);
         return $article;
