@@ -125,51 +125,62 @@ class Richie_News_Public {
 
         // ));
     }
-        /**
-        * Register the stylesheets for the public-facing side of the site.
-        *
-        * @since    1.0.0
-        */
-        public function enqueue_styles() {
 
-            /**
-            * This function is provided for demonstration purposes only.
-            *
-            * An instance of this class should be passed to the run() function
-            * defined in Richie_News_Loader as all of the hooks are defined
-            * in that particular class.
-            *
-            * The Richie_News_Loader will then create the relationship
-            * between the defined hooks and the functions defined in this
-            * class.
-            */
-
-            wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/richie-news-public.css', array(), $this->version, 'all' );
-
+    public function richie_news_template($template) {
+        if (isset( $_GET['token']) && $this->richie_news_options['access_token'] === $_GET['token']) {
+            if( isset( $_GET['richie_news'] ) ) {
+                add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
+                $template = locate_template( 'richie-news/richie-news-article.php', false );
+            }
         }
+        return $template;
+    }
+
+    /**
+    * Register the stylesheets for the public-facing side of the site.
+    *
+    * @since    1.0.0
+    */
+    public function enqueue_styles() {
 
         /**
-        * Register the JavaScript for the public-facing side of the site.
+        * This function is provided for demonstration purposes only.
         *
-        * @since    1.0.0
+        * An instance of this class should be passed to the run() function
+        * defined in Richie_News_Loader as all of the hooks are defined
+        * in that particular class.
+        *
+        * The Richie_News_Loader will then create the relationship
+        * between the defined hooks and the functions defined in this
+        * class.
         */
-        public function enqueue_scripts() {
 
-            /**
-            * This function is provided for demonstration purposes only.
-            *
-            * An instance of this class should be passed to the run() function
-            * defined in Richie_News_Loader as all of the hooks are defined
-            * in that particular class.
-            *
-            * The Richie_News_Loader will then create the relationship
-            * between the defined hooks and the functions defined in this
-            * class.
-            */
+        wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/richie-news-public.css', array(), $this->version, 'all' );
 
-            wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-news-public.js', array( 'jquery' ), $this->version, false );
+    }
 
-        }
+    /**
+    * Register the JavaScript for the public-facing side of the site.
+    *
+    * @since    1.0.0
+    */
+    public function enqueue_scripts() {
+
+        /**
+        * This function is provided for demonstration purposes only.
+        *
+        * An instance of this class should be passed to the run() function
+        * defined in Richie_News_Loader as all of the hooks are defined
+        * in that particular class.
+        *
+        * The Richie_News_Loader will then create the relationship
+        * between the defined hooks and the functions defined in this
+        * class.
+        */
+
+        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-news-public.js', array( 'jquery' ), $this->version, false );
+
+    }
 
 
 }
