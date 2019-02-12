@@ -127,8 +127,13 @@ class Richie_News_Article {
             $article->kicker = $category[0]->name;
         }
 
-        $article->date = (new DateTime($post->post_date_gmt))->format('c');
-        $article->updated_date = (new DateTime($post->post_modified_gmt))->format('c');
+        $date = (new DateTime($post->post_date_gmt))->format('c');
+        $updated_date = (new DateTime($post->post_date_gmt))->format('c');
+        $article->date = $date;
+        if ($date != $updated_date) {
+            $article->updated_date = $updated_date;
+        }
+
         $article->share_link_url = get_permalink($post_id);
 
 
