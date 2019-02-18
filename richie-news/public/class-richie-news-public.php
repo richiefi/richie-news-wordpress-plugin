@@ -82,11 +82,12 @@ class Richie_News_Public {
         }
         $articles = array();
         foreach ($posts as $content_post) {
-            $updated_date = (new DateTime($content_post->post_date_gmt))->format('c');
+            $date = (new DateTime($content_post->post_date_gmt))->format('c');
+            $updated_date = (new DateTime($content_post->post_modified_gmt))->format('c');
 
             array_push($articles, array(
                 'id' => $content_post->ID,
-                'last_updated' => $updated_date
+                'last_updated' => max($date, $updated_date)
             ));
         }
 
