@@ -61,6 +61,7 @@ class Richie_News_Admin {
 
         add_action('wp_ajax_list_update_order', array($this, 'order_source_list'));
         add_action('wp_ajax_remove_source_item', array($this, 'remove_source_item'));
+        $this->register_taxonomy_article_set();
 
     }
 
@@ -106,9 +107,10 @@ class Richie_News_Admin {
         * class.
         */
 
-        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-news-admin.js', array( 'jquery' ), $this->version, false );
         wp_enqueue_script( 'jquery-ui-core' );
         wp_enqueue_script( 'jquery-ui-sortable' );
+        wp_enqueue_script('suggest');
+        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-news-admin.js', array( 'jquery' ), $this->version, false );
     }
 
     /**
@@ -152,6 +154,30 @@ class Richie_News_Admin {
         require_once plugin_dir_path( __FILE__ ). 'partials/richie-news-admin-display.php';
     }
 
+    public function register_taxonomy_article_set() {
+        $labels = [
+            'name'              => _x('Richie Article Sets', 'taxonomy general name'),
+            'singular_name'     => _x('Richie Article Set', 'taxonomy singular name'),
+            'search_items'      => __('Search Richie Article Sets'),
+            'all_items'         => __('All Richie Article Sets'),
+            'parent_item'       => __('Parent Richie Article Set'),
+            'parent_item_colon' => __('Parent Richie Article Set:'),
+            'edit_item'         => __('Edit Richie Article Set'),
+            'update_item'       => __('Update Richie Article Set'),
+            'add_new_item'      => __('Add New Richie Article Set'),
+            'new_item_name'     => __('New Richie Article Set Name'),
+            'menu_name'         => __('Richie Article Set'),
+        ];
+        $args = [
+            'hierarchical'      => false,
+            'labels'            => $labels,
+            'public'            => false,
+            'rewrite'           => false,
+            'show_ui'           => true
+        ];
+        register_taxonomy('richie_article_set', null, $args);
+    }
+
     public function validate_settings($input) {
         $valid = array();
 
@@ -168,12 +194,6 @@ class Richie_News_Admin {
         $current_option = get_option($this->sources_option_name, array(
             'sources' => array()
         ));
-        add_settings_error(
-            $this->sources_option_name,
-            esc_attr( 'sources_error' ),
-            __('not ready yet'),
-            'error'
-        );
 
         $sources = isset($current_option['sources']) ? $current_option['sources'] : array();
         $next_id = 0;
@@ -187,14 +207,19 @@ class Richie_News_Admin {
         if (
             isset( $input['source_name'] ) &&
             isset( $input['number_of_posts'] ) &&
-            ! empty ( $input['source_name'] &&
-            intval( $input['number_of_posts']) > 0 )
+            ! empty ( $input['source_name'] ) &&
+            intval( $input['number_of_posts']) > 0 &&
+            isset( $input['article_set'] ) &&
+            ! empty ( $input['article_set'] )
         ) {
 
             $source = array(
                 'id' => $next_id,
                 'name' => sanitize_text_field($input['source_name']),
-                'number_of_posts' => intval($input['number_of_posts'])
+                'number_of_posts' => intval($input['number_of_posts']),
+                'order_by' => sanitize_text_field($input['order_by']),
+                'order_direction' => $input['order_direction'] === 'DESC' ? 'DESC' :  'ASC',
+                'article_set' => intval($input['article_set'])
             );
 
             if (isset($input['source_categories']) && ! empty($input['source_categories'])) {
@@ -246,9 +271,12 @@ class Richie_News_Admin {
 
         // create source section
         add_settings_section ($sources_section_name, __('Add new feed source', $this->plugin_name), null, $this->sources_option_name);
-        add_settings_field('richie_news_source_name', __('Name', $this->plugin_name), array($this, 'source_name_render'), $this->sources_option_name, $sources_section_name);
-        add_settings_field('richie_news_source_category', __('Categories', $this->plugin_name), array($this, 'category_list_render'), $this->sources_option_name, $sources_section_name);
-        add_settings_field('richie_news_source_amount', __('Number of posts', $this->plugin_name), array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_news_source_name',      __('Name', $this->plugin_name),             array($this, 'source_name_render'),     $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_news_source_set',       __('Article set', $this->plugin_name),      array($this, 'article_set_render'),     $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_news_source_category',  __('Categories', $this->plugin_name),       array($this, 'category_list_render'),   $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_news_source_amount',    __('Number of posts', $this->plugin_name),  array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_news_source_order_by',  __('Order by', $this->plugin_name),         array($this, 'order_by_render'),        $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_news_source_order_dir', __('Order direction', $this->plugin_name),  array($this, 'order_direction_render'), $this->sources_option_name, $sources_section_name);
         //add_settings_field('richie_news_source_amount', __('Post amount', $this->plugin_name), )
     }
 
@@ -299,6 +327,20 @@ class Richie_News_Admin {
         <?php
     }
 
+    public function article_set_render() {
+        wp_dropdown_categories( array (
+            'taxonomy' => 'richie_article_set',
+            'hide_empty' => false,
+            'id' => $this->sources_option_name . '-article_set',
+            'name' => $this->sources_option_name . '[article_set]',
+        ) );
+        ?>
+        <p>
+            <a href="edit-tags.php?taxonomy=richie_article_set">Edit Richie Article Sets</a>
+        </p>
+        <?php
+    }
+
     public function category_list_render() {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-news-category-walker.php';
 
@@ -314,6 +356,27 @@ class Richie_News_Admin {
         ?>
             <input class="small-text" type='text' name='<?php echo $this->sources_option_name ; ?>[number_of_posts]'>
             <span class="description"><?php esc_attr_e( 'Amount of posts included in the feed', $this->plugin_name ); ?></span>
+        <?php
+    }
+
+    public function order_by_render() {
+        ?>
+            <select name='<?php echo $this->sources_option_name ; ?>[order_by]' id='<?php echo $this->sources_option_name ; ?>-order-by'>
+                <option selected="selected" value="date">Post date</option>
+                <option value="modified">Post modified time</option>
+                <option value="title">Post title</option>
+                <option value="author">Post author</option>
+                <option value="id">Post ID</option>
+            </select>
+        <?php
+    }
+
+    public function order_direction_render() {
+        ?>
+            <select name='<?php echo $this->sources_option_name ; ?>[order_direction]' id='<?php echo $this->sources_option_name ; ?>-order-direction'>
+                <option selected="selected" value="DESC">DESC</option>
+                <option value="ASC">ASC</option>
+            </select>
         <?php
     }
 
@@ -364,7 +427,6 @@ class Richie_News_Admin {
         $current_list = isset($option['sources']) ? $option['sources'] : array();
         foreach($current_list as $k=>$v) {
             foreach ($current_list[$k] as $key=>$value) {
-                echo $key . ':' . $value;
               if ($key === "id") {
                   if ($value == $source_id) {
                     unset($current_list[$k]); //Delete from Array
@@ -389,9 +451,11 @@ class Richie_News_Admin {
             <table class="widefat feed-source-list sortable-list">
                 <thead>
                     <th style="width: 30px;"></th>
+                    <th>Article Set</th>
                     <th>Name</th>
                     <th>Categories</th>
                     <th>Number of posts</th>
+                    <th>Order</th>
                     <th>Actions</th>
                 </thead>
                 <tbody>
@@ -408,12 +472,17 @@ class Richie_News_Admin {
                     } else {
                         array_push( $category_names, 'All categories');
                     }
+
+                    $article_set = get_term($source['article_set']);
+
                     ?>
                     <tr id="source-<?php echo $source['id']; ?>" data-source-id="<?php echo $source['id'] ?>" class="source-item">
                         <td><span class="dashicons dashicons-menu"></span></td>
+                        <td><?php echo $article_set->name; ?></td>
                         <td><?php echo $source['name'] ?></td>
                         <td><?php echo implode(', ', $category_names); ?></td>
                         <td><?php echo $source['number_of_posts']; ?> posts</td>
+                        <td><?php echo isset($source['order_by']) ? "{$source['order_by']} {$source['order_direction']}" : '' ?> </td>
                         <td>
                             <a href="#" class="remove-source-item"">Remove</a>
                         </td>
