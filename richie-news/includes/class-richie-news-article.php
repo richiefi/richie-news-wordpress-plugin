@@ -130,7 +130,7 @@ class Richie_News_Article {
         }
 
         $date = (new DateTime($post->post_date_gmt))->format('c');
-        $updated_date = (new DateTime($post->post_date_gmt))->format('c');
+        $updated_date = (new DateTime($post->post_modified_gmt))->format('c');
         $article->date = $date;
         if ($date != $updated_date) {
             $article->updated_date = $updated_date;
