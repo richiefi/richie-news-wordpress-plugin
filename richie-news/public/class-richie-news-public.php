@@ -70,13 +70,31 @@ class Richie_News_Public {
 
     function feed_route_handler($data) {
         $posts = array();
-        foreach( $this->richie_news_sources as $source ) {
+        $article_set = get_term_by('slug', $data['article_set'], 'richie_article_set');
+
+        if( empty( $article_set ) ) {
+            return new WP_Error( 'article_set_not_found', 'Article set not found', array( 'status' => 404 ) );
+        }
+
+        $sources = array_filter( $this->richie_news_sources, function( $source ) use ($article_set) {
+            return $article_set->term_id === $source['article_set'];
+        } );
+
+        foreach( $sources as $source ) {
             $args = array(
                 'numberposts' => $source['number_of_posts'],
             );
+
+
             if ( isset( $source['categories'] ) && ! empty( $source['categories'] ) ) {
                 $args['cat'] = $source['categories'];
             }
+
+            if ( isset( $source['order_by'] ) && ! empty( $source['order_by'] ) ) {
+                $args['orderby'] = $source['order_by'];
+                $args['order'] = isset($source['order_direction']) ? $source['order_direction'] : 'DESC';
+            }
+
             $source_posts = get_posts($args);
             $posts = array_unique(array_merge($posts, $source_posts), SORT_REGULAR);
         }
@@ -87,7 +105,8 @@ class Richie_News_Public {
 
             array_push($articles, array(
                 'id' => $content_post->ID,
-                'last_updated' => max($date, $updated_date)
+                'last_updated' => max($date, $updated_date),
+                'created' => $date
             ));
         }
 
@@ -102,7 +121,7 @@ class Richie_News_Public {
         //     wp_send_json();
         // }
         header( 'Last-Modified: ' . date( 'D, d M Y H:i:s', $last_updated ) );
-        return array('article_ids' => $articles );
+        return array( 'article_set' => $article_set->slug, 'article_ids' => $articles );
     }
 
     public function article_route_handler($data) {
@@ -144,10 +163,15 @@ class Richie_News_Public {
         remove_action( 'wp_print_styles', 'print_emoji_styles' );
         remove_action('wp_head', 'wp_shortlink_wp_head', 10, 0); // Remove shortlink
 
-        register_rest_route( 'richie/v1', '/news', array(
+        register_rest_route( 'richie/v1', '/news(?:/(?P<article_set>\S+))', array(
             'methods' => 'GET',
             'callback' => array($this, 'feed_route_handler'),
-            'permission_callback' => array($this, 'check_permission')
+            'permission_callback' => array($this, 'check_permission'),
+            'args' => array (
+                'article_set' => array (
+                    'sanitize_callback' => 'sanitize_title'
+                )
+            ),
         ) );
 
         register_rest_route( 'richie/v1', '/article/(?P<id>\d+)', array(
