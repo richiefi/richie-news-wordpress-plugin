@@ -22,4 +22,8 @@ class Richie_Maggio_Issue {
         return $url;
     }
 
+    public function get_redirect_url() {
+        return '/maggio-redirect/' . $this->uuid;
+    }
+
 }
