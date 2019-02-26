@@ -8,8 +8,8 @@ class Richie_Maggio_Service {
     private $request_cache_key;
     private $minimum_cache_time;
 
-    function __construct($index_url, $client)  {
-        $this->client = $client;
+    function __construct($index_url, $organization)  {
+        $this->organization = $organization;
         $this->url = $index_url;
         $this->request_cache_key = md5( 'remote_request|' . $this->url );
         $this->minimum_cache_time = MINUTE_IN_SECONDS;
@@ -37,7 +37,7 @@ class Richie_Maggio_Service {
         $data = json_decode( $body );
 
         $issues = array();
-        $product_id = $this->client . '.magg.io/' . $product;
+        $product_id = $this->organization . '.magg.io/' . $product;
         if( !isset($data->issues->{$product_id})) {
             return false;
         }
