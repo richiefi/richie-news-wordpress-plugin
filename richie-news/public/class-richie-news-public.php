@@ -257,8 +257,18 @@ class Richie_News_Public {
         if( empty( $attributes['id'] ) ) {
             return '<div>ID attribute is required</div>';
         }
+
+        if (
+            !isset( $this->richie_news_options['maggio_hostname'] )||
+            !isset( $this->richie_news_options['maggio_organization'] )
+        ) {
+            return '<div>Invalid configuration</div>';
+        }
+
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
-        $maggio_service = new Richie_Maggio_Service('https://hameensanomat.ap.richiefi.net/_data/index.json', 'hameensanomat');
+        $index_url = $this->richie_news_options['maggio_hostname'] . '/_data/index.json';
+        $organization = $this->richie_news_options['maggio_organization'];
+        $maggio_service = new Richie_Maggio_Service($index_url, $organization);
         $issues = $maggio_service->get_issues($attributes['id'], $attributes['number_of_issues']);
 
         if( $issues === false ) {
