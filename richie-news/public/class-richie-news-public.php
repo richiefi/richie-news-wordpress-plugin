@@ -288,6 +288,48 @@ class Richie_News_Public {
         add_shortcode('maggio', array($this, 'load_maggio_index_content'));
     }
 
+    /**
+     * create redirection for maggio issues
+     */
+    public function register_redirect_route() {
+
+
+        richie_create_maggio_rewrite_rules();
+        add_action('parse_request', array( $this, 'maggio_redirect_request') );
+    }
+
+    public function maggio_redirect_request ( $wp ) {
+        if(
+            !empty($wp->query_vars['maggio_redirect']) &&
+            wp_is_uuid($wp->query_vars['maggio_redirect'])
+        ) {
+            if (
+                !isset( $this->richie_news_options['maggio_secret'] ) ||
+                !isset( $this->richie_news_options['maggio_hostname'])
+            ) {
+                // invalid configuration
+                return;
+            }
+            // do something here
+            $hostname = $this->richie_news_options['maggio_hostname'];
+            $uuid = $wp->query_vars['maggio_redirect'];
+            $timestamp = time();
+
+            $secret = $this->richie_news_options['maggio_secret'];
+
+            $auth_params = array(
+                array( 'key' => 'return_link', 'value' => get_site_url() )
+            );
+
+            $hash = richie_generate_signature_hash( $secret, $uuid, $timestamp, $auth_params );
+
+            $url = "{$hostname}/_signin/${uuid}/${timestamp}/${hash}" . '?' . richie_build_query( $auth_params );
+            //print_r($auth_params);
+            //echo $url;
+            wp_redirect( $url );
+            exit();
+        }
+    }
 
 }
 
