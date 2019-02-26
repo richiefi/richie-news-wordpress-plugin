@@ -250,6 +250,34 @@ class Richie_News_Public {
 
     }
 
+    /**
+     * Load maggio display content
+     */
+    public function load_maggio_index_content($attributes = []) {
+        if( empty( $attributes['id'] ) ) {
+            return '<div>ID attribute is required</div>';
+        }
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
+        $maggio_service = new Richie_Maggio_Service('https://hameensanomat.ap.richiefi.net/_data/index.json', 'hameensanomat');
+        $issues = $maggio_service->get_issues($attributes['id'], $attributes['number_of_issues']);
+
+        if( $issues === false ) {
+            return '<div>Failed to fetch issues</div>';
+        }
+
+
+        ob_start();
+        require plugin_dir_path( __FILE__ ). 'partials/richie-maggio-index-display.php';
+        return ob_get_clean();
+    }
+
+    /**
+     * Register short code for displaying maggio index page
+     */
+    public function register_shortcodes() {
+        add_shortcode('maggio', array($this, 'load_maggio_index_content'));
+    }
+
 
 }
 
