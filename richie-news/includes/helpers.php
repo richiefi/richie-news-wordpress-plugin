@@ -57,3 +57,23 @@ function richie_generate_signature_hash( $secret, $issue_id, $timestamp, $auth_p
 
     return $hash;
 }
+
+
+function richie_has_maggio_access( $required_pmpro_level = 0 ) {
+    if (!is_user_logged_in()) {
+        return false;
+    }
+
+    if(function_exists('pmpro_hasMembershipLevel') && $required_pmpro_level > 0) {
+        $membership_level = pmpro_getMembershipLevelForUser();
+        if (
+            empty( $membership_level ) ||
+            $membership_level->ID != $required_pmpro_level
+        ) {
+            // pmpro installed, required level configured and user doesn't have that level -> no access
+            return false;
+        }
+    }
+
+    return true;
+}

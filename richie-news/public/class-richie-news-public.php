@@ -308,9 +308,26 @@ class Richie_News_Public {
                 !isset( $this->richie_news_options['maggio_hostname'])
             ) {
                 // invalid configuration
-                return;
+                if (wp_get_referer()) {
+                    wp_safe_redirect( wp_get_referer() );
+                } else {
+                    wp_safe_redirect( get_home_url() );
+                }
+                exit();
             }
-            // do something here
+
+            $required_pmpro_level = isset( $this->richie_news_options['maggio_required_pmpro_level'] ) ? $this->richie_news_options['maggio_required_pmpro_level'] : 0;
+
+            if ( !richie_has_maggio_access( $required_pmpro_level ) ) {
+                if (wp_get_referer()) {
+                    wp_safe_redirect( wp_get_referer() );
+                } else {
+                    wp_safe_redirect( get_home_url() );
+                }
+                exit();
+            }
+
+            // has access, continue redirect
             $hostname = $this->richie_news_options['maggio_hostname'];
             $uuid = $wp->query_vars['maggio_redirect'];
             $timestamp = time();
@@ -324,8 +341,7 @@ class Richie_News_Public {
             $hash = richie_generate_signature_hash( $secret, $uuid, $timestamp, $auth_params );
 
             $url = "{$hostname}/_signin/${uuid}/${timestamp}/${hash}" . '?' . richie_build_query( $auth_params );
-            //print_r($auth_params);
-            //echo $url;
+
             wp_redirect( $url );
             exit();
         }
