@@ -106,9 +106,9 @@ class Richie_News_Public {
             $updated_date = (new DateTime($content_post->post_modified_gmt))->format('c');
 
             array_push($articles, array(
-                'id' => $content_post->ID,
+                'id' => $content_post->guid,
+                'fetch_id' => $content_post->ID,
                 'last_updated' => max($date, $updated_date),
-                'created' => $date
             ));
         }
 
@@ -123,7 +123,7 @@ class Richie_News_Public {
         //     wp_send_json();
         // }
         header( 'Last-Modified: ' . date( 'D, d M Y H:i:s', $last_updated ) );
-        return array( 'article_set' => $article_set->slug, 'article_ids' => $articles );
+        return array( 'article_set' => $article_set->slug, 'article_set_name' => $article_set->name, 'article_ids' => $articles );
     }
 
     public function article_route_handler($data) {
