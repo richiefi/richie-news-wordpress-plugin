@@ -61,6 +61,8 @@ class Richie_News_Public {
     */
 	public function __construct( $plugin_name, $version ) {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-news-article.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-news-template-loader.php';
+
 		$this->plugin_name = $plugin_name;
         $this->version = $version;
         $this->richie_news_options = get_option($plugin_name);
@@ -196,7 +198,6 @@ class Richie_News_Public {
         if (isset( $_GET['token']) && $this->richie_news_options['access_token'] === $_GET['token']) {
             if( isset( $_GET['richie_news'] ) ) {
                 add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
-                require_once plugin_dir_path( __FILE__ ) . '../includes/class-richie-news-template-loader.php';
                 $richie_news_template_loader = new Richie_News_Template_Loader;
                 $template = $richie_news_template_loader->locate_template( 'richie-news-article.php', false );
             }
@@ -273,6 +274,7 @@ class Richie_News_Public {
         }
 
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
+
         $index_url = $this->richie_news_options['maggio_hostname'] . '/_data/index.json';
         $organization = $this->richie_news_options['maggio_organization'];
         $maggio_service = new Richie_Maggio_Service($index_url, $organization);
@@ -284,9 +286,11 @@ class Richie_News_Public {
             return '<div>Failed to fetch issues</div>';
         }
 
-
+        $richie_news_template_loader = new Richie_News_Template_Loader();
+        $template = $richie_news_template_loader->locate_template( 'richie-maggio-index.php', false, false );
         ob_start();
-        require plugin_dir_path( __FILE__ ). 'partials/richie-maggio-index-display.php';
+        include $template;
+
         return ob_get_clean();
     }
 
