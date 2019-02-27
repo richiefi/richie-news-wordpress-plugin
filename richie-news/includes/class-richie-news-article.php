@@ -186,7 +186,7 @@ class Richie_News_Article {
 
         if ( $urls ) {
             foreach ( $urls as $url) {
-                $local_url = remove_query_arg( 'ver', str_replace('/wp-content', 'assets', wp_make_link_relative($url)));
+                $local_url = remove_query_arg( 'ver', wp_make_link_relative($url));
                 if ( empty($local_url) ) {
                     continue;
                 }
