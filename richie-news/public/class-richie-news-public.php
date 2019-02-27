@@ -253,10 +253,17 @@ class Richie_News_Public {
     /**
      * Load maggio display content
      */
-    public function load_maggio_index_content($attributes = []) {
-        if( empty( $attributes['id'] ) ) {
+    public function load_maggio_index_content($attributes) {
+        $atts = shortcode_atts(
+            array(
+                'id' => null,
+                'number_of_issues' => null,
+            ), $attributes, 'maggio' );
+
+        if( empty( $atts['id'] ) ) {
             return '<div>ID attribute is required</div>';
         }
+
 
         if (
             !isset( $this->richie_news_options['maggio_hostname'] )||
@@ -269,7 +276,9 @@ class Richie_News_Public {
         $index_url = $this->richie_news_options['maggio_hostname'] . '/_data/index.json';
         $organization = $this->richie_news_options['maggio_organization'];
         $maggio_service = new Richie_Maggio_Service($index_url, $organization);
-        $issues = $maggio_service->get_issues($attributes['id'], $attributes['number_of_issues']);
+        $issues = $maggio_service->get_issues($attributes['id'], $atts['number_of_issues']);
+        $required_pmpro_level = isset( $this->richie_news_options['maggio_required_pmpro_level'] ) ? $this->richie_news_options['maggio_required_pmpro_level'] : 0;
+        $user_has_access = richie_has_maggio_access( $required_pmpro_level );
 
         if( $issues === false ) {
             return '<div>Failed to fetch issues</div>';
