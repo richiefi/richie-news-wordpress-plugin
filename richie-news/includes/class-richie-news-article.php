@@ -174,7 +174,7 @@ class Richie_News_Article {
 
             if ( is_array( $response ) && ! is_wp_error( $response ) ) {
                 $rendered_content = $response['body'];
-                set_transient($transient_key, $rendered_content, 60 * 10);
+                set_transient($transient_key, $rendered_content, 10);
                 $article->from_cache = false;
             }
         } else {
