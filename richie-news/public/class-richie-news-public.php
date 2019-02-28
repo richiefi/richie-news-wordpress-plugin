@@ -61,6 +61,8 @@ class Richie_News_Public {
     */
 	public function __construct( $plugin_name, $version ) {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-news-article.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-news-template-loader.php';
+
 		$this->plugin_name = $plugin_name;
         $this->version = $version;
         $this->richie_news_options = get_option($plugin_name);
@@ -196,7 +198,6 @@ class Richie_News_Public {
         if (isset( $_GET['token']) && $this->richie_news_options['access_token'] === $_GET['token']) {
             if( isset( $_GET['richie_news'] ) ) {
                 add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
-                require_once plugin_dir_path( __FILE__ ) . '../includes/class-richie-news-template-loader.php';
                 $richie_news_template_loader = new Richie_News_Template_Loader;
                 $template = $richie_news_template_loader->locate_template( 'richie-news-article.php', false );
             }
@@ -250,6 +251,118 @@ class Richie_News_Public {
 
     }
 
+    /**
+     * Load maggio display content
+     */
+    public function load_maggio_index_content($attributes) {
+        $atts = shortcode_atts(
+            array(
+                'id' => null,
+                'number_of_issues' => null,
+            ), $attributes, 'maggio' );
+
+        if( empty( $atts['id'] ) ) {
+            return '<div>ID attribute is required</div>';
+        }
+
+
+        if (
+            !isset( $this->richie_news_options['maggio_hostname'] )||
+            !isset( $this->richie_news_options['maggio_organization'] )
+        ) {
+            return '<div>Invalid configuration</div>';
+        }
+
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
+
+        $index_url = $this->richie_news_options['maggio_hostname'] . '/_data/index.json';
+        $organization = $this->richie_news_options['maggio_organization'];
+        $maggio_service = new Richie_Maggio_Service($index_url, $organization);
+        $issues = $maggio_service->get_issues($attributes['id'], $atts['number_of_issues']);
+        $required_pmpro_level = isset( $this->richie_news_options['maggio_required_pmpro_level'] ) ? $this->richie_news_options['maggio_required_pmpro_level'] : 0;
+        $user_has_access = richie_has_maggio_access( $required_pmpro_level );
+
+        if( $issues === false ) {
+            return '<div>Failed to fetch issues</div>';
+        }
+
+        $richie_news_template_loader = new Richie_News_Template_Loader();
+        $template = $richie_news_template_loader->locate_template( 'richie-maggio-index.php', false, false );
+        ob_start();
+        include $template;
+
+        return ob_get_clean();
+    }
+
+    /**
+     * Register short code for displaying maggio index page
+     */
+    public function register_shortcodes() {
+        add_shortcode('maggio', array($this, 'load_maggio_index_content'));
+    }
+
+    /**
+     * create redirection for maggio issues
+     */
+    public function register_redirect_route() {
+
+
+        richie_create_maggio_rewrite_rules();
+        add_action('parse_request', array( $this, 'maggio_redirect_request') );
+    }
+
+    public function maggio_redirect_request ( $wp ) {
+        if(
+            !empty($wp->query_vars['maggio_redirect']) &&
+            wp_is_uuid($wp->query_vars['maggio_redirect'])
+        ) {
+            if (
+                !isset( $this->richie_news_options['maggio_secret'] ) ||
+                !isset( $this->richie_news_options['maggio_hostname'])
+            ) {
+                // invalid configuration
+                if (wp_get_referer()) {
+                    wp_safe_redirect( wp_get_referer() );
+                } else {
+                    wp_safe_redirect( get_home_url() );
+                }
+                exit();
+            }
+
+            $required_pmpro_level = isset( $this->richie_news_options['maggio_required_pmpro_level'] ) ? $this->richie_news_options['maggio_required_pmpro_level'] : 0;
+
+            if ( !richie_has_maggio_access( $required_pmpro_level ) ) {
+                if (wp_get_referer()) {
+                    wp_safe_redirect( wp_get_referer() );
+                } else {
+                    wp_safe_redirect( get_home_url() );
+                }
+                exit();
+            }
+
+            // has access, continue redirect
+            $hostname = $this->richie_news_options['maggio_hostname'];
+            $uuid = $wp->query_vars['maggio_redirect'];
+            $timestamp = time();
+
+            $secret = $this->richie_news_options['maggio_secret'];
+
+            $return_link = wp_get_referer() ? wp_get_referer() : get_home_url();
+
+            $auth_params = array(
+                array( 'key' => 'return_link', 'value' => $return_link )
+            );
+
+            $query_string = richie_build_query( $auth_params );
+
+            $hash = richie_generate_signature_hash( $secret, $uuid, $timestamp, $query_string );
+
+            $url = "{$hostname}/_signin/${uuid}/${timestamp}/${hash}" . '?' . $query_string;
+
+            wp_redirect( esc_url($url) );
+            exit();
+        }
+    }
 
 }
 

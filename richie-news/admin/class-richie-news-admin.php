@@ -182,11 +182,16 @@ class Richie_News_Admin {
         $valid = array();
 
         //paywall
-        $valid['metered_pmpro_level'] = isset($input['metered-level']) ? intval($input['metered-level']) : 0;
-        $valid['member_only_pmpro_level'] = isset($input['member-only-level']) ? intval($input['member-only-level']) : 0;
+        $valid['metered_pmpro_level'] = isset($input['metered-metered_pmpro_level']) ? intval($input['metered_pmpro_level']) : 0;
+        $valid['member_only_pmpro_level'] = isset($input['member_only_pmpro_level']) ? intval($input['member_only_pmpro_level']) : 0;
         if (isset( $input['access_token']) && ! empty($input['access_token'])) {
             $valid['access_token'] = sanitize_text_field($input['access_token']);
         }
+        $valid['maggio_secret']                 = isset( $input['maggio_secret'] )                  ? sanitize_text_field( $input['maggio_secret'] )        : '';
+        $valid['maggio_hostname']               = isset( $input['maggio_hostname'] )                ? sanitize_url( $input['maggio_hostname'] )             : '';
+        $valid['maggio_organization']           = isset( $input['maggio_organization']  )           ? sanitize_text_field( $input['maggio_organization'] )  : '';
+        $valid['maggio_required_pmpro_level']   = isset( $input['maggio_required_pmpro_level'] )    ? intval( $input['maggio_required_pmpro_level'] )        : '';
+
         return $valid;
     }
 
@@ -259,15 +264,24 @@ class Richie_News_Admin {
         $general_section_name = 'richie_news_general';
         $paywall_section_name = 'richie_news_paywall';
         $sources_section_name = 'richie_news_source';
+        $maggio_section_name = 'richie_news_maggio';
 
         // create general section
         add_settings_section ($general_section_name, __('General settings', $this->plugin_name), null, $this->settings_option_name);
-        add_settings_field('richie_news_access_token', __('Access token', $this->plugin_name), array($this, 'access_token_render'), $this->settings_option_name, $general_section_name);
+        add_settings_field('richie_news_access_token', __('Access token', $this->plugin_name), array($this, 'input_field_render'), $this->settings_option_name, $general_section_name, array('id' => 'access_token'));
 
         // create paywall section
         add_settings_section ($paywall_section_name, __('Paywall', $this->plugin_name), null, $this->settings_option_name);
-        add_settings_field('richie_news_metered_pmpro_level', __('Metered level', $this->plugin_name), array($this, 'metered_level_render'), $this->settings_option_name, $paywall_section_name);
-        add_settings_field('richie_news_member_only_pmpro_level', __('Member only level', $this->plugin_name), array($this, 'member_only_level_render'), $this->settings_option_name, $paywall_section_name);
+        add_settings_field('richie_news_metered_pmpro_level', __('Metered level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'metered_pmpro_level'));
+        add_settings_field('richie_news_member_only_pmpro_level', __('Member only level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'member_only_pmpro_level'));
+
+        // create maggio section
+
+        add_settings_section ($maggio_section_name, __('Maggio settings', $this->plugin_name), null, $this->settings_option_name);
+        add_settings_field('richie_news_maggio_organization',   __('Maggio organization', $this->plugin_name),  array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_organization'));
+        add_settings_field('richie_news_maggio_hostname',       __('Maggio hostname', $this->plugin_name),      array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_hostname'));
+        add_settings_field('richie_news_maggio_secret',         __('Maggio secret', $this->plugin_name),        array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_secret'));
+        add_settings_field('richie_news_maggio_required_pmpro_level', __('Required membership level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_required_pmpro_level'));
 
         // create source section
         add_settings_section ($sources_section_name, __('Add new feed source', $this->plugin_name), null, $this->sources_option_name);
@@ -280,19 +294,24 @@ class Richie_News_Admin {
         //add_settings_field('richie_news_source_amount', __('Post amount', $this->plugin_name), )
     }
 
-    public function access_token_render() {
+    public function input_field_render( array $args  ) {
         $options = get_option( $this->plugin_name );
-        ?>
-        <input class="regular-text" type='text' name='<?php echo $this->plugin_name; ?>[access_token]' value='<?php echo $options['access_token']; ?>'>
-        <?php
+        $id = $args['id'];
+        $type = isset($args['type']) ? $args['type'] : 'test';
+        $name = $this->plugin_name . '[' . $args['id'] . ']';
+        $value = isset($options{$id}) ? $options{$id} : '';
+        print "<input class='regular-text' type='$type' name='$name' value='$value'>";
     }
 
-    public function metered_level_render() {
+    public function pmpro_level_render( array $args ) {
         $options = get_option( $this->plugin_name );
-        $current_level = $options['metered_pmpro_level'];
+        $id = $args['id'];
+        $current_level = isset($options{$id}) ? $options{$id} : '';
         $pmpro_levels = pmpro_getAllLevels();
+        $name = $this->plugin_name . '[' . $args['id'] . ']';
+
         ?>
-        <select name="<?php echo $this->plugin_name; ?>[metered-level]" id="<?php echo $this->plugin_name; ?>-metered-level">
+        <select name="<?php echo $name ?>" id="<?php echo $this->plugin_name; ?>-<?php echo $id; ?>">
             <option value="0"><?php esc_attr_e('Not used', $this->plugin_name );?></option>
             <?php
                 foreach ( $pmpro_levels as $level ) {
@@ -304,22 +323,6 @@ class Richie_News_Admin {
         <?php
     }
 
-    public function member_only_level_render() {
-        $options = get_option( $this->plugin_name );
-        $current_level = $options['member_only_pmpro_level'];
-        $pmpro_levels = pmpro_getAllLevels();
-        ?>
-        <select name="<?php echo $this->plugin_name; ?>[member-only-level]" id="<?php echo $this->plugin_name; ?>-member-only-level">
-            <option value="0"><?php esc_attr_e('Not used', $this->plugin_name );?></option>
-            <?php
-                foreach ( $pmpro_levels as $level ) {
-                    $selected = selected( $current_level, $level->id, FALSE);
-                    echo "<option value='{$level->id}' {$selected}>{$level->name}</option>";
-                }
-            ?>
-        </select>
-        <?php
-    }
 
     public function source_name_render() {
         ?>

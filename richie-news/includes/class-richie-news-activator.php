@@ -30,7 +30,9 @@ class Richie_News_Activator {
 	 * @since    1.0.0
 	 */
 	public static function activate() {
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/helpers.php';
 
+        richie_create_maggio_rewrite_rules(true);
 	}
 
 }
