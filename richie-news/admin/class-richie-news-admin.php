@@ -235,7 +235,7 @@ class Richie_News_Admin {
                 $source['categories'] = $input['source_categories'];
             }
 
-            $source['list_layout_name'] = in_array($input['list_layout_name'], $this->available_layout_names) ? sanitize_text_field($input['list_layout_name']) : 'none';
+            $source['list_layout_style'] = in_array($input['list_layout_style'], $this->available_layout_names) ? sanitize_text_field($input['list_layout_style']) : 'none';
 
             if ( isset($input['list_group_title']) ) {
                 $source['list_group_title'] = sanitize_text_field($input['list_group_title']);
@@ -302,7 +302,7 @@ class Richie_News_Admin {
         add_settings_field ('richie_news_source_amount',    __('Number of posts', $this->plugin_name),  array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_news_source_order_by',  __('Order by', $this->plugin_name),         array($this, 'order_by_render'),        $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_news_source_order_dir', __('Order direction', $this->plugin_name),  array($this, 'order_direction_render'), $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_list_layout_name',      __('List layout', $this->plugin_name),      array($this, 'list_layout_name_render'),$this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_list_layout_style',     __('List layout', $this->plugin_name),      array($this, 'list_layout_style_render'),$this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_list_group_title',      __('List group title', $this->plugin_name), array($this, 'list_group_title_render'),$this->sources_option_name, $sources_section_name);
         //add_settings_field('richie_news_source_amount', __('Post amount', $this->plugin_name), )
     }
@@ -396,9 +396,9 @@ class Richie_News_Admin {
         <?php
     }
 
-    public function list_layout_name_render() {
+    public function list_layout_style_render() {
         ?>
-        <select name='<?php echo $this->sources_option_name ; ?>[list_layout_name]' id='<?php echo $this->sources_option_name ; ?>-list_layout_name' required>
+        <select name='<?php echo $this->sources_option_name ; ?>[list_layout_style]' id='<?php echo $this->sources_option_name ; ?>-list_layout_style' required>
             <?php foreach( $this->available_layout_names as $layout_name ): ?>
                 <option value='<?php echo $layout_name ?>'><?php echo $layout_name ?></option>
             <?php endforeach; ?>
@@ -483,9 +483,6 @@ small_group_item of a group', $this->plugin_name ); ?></span>
     public function source_list() {
         $options = get_option($this->sources_option_name);
         if ( isset($options['sources']) && ! empty( $options['sources'] ) ): ?>
-            <pre>
-                <?php print_r($options['sources']); ?>
-            </pre>
             <table class="widefat feed-source-list sortable-list">
                 <thead>
                     <th style="width: 30px;"></th>
@@ -522,7 +519,7 @@ small_group_item of a group', $this->plugin_name ); ?></span>
                         <td><?php echo implode(', ', $category_names); ?></td>
                         <td><?php echo $source['number_of_posts']; ?></td>
                         <td><?php echo isset($source['order_by']) ? "{$source['order_by']} {$source['order_direction']}" : '' ?> </td>
-                        <td><?php echo isset($source['list_layout_name']) ? $source['list_layout_name'] : 'none' ?></td>
+                        <td><?php echo isset($source['list_layout_style']) ? $source['list_layout_style'] : 'none' ?></td>
                         <td>
                             <a href="#" class="remove-source-item"">Remove</a>
                         </td>
