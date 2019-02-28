@@ -186,7 +186,7 @@ class Richie_News_Admin {
         $valid = array();
 
         //paywall
-        $valid['metered_pmpro_level'] = isset($input['metered-metered_pmpro_level']) ? intval($input['metered_pmpro_level']) : 0;
+        $valid['metered_pmpro_level'] = isset($input['metered_pmpro_level']) ? intval($input['metered_pmpro_level']) : 0;
         $valid['member_only_pmpro_level'] = isset($input['member_only_pmpro_level']) ? intval($input['member_only_pmpro_level']) : 0;
         if (isset( $input['access_token']) && ! empty($input['access_token'])) {
             $valid['access_token'] = sanitize_text_field($input['access_token']);
