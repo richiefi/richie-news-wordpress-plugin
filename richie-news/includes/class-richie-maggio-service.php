@@ -122,7 +122,14 @@ class Richie_Cached_Request {
      * @return boolean
      */
     private function should_return_cache( $cache ) {
-        if ( isset( $cache, $cache['timestamp'] ) && ( time() - $cache['timestamp'] <= $this->minimum_cache_time ) ) {
+        $max_age = $this->get_max_age( $cache );
+
+        if ( $max_age === false ) {
+            $max_age = 0;
+        }
+
+        $cache_time = max($max_age, $this->minimum_cache_time);
+        if ( isset( $cache, $cache['timestamp'] ) && ( time() - $cache['timestamp'] <= $cache_time ) ) {
             return true;
         }
 
@@ -139,6 +146,35 @@ class Richie_Cached_Request {
     private function get_etag( $cache ) {
         if ( isset( $cache, $cache['response'] ) ) {
             return wp_remote_retrieve_header( $cache['response'], 'etag' );
+        }
+
+        return false;
+    }
+
+    private function parse_max_age( $cache_control ) {
+        $max_age = explode("max-age=", $cache_control);
+        if ( count( $max_age ) > 0) {
+            $max_age = explode(',', $max_age[1]);
+            $max_age = trim($max_age[0]);
+            $max_age = intval($max_age);
+            return $max_age;
+        }
+        return false;
+    }
+    /**
+     * Get max-age from the cached response
+     *
+     * @since 1.0.0
+     * @param array $cache Array from transient
+     * @return int|boolean Returns max-age or false if not found
+     */
+    private function get_max_age( $cache ) {
+        if ( isset( $cache, $cache['response'] ) ) {
+            $cache_control = wp_remote_retrieve_header( $cache['response'], 'cache-control' );
+            if ( isset( $cache_control ) ) {
+                $max_age = $this->parse_max_age($cache_control);
+                return $max_age;
+            }
         }
 
         return false;
@@ -175,7 +211,7 @@ class Richie_Maggio_Service {
     function __construct($index_url, $organization)  {
         $this->organization = $organization;
         $minimum_cache_time = MINUTE_IN_SECONDS;
-        $maximum_cache_time = DAY_IN_SECONDS;
+        $maximum_cache_time = 0; // no cache
         $this->cached_request = new Richie_Cached_Request( $index_url, $minimum_cache_time, $maximum_cache_time );
     }
 
