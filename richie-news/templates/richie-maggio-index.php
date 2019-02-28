@@ -44,7 +44,7 @@
                 </figure>
             <?php if( $user_has_access || $issue->is_free ): ?>
             </a>
+            <?php endif; ?>
         </div>
-        <?php endif; ?>
     <?php endforeach; ?>
 </div>
