@@ -43,6 +43,7 @@ class Richie_News_Admin {
     private $settings_option_name;
     private $sources_option_name;
     private $settings_page_slug;
+    private $available_layout_names;
 
     /**
     * Initialize the class and set its properties.
@@ -58,6 +59,9 @@ class Richie_News_Admin {
         $this->settings_page_slug = $plugin_name;
         $this->settings_option_name = $plugin_name;
         $this->sources_option_name = $plugin_name . '_sources';
+        $this->available_layout_names = array(
+            'big', 'small', 'small_group_item', 'featured', 'none'
+        );
 
         add_action('wp_ajax_list_update_order', array($this, 'order_source_list'));
         add_action('wp_ajax_remove_source_item', array($this, 'remove_source_item'));
@@ -230,6 +234,13 @@ class Richie_News_Admin {
             if (isset($input['source_categories']) && ! empty($input['source_categories'])) {
                 $source['categories'] = $input['source_categories'];
             }
+
+            $source['list_layout_name'] = in_array($input['list_layout_name'], $this->available_layout_names) ? sanitize_text_field($input['list_layout_name']) : 'none';
+
+            if ( isset($input['list_group_title']) ) {
+                $source['list_group_title'] = sanitize_text_field($input['list_group_title']);
+            }
+
             array_push($sources, $source);
         } else {
             add_settings_error(
@@ -291,6 +302,8 @@ class Richie_News_Admin {
         add_settings_field ('richie_news_source_amount',    __('Number of posts', $this->plugin_name),  array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_news_source_order_by',  __('Order by', $this->plugin_name),         array($this, 'order_by_render'),        $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_news_source_order_dir', __('Order direction', $this->plugin_name),  array($this, 'order_direction_render'), $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_list_layout_name',      __('List layout', $this->plugin_name),      array($this, 'list_layout_name_render'),$this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_list_group_title',      __('List group title', $this->plugin_name), array($this, 'list_group_title_render'),$this->sources_option_name, $sources_section_name);
         //add_settings_field('richie_news_source_amount', __('Post amount', $this->plugin_name), )
     }
 
@@ -383,6 +396,25 @@ class Richie_News_Admin {
         <?php
     }
 
+    public function list_layout_name_render() {
+        ?>
+        <select name='<?php echo $this->sources_option_name ; ?>[list_layout_name]' id='<?php echo $this->sources_option_name ; ?>-list_layout_name' required>
+            <?php foreach( $this->available_layout_names as $layout_name ): ?>
+                <option value='<?php echo $layout_name ?>'><?php echo $layout_name ?></option>
+            <?php endforeach; ?>
+        </select>
+        <?php
+    }
+
+
+    public function list_group_title_render() {
+        ?>
+        <input class="regular-text" type='text' name='<?php echo $this->sources_option_name; ?>[list_group_title]'>
+        <span class="description"><?php esc_attr_e( 'Header to display before the story, useful on the first
+small_group_item of a group', $this->plugin_name ); ?></span>
+        <?php
+    }
+
     public function order_source_list() {
         if ( !isset($_POST['source_items']) ) {
             echo 'Missing source list';
@@ -451,14 +483,18 @@ class Richie_News_Admin {
     public function source_list() {
         $options = get_option($this->sources_option_name);
         if ( isset($options['sources']) && ! empty( $options['sources'] ) ): ?>
+            <pre>
+                <?php print_r($options['sources']); ?>
+            </pre>
             <table class="widefat feed-source-list sortable-list">
                 <thead>
                     <th style="width: 30px;"></th>
                     <th>Article Set</th>
                     <th>Name</th>
                     <th>Categories</th>
-                    <th>Number of posts</th>
+                    <th>Posts</th>
                     <th>Order</th>
+                    <th>List layout</th>
                     <th>Actions</th>
                 </thead>
                 <tbody>
@@ -484,8 +520,9 @@ class Richie_News_Admin {
                         <td><?php echo $article_set->name; ?></td>
                         <td><?php echo $source['name'] ?></td>
                         <td><?php echo implode(', ', $category_names); ?></td>
-                        <td><?php echo $source['number_of_posts']; ?> posts</td>
+                        <td><?php echo $source['number_of_posts']; ?></td>
                         <td><?php echo isset($source['order_by']) ? "{$source['order_by']} {$source['order_direction']}" : '' ?> </td>
+                        <td><?php echo isset($source['list_layout_name']) ? $source['list_layout_name'] : 'none' ?></td>
                         <td>
                             <a href="#" class="remove-source-item"">Remove</a>
                         </td>
