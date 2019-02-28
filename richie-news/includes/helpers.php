@@ -1,6 +1,16 @@
 <?php
 
-function richie_create_maggio_rewrite_rules($flush = False) {
+/**
+ * Create rewrite rule for maggio redirects
+ *
+ * Optionally flush rewrite rules (NOTE: that is an expensive operation, only do when absolute required)
+ *
+ * @since 1.0.0
+ * @param boolean $flush Optional. Flushes rewrite rules if set. Default false.
+ *
+ * @return void
+ */
+function richie_create_maggio_rewrite_rules($flush = false) {
     add_rewrite_tag('%maggio_redirect%', '([0-9a-fA-F-]+)');
     add_rewrite_rule('^maggio-redirect/([0-9a-fA-F-]+)/?$', 'index.php?maggio_redirect=$matches[1]', 'top');
 
@@ -9,6 +19,21 @@ function richie_create_maggio_rewrite_rules($flush = False) {
     }
 }
 
+/**
+ * Sort array by key AND value
+ *
+ * Array is sorted by key first and if multiple equal keys, by value.
+ * Note: sorting is done in place, modifying the given argument
+ *
+ * @since 1.0.0
+ *
+ * @param  array $array {
+ *      @type string $key
+ *      @type string $value
+ * }
+ *
+ * @return void
+ */
 function richie_key_value_sort( $array ) {
     usort($array, function($a, $b) {
         if ( $a['key'] === $b['key'] ) {
@@ -20,6 +45,17 @@ function richie_key_value_sort( $array ) {
     return $array;
 }
 
+
+/**
+ * build sorted query string
+ *
+ * @param  array $params {
+ *      @type string $key
+ *      @type string $value
+ * }
+ *
+ * @return string Query string key=value&key2=value2&... sorted by key and value
+ */
 function richie_build_query ( $params ) {
     $sorted = richie_key_value_sort( $params );
     $mapper = function( $param ) {
@@ -31,8 +67,17 @@ function richie_build_query ( $params ) {
 
 /**
  * Generate maggio authentication url signature hash
+ *
+ * @since 1.0.0
+ *
+ * @param  string   $secret         Authentication secret
+ * @param  string   $issue_id       Issue UUIDv4 id
+ * @param  int      $timestamp      Unix timestamp
+ * @param  string   $query_string   Optional. Query string to be included in hash
+ *
+ * @return string   $hash           Calculated signature hash to be included in signin url
  */
-function richie_generate_signature_hash( $secret, $issue_id, $timestamp, $auth_params = null) {
+function richie_generate_signature_hash( $secret, $issue_id, $timestamp, $query_string = '') {
     if ( !isset( $secret ) ) {
         return new WP_Error( 'secret', __('Missing secret') );
     }
@@ -45,20 +90,27 @@ function richie_generate_signature_hash( $secret, $issue_id, $timestamp, $auth_p
         return new WP_Error( 'timestamp', __('Invalid timestamp, it must be an integer') );
     }
 
-    $params = '';
 
-    if ( !empty( $auth_params ) ) {
-        // sort by keys and values and create query string
-        $params = richie_build_query( $auth_params );
-    }
-
-    $signature_data = $issue_id . "\n" . $timestamp . "\n" . $params;
+    $signature_data = $issue_id . "\n" . $timestamp . "\n" . $query_string;
     $hash = hash_hmac('sha256', $signature_data, $secret); // returns hex data
 
     return $hash;
 }
 
 
+/**
+ * Check if user has maggio access
+ *
+ * Compares user's membership level to the required. Also expects that current user is authenticated.
+ *
+ * @since 1.0.0
+ *
+ * @global $current_user
+ *
+ * @param  int $required_pmpro_level Optional. If positive integer, compare that to the user's membership level. Default 0.
+ *
+ * @return boolean
+ */
 function richie_has_maggio_access( $required_pmpro_level = 0 ) {
     if (!is_user_logged_in()) {
         return false;

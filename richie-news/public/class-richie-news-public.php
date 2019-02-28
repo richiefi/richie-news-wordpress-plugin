@@ -353,9 +353,11 @@ class Richie_News_Public {
                 array( 'key' => 'return_link', 'value' => $return_link )
             );
 
-            $hash = richie_generate_signature_hash( $secret, $uuid, $timestamp, $auth_params );
+            $query_string = richie_build_query( $auth_params );
 
-            $url = "{$hostname}/_signin/${uuid}/${timestamp}/${hash}" . '?' . richie_build_query( $auth_params );
+            $hash = richie_generate_signature_hash( $secret, $uuid, $timestamp, $query_string );
+
+            $url = "{$hostname}/_signin/${uuid}/${timestamp}/${hash}" . '?' . $query_string;
 
             wp_redirect( esc_url($url) );
             exit();
