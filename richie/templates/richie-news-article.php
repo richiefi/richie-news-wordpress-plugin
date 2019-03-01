@@ -20,8 +20,8 @@ Template Name: Richie Article template
                         // Load posts loop.
                         while ( have_posts() ) : the_post();
                             the_title( '<h1 class="entry-title">', '</h1>' );
-                            echo '<h5>Author: ' . get_the_author() . '</h5>';
-                            the_date();
+                            echo '<p><strong>Author: ' . get_the_author() . '</strong></p>';
+                            echo '<p><em>' . get_the_date() . '</em></p>';
                             the_post_thumbnail();
                             the_content();
                         endwhile;
