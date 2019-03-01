@@ -13,7 +13,7 @@ This plugin provides backend feeds and digital paper support for Richie Platform
 Richie Platform plugin provides following features:
 - Shortcode for including list of Maggio issues
 - Redirection url which constructs signin url and provides access to the actual magazine
-- JSON feeds to be used in Richie News Platform
+- JSON feeds to be used in Richie Platform
 - Supports paywall features (currently assuming PMPro plugin installed)
 
 == Installation ==
@@ -31,7 +31,7 @@ Richie Platform plugin provides following features:
 
 = General =
 
-1. `Access token` - Random string to be used as authentication for richie news feeds.
+1. `Access token` - Random string to be used as authentication for Richie feeds.
     NOTE: with token, full content of the article can be accessed despite of pmpro configuration.
 2. `Paywall` - Map PMPro levels to levels used in news feed.
     - `Metered` - Level which marks articles to be readable by anyone, but amount of article reads is limited

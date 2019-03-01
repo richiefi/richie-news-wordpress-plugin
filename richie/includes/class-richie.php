@@ -9,8 +9,8 @@
 * @link       https://www.richie.fi
 * @since      1.0.0
 *
-* @package    Richie_News
-* @subpackage Richie_News/includes
+* @package    Richie
+* @subpackage Richie/includes
 */
 
 /**
@@ -23,11 +23,11 @@
 * version of the plugin.
 *
 * @since      1.0.0
-* @package    Richie_News
-* @subpackage Richie_News/includes
+* @package    Richie
+* @subpackage Richie/includes
 * @author     Markku Uusitupa <markku@richie.fi>
 */
-class Richie_News {
+class Richie {
 
     /**
     * The loader that's responsible for maintaining and registering all hooks that power
@@ -35,7 +35,7 @@ class Richie_News {
     *
     * @since    1.0.0
     * @access   protected
-    * @var      Richie_News_Loader    $loader    Maintains and registers all hooks for the plugin.
+    * @var      Richie_Loader    $loader    Maintains and registers all hooks for the plugin.
     */
     protected $loader;
 
@@ -67,12 +67,12 @@ class Richie_News {
     * @since    1.0.0
     */
     public function __construct() {
-        if ( defined( 'Richie_News_VERSION' ) ) {
-            $this->version = Richie_News_VERSION;
+        if ( defined( 'Richie_VERSION' ) ) {
+            $this->version = Richie_VERSION;
         } else {
             $this->version = '1.0.0';
         }
-        $this->plugin_name = 'richie-news';
+        $this->plugin_name = 'richie';
 
         $this->load_dependencies();
         $this->set_locale();
@@ -86,10 +86,10 @@ class Richie_News {
     *
     * Include the following files that make up the plugin:
     *
-    * - Richie_News_Loader. Orchestrates the hooks of the plugin.
-    * - Richie_News_i18n. Defines internationalization functionality.
-    * - Richie_News_Admin. Defines all hooks for the admin area.
-    * - Richie_News_Public. Defines all hooks for the public side of the site.
+    * - Richie_Loader. Orchestrates the hooks of the plugin.
+    * - Richie_i18n. Defines internationalization functionality.
+    * - Richie_Admin. Defines all hooks for the admin area.
+    * - Richie_Public. Defines all hooks for the public side of the site.
     *
     * Create an instance of the loader which will be used to register the hooks
     * with WordPress.
@@ -109,33 +109,33 @@ class Richie_News {
         * The class responsible for orchestrating the actions and filters of the
         * core plugin.
         */
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-news-loader.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-loader.php';
 
         /**
         * The class responsible for defining internationalization functionality
         * of the plugin.
         */
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-news-i18n.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-i18n.php';
 
         /**
         * The class responsible for defining all actions that occur in the admin area.
         */
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-richie-news-admin.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-richie-admin.php';
 
         /**
         * The class responsible for defining all actions that occur in the public-facing
         * side of the site.
         */
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-richie-news-public.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-richie-public.php';
 
-        $this->loader = new Richie_News_Loader();
+        $this->loader = new Richie_Loader();
 
     }
 
     /**
     * Define the locale for this plugin for internationalization.
     *
-    * Uses the Richie_News_i18n class in order to set the domain and to register the hook
+    * Uses the Richie_i18n class in order to set the domain and to register the hook
     * with WordPress.
     *
     * @since    1.0.0
@@ -143,7 +143,7 @@ class Richie_News {
     */
     private function set_locale() {
 
-        $plugin_i18n = new Richie_News_i18n();
+        $plugin_i18n = new Richie_i18n();
 
         $this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
 
@@ -158,7 +158,7 @@ class Richie_News {
     */
     private function define_admin_hooks() {
 
-        $plugin_admin = new Richie_News_Admin( $this->get_plugin_name(), $this->get_version() );
+        $plugin_admin = new Richie_Admin( $this->get_plugin_name(), $this->get_version() );
 
         $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
         $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
@@ -181,14 +181,14 @@ class Richie_News {
     */
     private function define_public_hooks() {
 
-        $plugin_public = new Richie_News_Public( $this->get_plugin_name(), $this->get_version() );
+        $plugin_public = new Richie_Public( $this->get_plugin_name(), $this->get_version() );
 
         $this->loader->add_action( 'init', $plugin_public, 'register_shortcodes');
         $this->loader->add_action( 'init', $plugin_public, 'register_redirect_route');
         $this->loader->add_action( 'rest_api_init', $plugin_public, 'register_richie_rest_api');
         $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
         $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
-        $this->loader->add_filter( 'template_include', $plugin_public, 'richie_news_template');
+        $this->loader->add_filter( 'template_include', $plugin_public, 'richie_template');
 
     }
 
@@ -216,7 +216,7 @@ class Richie_News {
     * The reference to the class that orchestrates the hooks with the plugin.
     *
     * @since     1.0.0
-    * @return    Richie_News_Loader    Orchestrates the hooks of the plugin.
+    * @return    Richie_Loader    Orchestrates the hooks of the plugin.
     */
     public function get_loader() {
         return $this->loader;

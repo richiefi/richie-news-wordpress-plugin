@@ -8,8 +8,8 @@
  * @link       https://www.richie.fi
  * @since      1.0.0
  *
- * @package    Richie_News
- * @subpackage Richie_News/public/partials
+ * @package    Richie
+ * @subpackage Richie/public/partials
  */
 ?>
 
