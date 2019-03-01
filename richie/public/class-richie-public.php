@@ -49,9 +49,9 @@ class Richie_Public {
      * @var     array      $Richie_options
      */
 
-    private $Richie_options;
+    private $richie_options;
 
-    private $Richie_sources;
+    private $richie_news_sources;
 	/**
     * Initialize the class and set its properties.
     *
@@ -65,9 +65,9 @@ class Richie_Public {
 
 		$this->plugin_name = $plugin_name;
         $this->version = $version;
-        $this->Richie_options = get_option($plugin_name);
-        $sourcelist = get_option($plugin_name . '_sources');
-        $this->Richie_sources = isset($sourcelist['sources']) ? $sourcelist['sources'] : array();
+        $this->richie_options = get_option($plugin_name);
+        $sourcelist = get_option($plugin_name . 'news_sources');
+        $this->richie_news_sources = isset($sourcelist['sources']) ? $sourcelist['sources'] : array();
     }
 
     function feed_route_handler($data) {
@@ -79,7 +79,7 @@ class Richie_Public {
             return new WP_Error( 'article_set_not_found', 'Article set not found', array( 'status' => 404 ) );
         }
 
-        $sources = array_filter( $this->Richie_sources, function( $source ) use ($article_set) {
+        $sources = array_filter( $this->richie_news_sources, function( $source ) use ($article_set) {
             return $article_set->term_id === $source['article_set'];
         } );
 
@@ -149,7 +149,7 @@ class Richie_Public {
     }
 
     public function article_route_handler($data) {
-        $article = new Richie_Article($this->Richie_options);
+        $article = new Richie_Article($this->richie_options);
         $post = get_post($data['id']);
         if ( empty( $post ) ) {
             return new WP_Error( 'no_id', 'Invalid article id', array( 'status' => 404 ) );
@@ -160,7 +160,7 @@ class Richie_Public {
     }
 
     public function check_permission() {
-        if (isset( $_GET['token']) && $this->Richie_options['access_token'] === $_GET['token']) {
+        if (isset( $_GET['token']) && $this->richie_options['access_token'] === $_GET['token']) {
             return true;
         }
         return false;
@@ -216,12 +216,12 @@ class Richie_Public {
         // ));
     }
 
-    public function Richie_template($template) {
-        if (isset( $_GET['token']) && $this->Richie_options['access_token'] === $_GET['token']) {
-            if( isset( $_GET['Richie'] ) ) {
+    public function richie_template($template) {
+        if (isset( $_GET['token']) && $this->richie_options['access_token'] === $_GET['token']) {
+            if( isset( $_GET['richie'] ) ) {
                 add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
-                $Richie_template_loader = new Richie_Template_Loader;
-                $template = $Richie_template_loader->locate_template( 'richie-news-article.php', false );
+                $richie_template_loader = new Richie_Template_Loader;
+                $template = $richie_template_loader->locate_template( 'richie-news-article.php', false );
             }
         }
         return $template;
@@ -289,27 +289,27 @@ class Richie_Public {
 
 
         if (
-            !isset( $this->Richie_options['maggio_hostname'] )||
-            !isset( $this->Richie_options['maggio_organization'] )
+            !isset( $this->richie_options['maggio_hostname'] )||
+            !isset( $this->richie_options['maggio_organization'] )
         ) {
             return '<div>Invalid configuration</div>';
         }
 
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
 
-        $index_url = $this->Richie_options['maggio_hostname'] . '/_data/index.json';
-        $organization = $this->Richie_options['maggio_organization'];
+        $index_url = $this->richie_options['maggio_hostname'] . '/_data/index.json';
+        $organization = $this->richie_options['maggio_organization'];
         $maggio_service = new Richie_Maggio_Service($index_url, $organization);
         $issues = $maggio_service->get_issues($attributes['id'], $atts['number_of_issues']);
-        $required_pmpro_level = isset( $this->Richie_options['maggio_required_pmpro_level'] ) ? $this->Richie_options['maggio_required_pmpro_level'] : 0;
+        $required_pmpro_level = isset( $this->richie_options['maggio_required_pmpro_level'] ) ? $this->richie_options['maggio_required_pmpro_level'] : 0;
         $user_has_access = richie_has_maggio_access( $required_pmpro_level );
 
         if( $issues === false ) {
             return '<div>Failed to fetch issues</div>';
         }
 
-        $Richie_template_loader = new Richie_Template_Loader();
-        $template = $Richie_template_loader->locate_template( 'richie-maggio-index.php', false, false );
+        $richie_template_loader = new Richie_Template_Loader();
+        $template = $richie_template_loader->locate_template( 'richie-maggio-index.php', false, false );
         ob_start();
         include $template;
 
@@ -339,8 +339,8 @@ class Richie_Public {
             wp_is_uuid($wp->query_vars['maggio_redirect'])
         ) {
             if (
-                !isset( $this->Richie_options['maggio_secret'] ) ||
-                !isset( $this->Richie_options['maggio_hostname'])
+                !isset( $this->richie_options['maggio_secret'] ) ||
+                !isset( $this->richie_options['maggio_hostname'])
             ) {
                 // invalid configuration
                 if (wp_get_referer()) {
@@ -351,7 +351,7 @@ class Richie_Public {
                 exit();
             }
 
-            $required_pmpro_level = isset( $this->Richie_options['maggio_required_pmpro_level'] ) ? $this->Richie_options['maggio_required_pmpro_level'] : 0;
+            $required_pmpro_level = isset( $this->richie_options['maggio_required_pmpro_level'] ) ? $this->richie_options['maggio_required_pmpro_level'] : 0;
 
             if ( !richie_has_maggio_access( $required_pmpro_level ) ) {
                 if (wp_get_referer()) {
@@ -363,11 +363,11 @@ class Richie_Public {
             }
 
             // has access, continue redirect
-            $hostname = $this->Richie_options['maggio_hostname'];
+            $hostname = $this->richie_options['maggio_hostname'];
             $uuid = $wp->query_vars['maggio_redirect'];
             $timestamp = time();
 
-            $secret = $this->Richie_options['maggio_secret'];
+            $secret = $this->richie_options['maggio_secret'];
 
             $return_link = wp_get_referer() ? wp_get_referer() : get_home_url();
 

@@ -10,7 +10,7 @@ class Richie_Template_Loader extends Gamajo_Template_Loader {
    *
    * @var string
    */
-  protected $filter_prefix = 'Richie';
+  protected $filter_prefix = 'richie';
 
   /**
    * Directory name where custom templates for this plugin should be found in the theme.

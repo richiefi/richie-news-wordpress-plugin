@@ -15,7 +15,7 @@
  * @wordpress-plugin
  * Plugin Name:       Richie
  * Plugin URI:        https://www.richie.fi
- * Description:       Provides content feed in Richie json format
+ * Description:       Richie platform plugin
  * Version:           1.0.0
  * Author:            Markku Uusitupa
  * Author URI:        https://www.richie.fi

@@ -58,7 +58,7 @@ class Richie_Admin {
         $this->version = $version;
         $this->settings_page_slug = $plugin_name;
         $this->settings_option_name = $plugin_name;
-        $this->sources_option_name = $plugin_name . '_sources';
+        $this->sources_option_name = $plugin_name . 'news_sources';
         $this->available_layout_names = array(
             'big', 'small', 'small_group_item', 'featured', 'none'
         );
@@ -272,39 +272,38 @@ class Richie_Admin {
             update_option($this->settings_option_name, $options);
         }
 
-        $general_section_name = 'Richie_general';
-        $paywall_section_name = 'Richie_paywall';
-        $sources_section_name = 'Richie_source';
-        $maggio_section_name = 'Richie_maggio';
+        $general_section_name = 'richie_general';
+        $paywall_section_name = 'richie_paywall';
+        $sources_section_name = 'richie_news_source';
+        $maggio_section_name = 'richie_maggio';
 
         // create general section
         add_settings_section ($general_section_name, __('General settings', $this->plugin_name), null, $this->settings_option_name);
-        add_settings_field('Richie_access_token', __('Access token', $this->plugin_name), array($this, 'input_field_render'), $this->settings_option_name, $general_section_name, array('id' => 'access_token'));
+        add_settings_field('richie_access_token', __('Access token', $this->plugin_name), array($this, 'input_field_render'), $this->settings_option_name, $general_section_name, array('id' => 'access_token'));
 
         // create paywall section
         add_settings_section ($paywall_section_name, __('Paywall', $this->plugin_name), null, $this->settings_option_name);
-        add_settings_field('Richie_metered_pmpro_level', __('Metered level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'metered_pmpro_level'));
-        add_settings_field('Richie_member_only_pmpro_level', __('Member only level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'member_only_pmpro_level'));
+        add_settings_field('richie_metered_pmpro_level', __('Metered level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'metered_pmpro_level'));
+        add_settings_field('richie_member_only_pmpro_level', __('Member only level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'member_only_pmpro_level'));
 
         // create maggio section
 
         add_settings_section ($maggio_section_name, __('Maggio settings', $this->plugin_name), null, $this->settings_option_name);
-        add_settings_field('Richie_maggio_organization',   __('Maggio organization', $this->plugin_name),  array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_organization'));
-        add_settings_field('Richie_maggio_hostname',       __('Maggio hostname', $this->plugin_name),      array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_hostname'));
-        add_settings_field('Richie_maggio_secret',         __('Maggio secret', $this->plugin_name),        array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_secret'));
-        add_settings_field('Richie_maggio_required_pmpro_level', __('Required membership level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_required_pmpro_level'));
+        add_settings_field('richie_maggio_organization',   __('Maggio organization', $this->plugin_name),  array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_organization'));
+        add_settings_field('richie_maggio_hostname',       __('Maggio hostname', $this->plugin_name),      array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_hostname'));
+        add_settings_field('richie_maggio_secret',         __('Maggio secret', $this->plugin_name),        array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_secret'));
+        add_settings_field('richie_maggio_required_pmpro_level', __('Required membership level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_required_pmpro_level'));
 
         // create source section
         add_settings_section ($sources_section_name, __('Add new feed source', $this->plugin_name), null, $this->sources_option_name);
-        add_settings_field ('Richie_source_name',      __('Name', $this->plugin_name),             array($this, 'source_name_render'),     $this->sources_option_name, $sources_section_name);
-        add_settings_field ('Richie_source_set',       __('Article set', $this->plugin_name),      array($this, 'article_set_render'),     $this->sources_option_name, $sources_section_name);
-        add_settings_field ('Richie_source_category',  __('Categories', $this->plugin_name),       array($this, 'category_list_render'),   $this->sources_option_name, $sources_section_name);
-        add_settings_field ('Richie_source_amount',    __('Number of posts', $this->plugin_name),  array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
-        add_settings_field ('Richie_source_order_by',  __('Order by', $this->plugin_name),         array($this, 'order_by_render'),        $this->sources_option_name, $sources_section_name);
-        add_settings_field ('Richie_source_order_dir', __('Order direction', $this->plugin_name),  array($this, 'order_direction_render'), $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_source_name',      __('Name', $this->plugin_name),             array($this, 'source_name_render'),     $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_source_set',       __('Article set', $this->plugin_name),      array($this, 'article_set_render'),     $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_source_category',  __('Categories', $this->plugin_name),       array($this, 'category_list_render'),   $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_source_amount',    __('Number of posts', $this->plugin_name),  array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_source_order_by',  __('Order by', $this->plugin_name),         array($this, 'order_by_render'),        $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_source_order_dir', __('Order direction', $this->plugin_name),  array($this, 'order_direction_render'), $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_list_layout_style',     __('List layout', $this->plugin_name),      array($this, 'list_layout_style_render'),$this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_list_group_title',      __('List group title', $this->plugin_name), array($this, 'list_group_title_render'),$this->sources_option_name, $sources_section_name);
-        //add_settings_field('Richie_source_amount', __('Post amount', $this->plugin_name), )
     }
 
     public function input_field_render( array $args  ) {

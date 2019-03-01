@@ -9,8 +9,8 @@ class Richie_Article {
 
     private $news_options;
 
-    function __construct($Richie_options) {
-        $this->news_options = $Richie_options;
+    function __construct($richie_options) {
+        $this->news_options = $richie_options;
 
         function start_wp_head_buffer() {
             ob_start();
@@ -78,33 +78,8 @@ class Richie_Article {
         return true;
     }
 
-    private function render_template($name, $post_id) {
-        global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID, $wp_styles, $wp_scripts, $wp_filter;
-        require_once plugin_dir_path( __FILE__ ) . 'class-richie-template-loader.php';
-        $Richie_template_loader = new Richie_Template_Loader;
-        $wp_query = new WP_Query(array(
-            'p' => $post_id
-        ));
-
-        // add pmpro filter which overrides access and always returns true
-        // this way it won't filter the content and always returns full content
-        add_filter( 'pmpro_has_membership_access_filter', array($this, 'richie_pmpro_has_membership_access_filter'), 20, 4 );
-
-        ob_start();
-        $Richie_template_loader
-            ->get_template_part($name);
-
-        // get_template_part($name);
-        $rendered_content = ob_get_clean();
-        wp_reset_query();
-        wp_reset_postdata();
-
-        return $rendered_content;
-    }
-
-
     public function generate_article($my_post) {
-        global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID, $feed_assets;
+        global $wpdb;
 
         $post = $my_post;
         $hash = md5(serialize($my_post));
@@ -159,15 +134,17 @@ class Richie_Article {
         }
 
         $content_url = add_query_arg( array(
-            'Richie' => 1,
+            'richie' => 1,
             'token' =>  $this->news_options['access_token']
         ), get_permalink($post_id));
 
         $photos = array();
         $assets = array();
 
-        $transient_key = 'Richie_' . $hash;
+        $transient_key = 'richie_' . $hash;
         $rendered_content = get_transient($transient_key);
+
+        $article->content_url = $content_url;
 
         if ( empty($rendered_content) ) {
             $response = wp_remote_get($content_url);
@@ -228,8 +205,6 @@ class Richie_Article {
 
             $article->content_html_document = $rendered_content;
         }
-
-        // $rendered_content = $this->render_template('richie-news-article', $post_id);
 
         $article->assets = $assets;
         $article->photos = array($photos);
