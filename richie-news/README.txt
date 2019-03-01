@@ -1,114 +1,79 @@
-=== Plugin Name ===
+=== Richie ===
 Contributors: (this should be a list of wordpress.org userid's)
 Donate link: https://www.richie.fi
-Tags: rest, feed, api
-Requires at least: 3.0.1
-Tested up to: 3.4
-Stable tag: 4.3
-License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Tags: rest, feed, api, shortcode
+Requires at least: 4.0
+Tested up to: 5.1
+License: Copyright Richie OY
 
-Here is a short description of the plugin.  This should be no more than 150 characters.  No markup here.
+This plugin provides backend feeds and digital paper support for Richie Platform.
 
 == Description ==
 
-This is the long description.  No limit, and you can use Markdown (as well as in the following sections).
-
-For backwards compatibility, if this section is missing, the full length of the short description will be used, and
-Markdown parsed.
-
-A few notes about the sections above:
-
-*   "Contributors" is a comma separated list of wp.org/wp-plugins.org usernames
-*   "Tags" is a comma separated list of tags that apply to the plugin
-*   "Requires at least" is the lowest version that the plugin will work on
-*   "Tested up to" is the highest version that you've *successfully used to test the plugin*. Note that it might work on
-higher versions... this is just the highest one you've verified.
-*   Stable tag should indicate the Subversion "tag" of the latest stable version, or "trunk," if you use `/trunk/` for
-stable.
-
-    Note that the `readme.txt` of the stable tag is the one that is considered the defining one for the plugin, so
-if the `/trunk/readme.txt` file says that the stable tag is `4.3`, then it is `/tags/4.3/readme.txt` that'll be used
-for displaying information about the plugin.  In this situation, the only thing considered from the trunk `readme.txt`
-is the stable tag pointer.  Thus, if you develop in trunk, you can update the trunk `readme.txt` to reflect changes in
-your in-development version, without having that information incorrectly disclosed about the current stable version
-that lacks those changes -- as long as the trunk's `readme.txt` points to the correct stable tag.
-
-    If no stable tag is provided, it is assumed that trunk is stable, but you should specify "trunk" if that's where
-you put the stable version, in order to eliminate any doubt.
+Richie Platform plugin provides following features:
+- Shortcode for including list of Maggio issues
+- Redirection url which constructs signin url and provides access to the actual magazine
+- JSON feeds to be used in Richie News Platform
+- Supports paywall features (currently assuming PMPro plugin installed)
 
 == Installation ==
 
-This section describes how to install the plugin and get it working.
-
-e.g.
-
-1. Upload `richie-news.php` to the `/wp-content/plugins/` directory
-1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Place `<?php do_action('plugin_name_hook'); ?>` in your templates
-
-== Frequently Asked Questions ==
-
-= A question that someone might have =
-
-An answer to that question.
-
-= What about foo bar? =
-
-Answer to foo bar dilemma.
-
-== Screenshots ==
-
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the screenshot is taken from
-the /assets directory or the directory that contains the stable readme.txt (tags or trunk). Screenshots in the /assets
-directory take precedence. For example, `/assets/screenshot-1.png` would win over `/tags/4.3/screenshot-1.png`
-(or jpg, jpeg, gif).
-2. This is the second screen shot
+1. Upload `richie` folder to the `/wp-content/plugins/` directory.
+2. Activate the plugin through the 'Plugins' menu in Wordpress.
+3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
 
 = 1.0 =
-* A change since the previous version.
-* Another change.
+* Initial version
 
-= 0.5 =
-* List versions from most recent at top to oldest at bottom.
+== Configuration ==
 
-== Upgrade Notice ==
+= General =
 
-= 1.0 =
-Upgrade notices describe the reason a user should upgrade.  No more than 300 characters.
+1. `Access token` - Random string to be used as authentication for richie news feeds.
+    NOTE: with token, full content of the article can be accessed despite of pmpro configuration.
+2. `Paywall` - Map PMPro levels to levels used in news feed.
+    - `Metered` - Level which marks articles to be readable by anyone, but amount of article reads is limited
+    - `Premium` - Level which marks articles to be access only by users having this levels
 
-= 0.5 =
-This version fixes a security related bug.  Upgrade immediately.
+3. `Maggio settings`
+    1. `Maggio organization` - Organization which includes maggio products.
+    2. `Maggio hostname` - Full hostname to the Maggio HTML5 server, can be https://<client>.ap.richiefi.net or configured cname
+    3. `Maggio secret` - Provided secret which is used to calculate signature hash for signin urls
+    4. `Required membership level` - If set, user must have that level to access Maggio issues
 
-== Arbitrary section ==
+= News sources =
 
-You may provide arbitrary sections, in the same format as the ones above.  This may be of use for extremely complicated
-plugins where more information needs to be conveyed that doesn't fit into the categories of "description" or
-"installation."  Arbitrary sections will be shown below the built-in sections outlined above.
+- Sources provides articles to the article sets. Article sets must be created first using separate UI.
+- Article set may contain multiple source items.
+- Source includes filters like category and number of posts, which is used to determine, which articles are included.
+- Sources can be reordered with drag&drop.
 
-== A brief Markdown Example ==
+== Shortcode ==
 
-Ordered list:
+Plugin provides `[maggio]` shortcode, which may be used to show grid of available issues.
+Shortcode supports two attributes:
+  - `id` (required): Maggio product id
+  - `number_of_issues` (optional): Amount of issues to be shown. If omitted, shows all issues.
 
-1. Some feature
-1. Another feature
-1. Something else about the plugin
+Example:
+```
+[maggio id="main" number_of_issues="10]
+```
 
-Unordered list:
+Short code renders a template, which the theme may overwrite.
+This can be done by placing `richie-maggio-index.php` inside `<theme_path>/richie` folder.
+A basic template as a base can be found inside plugin's templates folder.
 
-* something
-* something else
-* third thing
+== News feed ==
 
-Here's a link to [WordPress](http://wordpress.org/ "Your favorite software") and one to [Markdown's Syntax Documentation][markdown syntax].
-Titles are optional, naturally.
+Plugin provides following rest apis:
+`/wp-json/richie/v1/news/<article_set_name>?token=<configured_token>`
+`/wp-json/richie/v1/article/<article_id>?token=<configured_token>`
 
-[markdown syntax]: http://daringfireball.net/projects/markdown/syntax
-            "Markdown is what the parser uses to process much of the readme file"
+`news` endpoint returns an array of articles for the specific article set, using configured sources.
+`article` endpoint returns details for specific article, including rendered html content
 
-Markdown uses email style notation for blockquotes and I've been told:
-> Asterisks for *emphasis*. Double it up  for **strong**.
-
-`<?php code(); // goes in backticks ?>`
+Rendering is done using a template system. Theme may provide an template for this content by placing `richie-news-article.php?`
+inside `<theme_path>/richie` folder. It should return full html page starting from doctype.
