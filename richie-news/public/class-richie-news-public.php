@@ -72,6 +72,7 @@ class Richie_News_Public {
 
     function feed_route_handler($data) {
         $posts = array();
+        $found_ids = array();
         $article_set = get_term_by('slug', $data['article_set'], 'richie_article_set');
 
         if( empty( $article_set ) ) {
@@ -98,17 +99,38 @@ class Richie_News_Public {
             }
 
             $source_posts = get_posts($args);
-            $posts = array_unique(array_merge($posts, $source_posts), SORT_REGULAR);
+
+            $article_attributes = array(
+                'list_layout_style' => $source['list_layout_style']
+            );
+
+            if ( !empty( $source['list_group_title']) ) {
+                $article_attributes['list_group_title'] = $source['list_group_title'];
+            }
+
+            foreach ( $source_posts as $p) {
+                if ( ! in_array( $p->ID, $found_ids) ) {
+                    array_push( $posts, array (
+                        'id' => $p->ID,
+                        'post_data' => $p,
+                        'article_attributes' => $article_attributes
+                    ));
+                    array_push( $found_ids, $p->ID );
+                }
+            }
         }
         $articles = array();
-        foreach ($posts as $content_post) {
+        foreach ($posts as $p) {
+            $content_post = $p['post_data'];
             $date = (new DateTime($content_post->post_date_gmt))->format('c');
             $updated_date = (new DateTime($content_post->post_modified_gmt))->format('c');
+
 
             array_push($articles, array(
                 'id' => $content_post->guid,
                 'fetch_id' => $content_post->ID,
                 'last_updated' => max($date, $updated_date),
+                'article_attributes' => $p['article_attributes']
             ));
         }
 
