@@ -144,7 +144,6 @@ class Richie_Article {
         $transient_key = 'richie_' . $hash;
         $rendered_content = get_transient($transient_key);
 
-        $article->content_url = $content_url;
 
         if ( empty($rendered_content) ) {
             $response = wp_remote_get($content_url);
