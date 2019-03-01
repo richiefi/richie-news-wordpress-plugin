@@ -150,10 +150,10 @@ class Richie_News_Article {
         $is_premium = in_array($member_only_id, $levels);
         $is_metered = in_array($metered_id, $levels);
 
-        if ( $is_premium ) {
-            $article->metered_paywall = self::METERED_PAYWALL_NO_ACCESS_VALUE;
-        } else if ( $is_metered  ) {
+        if ( $is_metered ) {
             $article->metered_paywall = self::METERED_PAYWALL_METERED_VALUE;
+        } else if ( $is_premium  ) {
+            $article->metered_paywall = self::METERED_PAYWALL_NO_ACCESS_VALUE;
         } else {
             $article->metered_paywall = self::METERED_PAYWALL_FREE_VALUE;
         }
@@ -170,7 +170,8 @@ class Richie_News_Article {
         $rendered_content = get_transient($transient_key);
 
         if ( empty($rendered_content) ) {
-            $response = wp_remote_get(str_replace('localhost:8000', '192.168.0.104:8000', $content_url), array ( 'sslverify' => false));
+            $response = wp_remote_get($content_url);
+            //$response = wp_remote_get(str_replace('localhost:8000', '192.168.0.4:8000', $content_url), array ( 'sslverify' => false));
 
             if ( is_array( $response ) && ! is_wp_error( $response ) ) {
                 $rendered_content = $response['body'];
