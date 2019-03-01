@@ -6,8 +6,8 @@
 * @link       https://www.richie.fi
 * @since      1.0.0
 *
-* @package    Richie_News
-* @subpackage Richie_News/public
+* @package    Richie
+* @subpackage Richie/public
 */
 
 
@@ -17,11 +17,11 @@
 * Defines the plugin name, version, and two examples hooks for how to
 * enqueue the public-facing stylesheet and JavaScript.
 *
-* @package    Richie_News
-* @subpackage Richie_News/public
+* @package    Richie
+* @subpackage Richie/public
 * @author     Markku Uusitupa <markku@richie.fi>
 */
-class Richie_News_Public {
+class Richie_Public {
 
 	/**
     * The ID of this plugin.
@@ -42,16 +42,16 @@ class Richie_News_Public {
     private $version;
 
     /**
-     * Richie News options
+     * Richie options
      *
      * @since   1.0.0
      * @access  private
-     * @var     array      $richie_news_options
+     * @var     array      $Richie_options
      */
 
-    private $richie_news_options;
+    private $Richie_options;
 
-    private $richie_news_sources;
+    private $Richie_sources;
 	/**
     * Initialize the class and set its properties.
     *
@@ -61,13 +61,13 @@ class Richie_News_Public {
     */
 	public function __construct( $plugin_name, $version ) {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-news-article.php';
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-news-template-loader.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-template-loader.php';
 
 		$this->plugin_name = $plugin_name;
         $this->version = $version;
-        $this->richie_news_options = get_option($plugin_name);
+        $this->Richie_options = get_option($plugin_name);
         $sourcelist = get_option($plugin_name . '_sources');
-        $this->richie_news_sources = isset($sourcelist['sources']) ? $sourcelist['sources'] : array();
+        $this->Richie_sources = isset($sourcelist['sources']) ? $sourcelist['sources'] : array();
     }
 
     function feed_route_handler($data) {
@@ -79,7 +79,7 @@ class Richie_News_Public {
             return new WP_Error( 'article_set_not_found', 'Article set not found', array( 'status' => 404 ) );
         }
 
-        $sources = array_filter( $this->richie_news_sources, function( $source ) use ($article_set) {
+        $sources = array_filter( $this->Richie_sources, function( $source ) use ($article_set) {
             return $article_set->term_id === $source['article_set'];
         } );
 
@@ -149,7 +149,7 @@ class Richie_News_Public {
     }
 
     public function article_route_handler($data) {
-        $article = new Richie_News_Article($this->richie_news_options);
+        $article = new Richie_Article($this->Richie_options);
         $post = get_post($data['id']);
         if ( empty( $post ) ) {
             return new WP_Error( 'no_id', 'Invalid article id', array( 'status' => 404 ) );
@@ -160,7 +160,7 @@ class Richie_News_Public {
     }
 
     public function check_permission() {
-        if (isset( $_GET['token']) && $this->richie_news_options['access_token'] === $_GET['token']) {
+        if (isset( $_GET['token']) && $this->Richie_options['access_token'] === $_GET['token']) {
             return true;
         }
         return false;
@@ -216,12 +216,12 @@ class Richie_News_Public {
         // ));
     }
 
-    public function richie_news_template($template) {
-        if (isset( $_GET['token']) && $this->richie_news_options['access_token'] === $_GET['token']) {
-            if( isset( $_GET['richie_news'] ) ) {
+    public function Richie_template($template) {
+        if (isset( $_GET['token']) && $this->Richie_options['access_token'] === $_GET['token']) {
+            if( isset( $_GET['Richie'] ) ) {
                 add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
-                $richie_news_template_loader = new Richie_News_Template_Loader;
-                $template = $richie_news_template_loader->locate_template( 'richie-news-article.php', false );
+                $Richie_template_loader = new Richie_Template_Loader;
+                $template = $Richie_template_loader->locate_template( 'richie-news-article.php', false );
             }
         }
         return $template;
@@ -238,15 +238,15 @@ class Richie_News_Public {
         * This function is provided for demonstration purposes only.
         *
         * An instance of this class should be passed to the run() function
-        * defined in Richie_News_Loader as all of the hooks are defined
+        * defined in Richie_Loader as all of the hooks are defined
         * in that particular class.
         *
-        * The Richie_News_Loader will then create the relationship
+        * The Richie_Loader will then create the relationship
         * between the defined hooks and the functions defined in this
         * class.
         */
 
-        wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/richie-news-public.css', array(), $this->version, 'all' );
+        wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/richie-public.css', array(), $this->version, 'all' );
 
     }
 
@@ -261,15 +261,15 @@ class Richie_News_Public {
         * This function is provided for demonstration purposes only.
         *
         * An instance of this class should be passed to the run() function
-        * defined in Richie_News_Loader as all of the hooks are defined
+        * defined in Richie_Loader as all of the hooks are defined
         * in that particular class.
         *
-        * The Richie_News_Loader will then create the relationship
+        * The Richie_Loader will then create the relationship
         * between the defined hooks and the functions defined in this
         * class.
         */
 
-        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-news-public.js', array( 'jquery' ), $this->version, false );
+        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-public.js', array( 'jquery' ), $this->version, false );
 
     }
 
@@ -289,27 +289,27 @@ class Richie_News_Public {
 
 
         if (
-            !isset( $this->richie_news_options['maggio_hostname'] )||
-            !isset( $this->richie_news_options['maggio_organization'] )
+            !isset( $this->Richie_options['maggio_hostname'] )||
+            !isset( $this->Richie_options['maggio_organization'] )
         ) {
             return '<div>Invalid configuration</div>';
         }
 
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
 
-        $index_url = $this->richie_news_options['maggio_hostname'] . '/_data/index.json';
-        $organization = $this->richie_news_options['maggio_organization'];
+        $index_url = $this->Richie_options['maggio_hostname'] . '/_data/index.json';
+        $organization = $this->Richie_options['maggio_organization'];
         $maggio_service = new Richie_Maggio_Service($index_url, $organization);
         $issues = $maggio_service->get_issues($attributes['id'], $atts['number_of_issues']);
-        $required_pmpro_level = isset( $this->richie_news_options['maggio_required_pmpro_level'] ) ? $this->richie_news_options['maggio_required_pmpro_level'] : 0;
+        $required_pmpro_level = isset( $this->Richie_options['maggio_required_pmpro_level'] ) ? $this->Richie_options['maggio_required_pmpro_level'] : 0;
         $user_has_access = richie_has_maggio_access( $required_pmpro_level );
 
         if( $issues === false ) {
             return '<div>Failed to fetch issues</div>';
         }
 
-        $richie_news_template_loader = new Richie_News_Template_Loader();
-        $template = $richie_news_template_loader->locate_template( 'richie-maggio-index.php', false, false );
+        $Richie_template_loader = new Richie_Template_Loader();
+        $template = $Richie_template_loader->locate_template( 'richie-maggio-index.php', false, false );
         ob_start();
         include $template;
 
@@ -339,8 +339,8 @@ class Richie_News_Public {
             wp_is_uuid($wp->query_vars['maggio_redirect'])
         ) {
             if (
-                !isset( $this->richie_news_options['maggio_secret'] ) ||
-                !isset( $this->richie_news_options['maggio_hostname'])
+                !isset( $this->Richie_options['maggio_secret'] ) ||
+                !isset( $this->Richie_options['maggio_hostname'])
             ) {
                 // invalid configuration
                 if (wp_get_referer()) {
@@ -351,7 +351,7 @@ class Richie_News_Public {
                 exit();
             }
 
-            $required_pmpro_level = isset( $this->richie_news_options['maggio_required_pmpro_level'] ) ? $this->richie_news_options['maggio_required_pmpro_level'] : 0;
+            $required_pmpro_level = isset( $this->Richie_options['maggio_required_pmpro_level'] ) ? $this->Richie_options['maggio_required_pmpro_level'] : 0;
 
             if ( !richie_has_maggio_access( $required_pmpro_level ) ) {
                 if (wp_get_referer()) {
@@ -363,11 +363,11 @@ class Richie_News_Public {
             }
 
             // has access, continue redirect
-            $hostname = $this->richie_news_options['maggio_hostname'];
+            $hostname = $this->Richie_options['maggio_hostname'];
             $uuid = $wp->query_vars['maggio_redirect'];
             $timestamp = time();
 
-            $secret = $this->richie_news_options['maggio_secret'];
+            $secret = $this->Richie_options['maggio_secret'];
 
             $return_link = wp_get_referer() ? wp_get_referer() : get_home_url();
 

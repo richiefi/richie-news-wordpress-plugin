@@ -8,8 +8,8 @@
  * @link       https://www.richie.fi
  * @since      1.0.0
  *
- * @package    Richie_News
- * @subpackage Richie_News/admin/partials
+ * @package    Richie
+ * @subpackage Richie/admin/partials
  */
 ?>
 
@@ -26,7 +26,7 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
     </h2>
 
     <?php if ( $active_tab === 'settings' ) : ?>
-        <form method="post" name="richie-news-options" action="options.php">
+        <form method="post" name="richie-options" action="options.php">
 
             <?php
                 settings_fields($this->settings_option_name);
@@ -40,7 +40,7 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
         <h3><?php _e('News sources') ?></h3>
         <?php echo $this->source_list() ?>
         <hr>
-        <form method="post" name="richie-news-source-form" action="options.php">
+        <form method="post" name="richie-source-form" action="options.php">
             <?php
                 settings_fields($this->sources_option_name);
                 do_settings_sections($this->sources_option_name);

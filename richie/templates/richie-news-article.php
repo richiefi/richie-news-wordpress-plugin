@@ -1,6 +1,6 @@
 <?php
 /*
-Template Name: Richie News Article template
+Template Name: Richie Article template
 */
 ?>
 <!doctype html>

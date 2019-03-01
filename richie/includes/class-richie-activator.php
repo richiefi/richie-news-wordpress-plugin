@@ -6,8 +6,8 @@
  * @link       https://www.richie.fi
  * @since      1.0.0
  *
- * @package    Richie_News
- * @subpackage Richie_News/includes
+ * @package    Richie
+ * @subpackage Richie/includes
  */
 
 /**
@@ -16,11 +16,11 @@
  * This class defines all code necessary to run during the plugin's activation.
  *
  * @since      1.0.0
- * @package    Richie_News
- * @subpackage Richie_News/includes
+ * @package    Richie
+ * @subpackage Richie/includes
  * @author     Markku Uusitupa <markku@richie.fi>
  */
-class Richie_News_Activator {
+class Richie_Activator {
 
 	/**
 	 * Short Description. (use period)

@@ -6,8 +6,8 @@
  * @link       https://www.richie.fi
  * @since      1.0.0
  *
- * @package    Richie_News
- * @subpackage Richie_News/includes
+ * @package    Richie
+ * @subpackage Richie/includes
  */
 
 /**
@@ -17,11 +17,11 @@
  * the plugin, and register them with the WordPress API. Call the
  * run function to execute the list of actions and filters.
  *
- * @package    Richie_News
- * @subpackage Richie_News/includes
+ * @package    Richie
+ * @subpackage Richie/includes
  * @author     Markku Uusitupa <markku@richie.fi>
  */
-class Richie_News_Loader {
+class Richie_Loader {
 
 	/**
 	 * The array of actions registered with WordPress.

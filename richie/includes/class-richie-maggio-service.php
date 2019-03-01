@@ -11,8 +11,8 @@ require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-mag
  * removes the cache after the time is passed, forcing new request to be made.
  *
  * @since 1.0.0
- * @package    Richie_News
- * @subpackage Richie_News/includes
+ * @package    Richie
+ * @subpackage Richie/includes
  * @author     Markku Uusitupa <markku@richie.fi>
  */
 class Richie_Cached_Request {
@@ -200,8 +200,8 @@ class Richie_Cached_Request {
  * Fetch issues by using cached request
  *
  * @since 1.0.0
- * @package    Richie_News
- * @subpackage Richie_News/includes
+ * @package    Richie
+ * @subpackage Richie/includes
  * @author     Markku Uusitupa <markku@richie.fi>
 */
 class Richie_Maggio_Service {

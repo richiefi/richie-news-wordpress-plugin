@@ -1,6 +1,6 @@
 <?php
 
-class Richie_News_Article {
+class Richie_Article {
 
     // values for metered_paywall
     const METERED_PAYWALL_NO_ACCESS_VALUE = 'no_access';
@@ -9,8 +9,8 @@ class Richie_News_Article {
 
     private $news_options;
 
-    function __construct($richie_news_options) {
-        $this->news_options = $richie_news_options;
+    function __construct($Richie_options) {
+        $this->news_options = $Richie_options;
 
         function start_wp_head_buffer() {
             ob_start();
@@ -80,8 +80,8 @@ class Richie_News_Article {
 
     private function render_template($name, $post_id) {
         global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID, $wp_styles, $wp_scripts, $wp_filter;
-        require_once plugin_dir_path( __FILE__ ) . 'class-richie-news-template-loader.php';
-        $richie_news_template_loader = new Richie_News_Template_Loader;
+        require_once plugin_dir_path( __FILE__ ) . 'class-richie-template-loader.php';
+        $Richie_template_loader = new Richie_Template_Loader;
         $wp_query = new WP_Query(array(
             'p' => $post_id
         ));
@@ -91,7 +91,7 @@ class Richie_News_Article {
         add_filter( 'pmpro_has_membership_access_filter', array($this, 'richie_pmpro_has_membership_access_filter'), 20, 4 );
 
         ob_start();
-        $richie_news_template_loader
+        $Richie_template_loader
             ->get_template_part($name);
 
         // get_template_part($name);
@@ -159,14 +159,14 @@ class Richie_News_Article {
         }
 
         $content_url = add_query_arg( array(
-            'richie_news' => 1,
+            'Richie' => 1,
             'token' =>  $this->news_options['access_token']
         ), get_permalink($post_id));
 
         $photos = array();
         $assets = array();
 
-        $transient_key = 'richie_news_' . $hash;
+        $transient_key = 'Richie_' . $hash;
         $rendered_content = get_transient($transient_key);
 
         if ( empty($rendered_content) ) {

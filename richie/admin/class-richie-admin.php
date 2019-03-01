@@ -6,8 +6,8 @@
 * @link       https://www.richie.fi
 * @since      1.0.0
 *
-* @package    Richie_News
-* @subpackage Richie_News/admin
+* @package    Richie
+* @subpackage Richie/admin
 */
 
 /**
@@ -16,11 +16,11 @@
 * Defines the plugin name, version, and two examples hooks for how to
 * enqueue the admin-specific stylesheet and JavaScript.
 *
-* @package    Richie_News
-* @subpackage Richie_News/admin
+* @package    Richie
+* @subpackage Richie/admin
 * @author     Markku Uusitupa <markku@richie.fi>
 */
-class Richie_News_Admin {
+class Richie_Admin {
 
     /**
     * The ID of this plugin.
@@ -80,15 +80,15 @@ class Richie_News_Admin {
         * This function is provided for demonstration purposes only.
         *
         * An instance of this class should be passed to the run() function
-        * defined in Richie_News_Loader as all of the hooks are defined
+        * defined in Richie_Loader as all of the hooks are defined
         * in that particular class.
         *
-        * The Richie_News_Loader will then create the relationship
+        * The Richie_Loader will then create the relationship
         * between the defined hooks and the functions defined in this
         * class.
         */
 
-        wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/richie-news-admin.css', array(), $this->version, 'all' );
+        wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/richie-admin.css', array(), $this->version, 'all' );
 
     }
 
@@ -103,10 +103,10 @@ class Richie_News_Admin {
         * This function is provided for demonstration purposes only.
         *
         * An instance of this class should be passed to the run() function
-        * defined in Richie_News_Loader as all of the hooks are defined
+        * defined in Richie_Loader as all of the hooks are defined
         * in that particular class.
         *
-        * The Richie_News_Loader will then create the relationship
+        * The Richie_Loader will then create the relationship
         * between the defined hooks and the functions defined in this
         * class.
         */
@@ -114,7 +114,7 @@ class Richie_News_Admin {
         wp_enqueue_script( 'jquery-ui-core' );
         wp_enqueue_script( 'jquery-ui-sortable' );
         wp_enqueue_script('suggest');
-        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-news-admin.js', array( 'jquery' ), $this->version, false );
+        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery' ), $this->version, false );
     }
 
     /**
@@ -133,7 +133,7 @@ class Richie_News_Admin {
         *        Administration Menus: http://codex.wordpress.org/Administration_Menus
         *
         */
-        add_options_page( 'Richie News Settings', 'Richie News', 'manage_options', $this->settings_page_slug, array($this, 'load_admin_page_content') );
+        add_options_page( 'Richie Settings', 'Richie', 'manage_options', $this->settings_page_slug, array($this, 'load_admin_page_content') );
     }
 
     /**
@@ -155,7 +155,7 @@ class Richie_News_Admin {
 
     // Load the plugin admin page partial.
     public function load_admin_page_content() {
-        require_once plugin_dir_path( __FILE__ ). 'partials/richie-news-admin-display.php';
+        require_once plugin_dir_path( __FILE__ ). 'partials/richie-admin-display.php';
     }
 
     public function register_taxonomy_article_set() {
@@ -272,39 +272,39 @@ class Richie_News_Admin {
             update_option($this->settings_option_name, $options);
         }
 
-        $general_section_name = 'richie_news_general';
-        $paywall_section_name = 'richie_news_paywall';
-        $sources_section_name = 'richie_news_source';
-        $maggio_section_name = 'richie_news_maggio';
+        $general_section_name = 'Richie_general';
+        $paywall_section_name = 'Richie_paywall';
+        $sources_section_name = 'Richie_source';
+        $maggio_section_name = 'Richie_maggio';
 
         // create general section
         add_settings_section ($general_section_name, __('General settings', $this->plugin_name), null, $this->settings_option_name);
-        add_settings_field('richie_news_access_token', __('Access token', $this->plugin_name), array($this, 'input_field_render'), $this->settings_option_name, $general_section_name, array('id' => 'access_token'));
+        add_settings_field('Richie_access_token', __('Access token', $this->plugin_name), array($this, 'input_field_render'), $this->settings_option_name, $general_section_name, array('id' => 'access_token'));
 
         // create paywall section
         add_settings_section ($paywall_section_name, __('Paywall', $this->plugin_name), null, $this->settings_option_name);
-        add_settings_field('richie_news_metered_pmpro_level', __('Metered level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'metered_pmpro_level'));
-        add_settings_field('richie_news_member_only_pmpro_level', __('Member only level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'member_only_pmpro_level'));
+        add_settings_field('Richie_metered_pmpro_level', __('Metered level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'metered_pmpro_level'));
+        add_settings_field('Richie_member_only_pmpro_level', __('Member only level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'member_only_pmpro_level'));
 
         // create maggio section
 
         add_settings_section ($maggio_section_name, __('Maggio settings', $this->plugin_name), null, $this->settings_option_name);
-        add_settings_field('richie_news_maggio_organization',   __('Maggio organization', $this->plugin_name),  array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_organization'));
-        add_settings_field('richie_news_maggio_hostname',       __('Maggio hostname', $this->plugin_name),      array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_hostname'));
-        add_settings_field('richie_news_maggio_secret',         __('Maggio secret', $this->plugin_name),        array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_secret'));
-        add_settings_field('richie_news_maggio_required_pmpro_level', __('Required membership level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_required_pmpro_level'));
+        add_settings_field('Richie_maggio_organization',   __('Maggio organization', $this->plugin_name),  array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_organization'));
+        add_settings_field('Richie_maggio_hostname',       __('Maggio hostname', $this->plugin_name),      array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_hostname'));
+        add_settings_field('Richie_maggio_secret',         __('Maggio secret', $this->plugin_name),        array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_secret'));
+        add_settings_field('Richie_maggio_required_pmpro_level', __('Required membership level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_required_pmpro_level'));
 
         // create source section
         add_settings_section ($sources_section_name, __('Add new feed source', $this->plugin_name), null, $this->sources_option_name);
-        add_settings_field ('richie_news_source_name',      __('Name', $this->plugin_name),             array($this, 'source_name_render'),     $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_news_source_set',       __('Article set', $this->plugin_name),      array($this, 'article_set_render'),     $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_news_source_category',  __('Categories', $this->plugin_name),       array($this, 'category_list_render'),   $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_news_source_amount',    __('Number of posts', $this->plugin_name),  array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_news_source_order_by',  __('Order by', $this->plugin_name),         array($this, 'order_by_render'),        $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_news_source_order_dir', __('Order direction', $this->plugin_name),  array($this, 'order_direction_render'), $this->sources_option_name, $sources_section_name);
+        add_settings_field ('Richie_source_name',      __('Name', $this->plugin_name),             array($this, 'source_name_render'),     $this->sources_option_name, $sources_section_name);
+        add_settings_field ('Richie_source_set',       __('Article set', $this->plugin_name),      array($this, 'article_set_render'),     $this->sources_option_name, $sources_section_name);
+        add_settings_field ('Richie_source_category',  __('Categories', $this->plugin_name),       array($this, 'category_list_render'),   $this->sources_option_name, $sources_section_name);
+        add_settings_field ('Richie_source_amount',    __('Number of posts', $this->plugin_name),  array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
+        add_settings_field ('Richie_source_order_by',  __('Order by', $this->plugin_name),         array($this, 'order_by_render'),        $this->sources_option_name, $sources_section_name);
+        add_settings_field ('Richie_source_order_dir', __('Order direction', $this->plugin_name),  array($this, 'order_direction_render'), $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_list_layout_style',     __('List layout', $this->plugin_name),      array($this, 'list_layout_style_render'),$this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_list_group_title',      __('List group title', $this->plugin_name), array($this, 'list_group_title_render'),$this->sources_option_name, $sources_section_name);
-        //add_settings_field('richie_news_source_amount', __('Post amount', $this->plugin_name), )
+        //add_settings_field('Richie_source_amount', __('Post amount', $this->plugin_name), )
     }
 
     public function input_field_render( array $args  ) {
@@ -358,7 +358,7 @@ class Richie_News_Admin {
     }
 
     public function category_list_render() {
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-news-category-walker.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-category-walker.php';
 
         $custom_walker = new Richie_Walker_Category_Checklist(null, $this->sources_option_name.'[source_categories][]');
         ?>
