@@ -134,7 +134,7 @@ class Richie_Article {
         }
 
         $content_url = add_query_arg( array(
-            'richie' => 1,
+            'richie_news' => 1,
             'token' =>  $this->news_options['access_token']
         ), get_permalink($post_id));
 
