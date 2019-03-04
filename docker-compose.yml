@@ -28,7 +28,7 @@ services:
         define('WP_CACHE', false);
     volumes:
       - ./wp-content:/var/www/html/wp-content
-      - ./richie-news:/var/www/html/wp-content/plugins/richie-news
+      - ./richie:/var/www/html/wp-content/plugins/richie
       - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
 
 volumes:
