@@ -192,9 +192,9 @@ class Richie_Admin {
             $valid['access_token'] = sanitize_text_field($input['access_token']);
         }
         $valid['maggio_secret']                 = isset( $input['maggio_secret'] )                  ? sanitize_text_field( $input['maggio_secret'] )        : '';
-        $valid['maggio_hostname']               = isset( $input['maggio_hostname'] )                ? sanitize_url( $input['maggio_hostname'] )             : '';
+        $valid['maggio_hostname']               = isset( $input['maggio_hostname'] )                ? esc_url_raw( $input['maggio_hostname'] )              : '';
         $valid['maggio_organization']           = isset( $input['maggio_organization']  )           ? sanitize_text_field( $input['maggio_organization'] )  : '';
-        $valid['maggio_required_pmpro_level']   = isset( $input['maggio_required_pmpro_level'] )    ? intval( $input['maggio_required_pmpro_level'] )        : '';
+        $valid['maggio_required_pmpro_level']   = isset( $input['maggio_required_pmpro_level'] )    ? intval( $input['maggio_required_pmpro_level'] )       : '';
 
         return $valid;
     }
