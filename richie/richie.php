@@ -17,7 +17,7 @@
  * Plugin URI:        https://www.richie.fi
  * Description:       Richie platform plugin
  * Version:           1.0.0
- * Author:            Markku Uusitupa
+ * Author:            Richie OY
  * Author URI:        https://www.richie.fi
  * License:           Richie OY
  * License URI:       https://www.richie.fi
