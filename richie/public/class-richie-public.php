@@ -166,6 +166,55 @@ class Richie_Public {
         return false;
     }
 
+    public function asset_feed_handler() {
+        $result = [];
+
+        if (isset( $_GET['generate']) && $_GET['generate'] === 'true') {
+            ob_start();
+            // these will cause styles/scripts to be included in global variables
+            wp_head();
+            wp_footer();
+            ob_end_clean();
+
+            global $wp_scripts;
+            foreach ( $wp_scripts->queue as $script ) {
+                $remote_url = $wp_scripts->registered[$script]->src;
+                if ((substr($remote_url, -3) === '.js')) {
+                    if ( substr( $remote_url, 0, 4 ) !== "http" ) {
+                        $remote_url = get_site_url(null, $remote_url);
+                    }
+                    if ( isset( $wp_scripts->registered[$script]->ver ) ) {
+                        $remote_url = add_query_arg( 'ver', $wp_scripts->registered[$script]->ver, $remote_url );
+                    }
+                    $result[] = array(
+                        'remote_url' => $remote_url,
+                        'local_name' => ltrim(wp_make_link_relative($remote_url), '/')
+                    );
+                }
+            }
+            // Print all loaded Styles (CSS)
+            global $wp_styles;
+            foreach( $wp_styles->queue as $style ) {
+                $remote_url = $wp_styles->registered[$style]->src;
+                if ((substr($remote_url, -4) === '.css')) {
+                    if ( substr( $remote_url, 0, 4 ) !== "http" ) {
+                        $remote_url = get_site_url(null, $remote_url);
+                    }
+                    $result[] = array(
+                        'remote_url' => $remote_url,
+                        'local_name' => ltrim(wp_make_link_relative($remote_url), '/')
+                    );
+                }
+            }
+        } else {
+            $result = get_option($this->plugin_name . '_assets');
+            if ( $result === false ) {
+                $result = [];
+            }
+        }
+        return $result;
+    }
+
     /**
     * Register rest api route for richie feed
     *
@@ -211,9 +260,10 @@ class Richie_Public {
             ),
         ));
 
-        // register_rest_route( 'richie/v1', '/assets', array(
-
-        // ));
+        register_rest_route( 'richie/v1', '/assets', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'asset_feed_handler')
+        ));
     }
 
     public function richie_template($template) {
