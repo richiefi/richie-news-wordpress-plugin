@@ -201,6 +201,9 @@ class Richie_Public {
                     if ( substr( $remote_url, 0, 4 ) !== "http" ) {
                         $remote_url = get_site_url(null, $remote_url);
                     }
+                    if ( isset( $wp_styles->registered[$style]->ver ) ) {
+                        $remote_url = add_query_arg( 'ver', $wp_styles->registered[$style]->ver, $remote_url );
+                    }
                     $result[] = array(
                         'remote_url' => $remote_url,
                         'local_name' => ltrim(wp_make_link_relative($remote_url), '/')
