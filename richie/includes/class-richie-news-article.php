@@ -120,7 +120,7 @@ class Richie_Article {
         $member_only_id = $this->news_options['member_only_pmpro_level'];
 
         // get paywall type
-        $sqlQuery = "SELECT m.id, m.name FROM $wpdb->pmpro_memberships_pages mp LEFT JOIN $wpdb->pmpro_membership_levels m ON mp.membership_id = m.id WHERE mp.page_id = '" . $post->ID . "'";
+        $sqlQuery = "SELECT mp.membership_id as id FROM $wpdb->pmpro_memberships_pages mp WHERE mp.page_id = '" . $post->ID . "'";
         $post_membership_levels = $wpdb->get_results($sqlQuery);
         $levels = array_column($post_membership_levels, 'id');
 
