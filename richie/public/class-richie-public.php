@@ -184,11 +184,8 @@ class Richie_Public {
                     if ( substr( $remote_url, 0, 4 ) !== "http" ) {
                         $remote_url = get_site_url(null, $remote_url);
                     }
-                    if ( isset( $wp_scripts->registered[$script]->ver ) ) {
-                        $remote_url = add_query_arg( 'ver', $wp_scripts->registered[$script]->ver, $remote_url );
-                    }
                     $result[] = array(
-                        'remote_url' => $remote_url,
+                        'remote_url' => add_query_arg( 'ver', $wp_scripts->registered[$script]->ver, $remote_url ),
                         'local_name' => ltrim(wp_make_link_relative($remote_url), '/')
                     );
                 }
@@ -201,11 +198,9 @@ class Richie_Public {
                     if ( substr( $remote_url, 0, 4 ) !== "http" ) {
                         $remote_url = get_site_url(null, $remote_url);
                     }
-                    if ( isset( $wp_styles->registered[$style]->ver ) ) {
-                        $remote_url = add_query_arg( 'ver', $wp_styles->registered[$style]->ver, $remote_url );
-                    }
+
                     $result[] = array(
-                        'remote_url' => $remote_url,
+                        'remote_url' => add_query_arg( 'ver', $wp_styles->registered[$style]->ver, $remote_url ),
                         'local_name' => ltrim(wp_make_link_relative($remote_url), '/')
                     );
                 }
@@ -273,6 +268,17 @@ class Richie_Public {
     public function richie_template($template) {
         if (isset( $_GET['token']) && $this->richie_options['access_token'] === $_GET['token']) {
             if( isset( $_GET['richie_news'] ) ) {
+                // remove version from scripts and styles
+                remove_action('wp_head', 'wp_generator'); // remove wordpress version
+                function remove_version_scripts_styles($src) {
+                    if (strpos($src, 'ver=')) {
+                        $src = remove_query_arg('ver', $src);
+                    }
+                    return $src;
+                }
+                add_filter('style_loader_src', 'remove_version_scripts_styles', 9999);
+                add_filter('script_loader_src', 'remove_version_scripts_styles', 9999);
+                // disable pmpro
                 add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
                 $richie_template_loader = new Richie_Template_Loader;
                 $template = $richie_template_loader->locate_template( 'richie-news-article.php', false );
