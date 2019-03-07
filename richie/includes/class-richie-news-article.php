@@ -155,6 +155,11 @@ class Richie_Article {
                 $rendered_content = $response['body'];
                 set_transient($transient_key, $rendered_content, 10);
                 $article->from_cache = false;
+            } else {
+                $rendered_content = 'Failed to get content';
+                if ( is_wp_error( $response ) ) {
+                    $article->content_error = $response->get_error_message();
+                }
             }
         } else {
             $article->from_cache = true;
