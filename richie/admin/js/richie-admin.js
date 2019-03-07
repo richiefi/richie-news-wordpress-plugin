@@ -64,6 +64,28 @@
         $.post(ajaxurl, data, function(response) {
           window.location.reload();
         });
-      })
+      });
+
+      if( $('#code_editor_page_js').length ) {
+        var editorSettings = wp.codeEditor.defaultSettings ? _.clone( wp.codeEditor.defaultSettings ) : {};
+        editorSettings.codemirror = _.extend(
+            {},
+            editorSettings.codemirror,
+            {
+                indentUnit: 2,
+                tabSize: 2,
+                mode: {name: "javascript", json: true},
+                viewportMargin: Infinity
+            }
+        );
+        var editor = wp.codeEditor.initialize( $('#code_editor_page_js'), editorSettings );
+        $('button#generate-assets').on('click', function() {
+          $.getJSON(assetUrl + '?generate=true')
+          .then(function(assets) {
+            editor.codemirror.setValue(JSON.stringify(assets, null, 2));
+          });
+        });
+      }
+
     });
 })( jQuery );
