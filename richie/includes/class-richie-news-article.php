@@ -8,9 +8,11 @@ class Richie_Article {
     const METERED_PAYWALL_FREE_VALUE = 'free';
 
     private $news_options;
+    private $assets;
 
-    function __construct($richie_options) {
+    function __construct($richie_options, $assets = []) {
         $this->news_options = $richie_options;
+        $this->assets = $assets;
 
         function start_wp_head_buffer() {
             ob_start();
@@ -160,6 +162,10 @@ class Richie_Article {
 
         $urls = array_unique(wp_extract_urls($rendered_content));
 
+        // replace asset urls with localname
+        foreach ( $this->assets as $asset ) {
+            $rendered_content = str_replace($asset->remote_url, urlencode( ltrim( $asset->local_name, '/' ) ), $rendered_content);
+        }
 
         if ( $urls ) {
             foreach ( $urls as $url) {
