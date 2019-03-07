@@ -213,8 +213,9 @@ class Richie_Article {
                 }
             }
 
-            $article->content_html_document = $rendered_content;
         }
+
+        $article->content_html_document = $rendered_content;
 
         $article->assets = $assets;
         $article->photos = array($photos);
