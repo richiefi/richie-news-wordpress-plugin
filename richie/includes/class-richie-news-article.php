@@ -164,12 +164,12 @@ class Richie_Article {
 
         // replace asset urls with localname
         foreach ( $this->assets as $asset ) {
-            $rendered_content = str_replace($asset->remote_url, urlencode( ltrim( $asset->local_name, '/' ) ), $rendered_content);
+            $rendered_content = str_replace($asset->remote_url, ltrim( $asset->local_name, '/' ), $rendered_content);
         }
 
         if ( $urls ) {
             foreach ( $urls as $url) {
-                $local_url = remove_query_arg( 'ver', wp_make_link_relative($url));
+                $local_url = ltrim(wp_make_link_relative($url), '/');
                 if ( empty($local_url) ) {
                     continue;
                 }
