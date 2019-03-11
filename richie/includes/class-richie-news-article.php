@@ -93,10 +93,14 @@ class Richie_Article {
         $user_data = get_userdata($post->post_author);
         $category = get_the_category($post_id);
 
-        $thumbnail_id = get_post_thumbnail_id($post_id);
+        $thumbnail = get_the_post_thumbnail_url($post_id, 'full');
 
-        if ( $thumbnail_id ) {
-            $article->image_url = wp_get_attachment_url($thumbnail_id);
+        if ( $thumbnail ) {
+            if ( substr( $thumbnail, 0, 4 ) === 'http' ) {
+                $article->image_url = $thumbnail;
+            } else {
+                $article->image_url = get_site_url(null, $thumbnail);
+            }
         }
 
         $article->id = $post->guid;
