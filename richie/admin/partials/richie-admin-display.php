@@ -23,6 +23,7 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
     <h2 class="nav-tab-wrapper">
         <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=settings' ) ?>" class="nav-tab <?php echo $active_tab == 'settings' || '' ? 'nav-tab-active' : ''; ?>">Settings</a>
         <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=sources' ) ?>" class="nav-tab <?php echo $active_tab == 'sources' ? 'nav-tab-active' : ''; ?>">News sources</a>
+        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=assets' ) ?>" class="nav-tab <?php echo $active_tab == 'assets' ? 'nav-tab-active' : ''; ?>">News assets</a>
     </h2>
 
     <?php if ( $active_tab === 'settings' ) : ?>
@@ -36,7 +37,7 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
             <?php submit_button('Save all changes', 'primary','submit', TRUE); ?>
         </form>
 
-    <?php else : ?>
+    <?php elseif ($active_tab === 'sources') : ?>
         <h3><?php _e('News sources') ?></h3>
         <?php echo $this->source_list() ?>
         <hr>
@@ -47,5 +48,15 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
                 submit_button('Add source', 'primary','submit', TRUE);
             ?>
         </form>
+
+    <?php elseif ($active_tab === 'assets') : ?>
+    <form method="post" name="richie-options" action="options.php">
+    <?php
+        settings_fields($this->assets_option_name);
+        do_settings_sections($this->assets_option_name);
+    ?>
+
+    <?php submit_button('Save all changes', 'primary','submit', TRUE); ?>
+    </form>
     <?php endif; ?>
 </div>

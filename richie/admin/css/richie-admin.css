@@ -7,3 +7,8 @@
   margin-left: 16px;
   margin-top: 8px;
 }
+
+.CodeMirror {
+  border: 1px solid #eee;
+  height: 500px;
+}

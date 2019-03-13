@@ -149,7 +149,8 @@ class Richie_Public {
     }
 
     public function article_route_handler($data) {
-        $article = new Richie_Article($this->richie_options);
+        $assets = get_option($this->plugin_name . '_assets');
+        $article = new Richie_Article($this->richie_options, $assets);
         $post = get_post($data['id']);
         if ( empty( $post ) ) {
             return new WP_Error( 'no_id', 'Invalid article id', array( 'status' => 404 ) );
@@ -164,6 +165,53 @@ class Richie_Public {
             return true;
         }
         return false;
+    }
+
+    public function asset_feed_handler() {
+        $result = [];
+
+        if (isset( $_GET['generate']) && $_GET['generate'] === 'true') {
+            ob_start();
+            // these will cause styles/scripts to be included in global variables
+            wp_head();
+            wp_footer();
+            ob_end_clean();
+
+            global $wp_scripts;
+            foreach ( $wp_scripts->queue as $script ) {
+                $remote_url = $wp_scripts->registered[$script]->src;
+                if ((substr($remote_url, -3) === '.js')) {
+                    if ( substr( $remote_url, 0, 4 ) !== "http" ) {
+                        $remote_url = get_site_url(null, $remote_url);
+                    }
+                    $result[] = array(
+                        'remote_url' => add_query_arg( 'ver', $wp_scripts->registered[$script]->ver, $remote_url ),
+                        'local_name' => ltrim(wp_make_link_relative($remote_url), '/')
+                    );
+                }
+            }
+            // Print all loaded Styles (CSS)
+            global $wp_styles;
+            foreach( $wp_styles->queue as $style ) {
+                $remote_url = $wp_styles->registered[$style]->src;
+                if ((substr($remote_url, -4) === '.css')) {
+                    if ( substr( $remote_url, 0, 4 ) !== "http" ) {
+                        $remote_url = get_site_url(null, $remote_url);
+                    }
+
+                    $result[] = array(
+                        'remote_url' => add_query_arg( 'ver', $wp_styles->registered[$style]->ver, $remote_url ),
+                        'local_name' => ltrim(wp_make_link_relative($remote_url), '/')
+                    );
+                }
+            }
+        } else {
+            $result = get_option($this->plugin_name . '_assets');
+            if ( $result === false ) {
+                $result = [];
+            }
+        }
+        return $result;
     }
 
     /**
@@ -211,14 +259,26 @@ class Richie_Public {
             ),
         ));
 
-        // register_rest_route( 'richie/v1', '/assets', array(
-
-        // ));
+        register_rest_route( 'richie/v1', '/assets', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'asset_feed_handler')
+        ));
     }
 
     public function richie_template($template) {
         if (isset( $_GET['token']) && $this->richie_options['access_token'] === $_GET['token']) {
             if( isset( $_GET['richie_news'] ) ) {
+                // remove version from scripts and styles
+                remove_action('wp_head', 'wp_generator'); // remove wordpress version
+                function remove_version_scripts_styles($src) {
+                    if (strpos($src, 'ver=')) {
+                        $src = remove_query_arg('ver', $src);
+                    }
+                    return $src;
+                }
+                add_filter('style_loader_src', 'remove_version_scripts_styles', 9999);
+                add_filter('script_loader_src', 'remove_version_scripts_styles', 9999);
+                // disable pmpro
                 add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
                 $richie_template_loader = new Richie_Template_Loader;
                 $template = $richie_template_loader->locate_template( 'richie-news-article.php', false );

@@ -42,6 +42,7 @@ class Richie_Admin {
 
     private $settings_option_name;
     private $sources_option_name;
+    private $assets_option_name;
     private $settings_page_slug;
     private $available_layout_names;
 
@@ -59,6 +60,7 @@ class Richie_Admin {
         $this->settings_page_slug = $plugin_name;
         $this->settings_option_name = $plugin_name;
         $this->sources_option_name = $plugin_name . 'news_sources';
+        $this->assets_option_name = $plugin_name . '_assets';
         $this->available_layout_names = array(
             'big', 'small', 'small_group_item', 'featured', 'none'
         );
@@ -114,6 +116,7 @@ class Richie_Admin {
         wp_enqueue_script( 'jquery-ui-core' );
         wp_enqueue_script( 'jquery-ui-sortable' );
         wp_enqueue_script('suggest');
+        wp_enqueue_code_editor( array( 'type' => 'application/json' ) );
         wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery' ), $this->version, false );
     }
 
@@ -255,6 +258,22 @@ class Richie_Admin {
         );
     }
 
+    public function validate_assets($input) {
+        $assets = json_decode($input);
+        if ( $assets === false or empty( $assets ) ) {
+            echo 'error';
+            add_settings_error(
+                $this->assets_option_name,
+                esc_attr( 'assets_error' ),
+                __('Failed to parse json, unable to save'),
+                'error'
+            );
+            return get_option($this->assets_option_name);
+        } else {
+            return $assets;
+        }
+    }
+
     public function options_update() {
         // run on admin_init
 
@@ -266,6 +285,9 @@ class Richie_Admin {
             'sanitize_callback' => array($this, 'validate_source'))
         );
 
+        register_setting($this->assets_option_name, $this->assets_option_name, array(
+            'sanitize_callback' => array($this, 'validate_assets')
+        ));
         $options = get_option( $this->settings_option_name );
         if ( ! isset($options['access_token'])) {
             $options['access_token'] = bin2hex(random_bytes(16));
@@ -275,6 +297,7 @@ class Richie_Admin {
         $general_section_name = 'richie_general';
         $paywall_section_name = 'richie_paywall';
         $sources_section_name = 'richie_news_source';
+        $assets_section_name = 'richie_feed_assets';
         $maggio_section_name = 'richie_maggio';
 
         // create general section
@@ -304,6 +327,40 @@ class Richie_Admin {
         add_settings_field ('richie_source_order_dir', __('Order direction', $this->plugin_name),  array($this, 'order_direction_render'), $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_list_layout_style',     __('List layout', $this->plugin_name),      array($this, 'list_layout_style_render'),$this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_list_group_title',      __('List group title', $this->plugin_name), array($this, 'list_group_title_render'),$this->sources_option_name, $sources_section_name);
+
+        // create assets section
+        add_settings_section ($assets_section_name, __('Asset feed', $this->plugin_name), null, $this->assets_option_name);
+        add_settings_field ('richie_news_assets', __('Assets', $this->plugin_name), array($this, 'asset_editor_render'), $this->assets_option_name, $assets_section_name);
+
+    }
+
+    public function asset_editor_render() {
+        $assets = get_option( $this->assets_option_name );
+        if ( empty($assets) ) {
+            // $response = wp_remote_get( str_replace('localhost:8000', 'skynet.local:8000', get_site_url( null, '/wp-json/richie/v1/assets' ) ) );
+            // if ( is_array( $response ) && ! is_wp_error( $response ) ) {
+            //     $assets = json_decode($response['body']);
+            // }
+            $assets = [];
+        }
+        ?>
+        <p>
+            Accepts valid json. Example:
+        </p>
+        <pre>
+    [
+        {
+            "remote_url": "https://example.com/path/to/asset.css",
+            "local_name": "app-assets/asset.css"
+        }
+    ]
+        </pre>
+        <script>
+            var assetUrl = "<?php echo get_rest_url(null, '/richie/v1/assets'); ?>";
+        </script>
+        <button id="generate-assets" type="button">Generate base list (overrides current content)</button>
+        <textarea id="code_editor_page_js" rows="10" name="<?php echo $this->assets_option_name; ?>" class="widefat textarea"><?php echo wp_unslash( wp_json_encode($assets, JSON_PRETTY_PRINT) ); ?></textarea>
+        <?php
     }
 
     public function input_field_render( array $args  ) {
