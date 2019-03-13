@@ -169,54 +169,64 @@ class Richie_Article {
             $article->from_cache = true;
         }
 
-        $urls = array_unique(wp_extract_urls($rendered_content));
 
         // replace asset urls with localname
         foreach ( $this->assets as $asset ) {
             $rendered_content = str_replace($asset->remote_url, ltrim( $asset->local_name, '/' ), $rendered_content);
         }
 
-        if ( $urls ) {
-            foreach ( $urls as $url) {
-                $local_url = ltrim(wp_make_link_relative($url), '/');
-                if ( empty($local_url) ) {
-                    continue;
-                }
 
-                $attachment = attachment_url_to_postid($url);
-
-                if ( $attachment ) {
-                    $item = get_post($attachment);
-                    $metadata = get_post_meta($item->ID);
-                    if ( wp_attachment_is_image($item) ) {
-                        $rendered_content = str_replace($url, $local_url, $rendered_content);
-                        array_push($photos, array(
-                            'caption' => wp_get_attachment_caption($item->ID),
-                            'local_name' => $local_url,
-                            'remote_url' => wp_get_attachment_url($attachment)
-                        ));
-                    } else {
-                        $rendered_content = str_replace($url, $local_url, $rendered_content);
-                        array_push($assets, array(
-                            'local_name' => $local_url,
-                            'remote_url' => wp_get_attachment_url($attachment)
-                        ));
+        $disable_url_handling = $_GET['disable_asset_parsing'] === '1';
+        $rendered_content = str_replace(']]>', ']]&gt;', $rendered_content);
+        if ( ! $disable_url_handling ) {
+            $urls = array_unique(wp_extract_urls($rendered_content));
+            if ( $urls ) {
+                $allowed_extensions = array('css', 'js', 'png', 'jpg', 'gif');
+                $filtered_urls = array();
+                foreach( $urls as $u ) {
+                    $parsed = wp_parse_url($u);
+                    $path = $parsed['path'];
+                    $filetype = wp_check_filetype($path);
+                    $extension = $filetype['ext'];
+                    if( in_array( $extension, $allowed_extensions ) ) {
+                        array_push($filtered_urls, $u);
                     }
-                } else {
-                    // not an attachment
-                    // foreach ( array_unique($feed_assets) as $asset) {
-                    //     if (strpos($url, $asset) === 0) {
-                    //         $rendered_content = str_replace($url, $local_url, $rendered_content);
-                    //         array_push($assets, array(
-                    //             'local_name' => $local_url,
-                    //             'remote_url' => $url
-                    //         ));
-                    //     }
+                }
+                foreach ( $filtered_urls as $url) {
+                    $local_url = remove_query_arg( 'ver', wp_make_link_relative($url));
+                    if ( empty($local_url) ) {
+                        continue;
+                    }
 
-                    // }
+                    $attachment = richie_attachment_url_to_postid($url);
+
+                    if ( $attachment ) {
+                        $item = get_post($attachment);
+                        $metadata = get_post_meta($item->ID);
+                        if ( wp_attachment_is_image($item) ) {
+                            $rendered_content = str_replace($url, $local_url, $rendered_content);
+                            array_push($photos, array(
+                                'caption' => wp_get_attachment_caption($item->ID),
+                                'local_name' => $local_url,
+                                'remote_url' => wp_get_attachment_url($attachment)
+                            ));
+                        } else {
+                            $rendered_content = str_replace($url, $local_url, $rendered_content);
+                            array_push($assets, array(
+                                'local_name' => $local_url,
+                                'remote_url' => wp_get_attachment_url($attachment)
+                            ));
+                        }
+                    } else {
+                        // not an attachment
+                        // $rendered_content = str_replace($url, $local_url, $rendered_content);
+                        // array_push($assets, array(
+                        //     'local_name' => $local_url,
+                        //     'remote_url' => $url
+                        // ));
+                    }
                 }
             }
-
         }
 
         $article->content_html_document = $rendered_content;

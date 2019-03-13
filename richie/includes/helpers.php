@@ -129,3 +129,43 @@ function richie_has_maggio_access( $required_pmpro_level = 0 ) {
 
     return true;
 }
+
+/**
+ * Modify original wordpress function with custom query (adding LIMIT 1).
+ * This should make function to perform faster.
+ * @see https://core.trac.wordpress.org/ticket/41281
+*/
+function richie_attachment_url_to_postid( $url ) {
+    global $wpdb;
+
+    $dir  = wp_get_upload_dir();
+    $path = $url;
+
+    $site_url   = parse_url( $dir['url'] );
+    $image_path = parse_url( $path );
+
+    //force the protocols to match if needed
+    if ( isset( $image_path['scheme'] ) && ( $image_path['scheme'] !== $site_url['scheme'] ) ) {
+        $path = str_replace( $image_path['scheme'], $site_url['scheme'], $path );
+    }
+
+    if ( 0 === strpos( $path, $dir['baseurl'] . '/' ) ) {
+        $path = substr( $path, strlen( $dir['baseurl'] . '/' ) );
+    }
+
+    $sql     = $wpdb->prepare(
+        "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_wp_attached_file' AND meta_value = %s LIMIT 1",
+        $path
+    );
+    $post_id = $wpdb->get_var( $sql );
+
+    /**
+     * Filters an attachment id found by URL.
+     *
+     * @since 4.2.0
+     *
+     * @param int|null $post_id The post_id (if any) found by the function.
+     * @param string   $url     The URL being looked up.
+     */
+    return (int) apply_filters( 'attachment_url_to_postid', $post_id, $url );
+}
