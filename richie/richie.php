@@ -17,9 +17,9 @@
  * Plugin URI:        https://www.richie.fi
  * Description:       Richie platform plugin
  * Version:           1.0.0
- * Author:            Richie OY
+ * Author:            Richie Oy
  * Author URI:        https://www.richie.fi
- * License:           Richie OY
+ * License:           Richie Oy
  * License URI:       https://www.richie.fi
  * Text Domain:       richie
  * Domain Path:       /languages

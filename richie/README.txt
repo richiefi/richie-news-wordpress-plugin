@@ -4,7 +4,7 @@ Donate link: https://www.richie.fi
 Tags: rest, feed, api, shortcode
 Requires at least: 4.0
 Tested up to: 5.1
-License: Copyright Richie OY
+License: Copyright Richie Oy
 
 This plugin provides backend feeds and digital paper support for Richie Platform.
 
