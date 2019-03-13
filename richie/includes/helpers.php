@@ -169,3 +169,40 @@ function richie_attachment_url_to_postid( $url ) {
      */
     return (int) apply_filters( 'attachment_url_to_postid', $post_id, $url );
 }
+
+
+function richie_make_link_absolute($url) {
+    if ( substr( $url, 0, 4 ) === 'http' ) {
+        return $url;
+    } elseif (substr( $url, 0, 2 ) === '//') {
+        return 'https://' . $url;
+    } else {
+        return get_site_url(null, $url);
+    }
+}
+
+function richie_get_image_id($image_url) {
+	global $wpdb;
+    $attachment = $wpdb->get_col($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE guid='%s';", $image_url ));
+    if (!empty($attachment)) {
+        return $attachment[0];
+    }
+    return false;
+}
+
+function richie_is_image_url($image_url) {
+    if ( !isset( $image_url ) ) {
+        return false;
+    }
+    $allowed_extensions = array('png', 'jpg', 'gif');
+    $path = wp_parse_url($image_url, PHP_URL_PATH);
+    if ( $path ) {
+        $filetype = wp_check_filetype($path);
+        $extension = $filetype['ext'];
+        if( in_array( $extension, $allowed_extensions ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+}
