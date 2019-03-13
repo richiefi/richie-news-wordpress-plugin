@@ -169,10 +169,18 @@ class Richie_Article {
             $article->from_cache = true;
         }
 
+        preg_match_all('/((href|src)=[\'"](.+?)[\'"])|([\'"](https?:\/\/.+?)[\'" ])/', $rendered_content, $matches);
+        $asset_urls = array_column($this->assets, 'remote_url');
+        $asset_names = array_column($this->assets, 'local_name');
+
+        $found_urls = array_unique(array_merge($matches[3], $matches[5]));
+        $urls = array_diff($found_urls, $asset_urls);
+
         // replace asset urls with localname
         foreach ( $this->assets as $asset ) {
             $rendered_content = str_replace($asset->remote_url, ltrim( $asset->local_name, '/' ), $rendered_content);
         }
+
 
         $disable_url_handling = false;
 
@@ -180,12 +188,10 @@ class Richie_Article {
             $disable_url_handling = $_GET['disable_asset_parsing'] === '1';
         }
 
-        $urls = array_unique(wp_extract_urls($rendered_content));
-
         if ( ! $disable_url_handling ) {
             if ( $urls ) {
                 // only parse urls with following extensions
-                $allowed_extensions = array('png', 'jpg', 'gif');
+                $allowed_extensions = array('png', 'jpg', 'gif', 'js', 'css');
                 $filtered_urls = array();
                 foreach( $urls as $u ) {
                     // wordpress includes some script tags inside cdata and it messes the extract urls function
@@ -195,14 +201,14 @@ class Richie_Article {
                     }
                     $path = wp_parse_url($u, PHP_URL_PATH);
                     if ( $path ) {
-                        $filetype = wp_check_filetype($path);
-                        $extension = $filetype['ext'];
+                        $filetype = pathinfo($path);
+                        $extension = $filetype['extension'];
                         if( in_array( $extension, $allowed_extensions ) ) {
                             array_push($filtered_urls, $u);
                         }
                     }
+
                 }
-                //$article->debug_found_urls = $filtered_urls;
                 $attachent_cache = [];
                 foreach ( $filtered_urls as $url) {
                     $base_url = preg_replace('/(.+)(-\d+x\d+)(.+)/', '$1$3', $url);
@@ -212,6 +218,9 @@ class Richie_Article {
                         continue;
                     }
                     $local_name = ltrim($local_name, '/');
+                    if (in_array($asset_urls, $local_name)) {
+                        continue;
+                    }
                     $remote_url = richie_make_link_absolute($url);
 
                     $attachment_id = false;
@@ -248,11 +257,13 @@ class Richie_Article {
                         }
                     } else {
                         // not an attachment
-                        // $rendered_content = str_replace($url, $local_name, $rendered_content);
-                        // array_push($assets, array(
-                        //     'local_name' => $local_name,
-                        //     'remote_url' => $remote_url
-                        // ));
+                        $rendered_content = str_replace($url, $local_name, $rendered_content);
+                        if ( !in_array($local_name, $asset_names) ) {
+                            array_push($assets, array(
+                                'local_name' => $local_name,
+                                'remote_url' => $remote_url
+                            ));
+                        }
                     }
                 }
             }
