@@ -214,6 +214,7 @@ class Richie_Article {
                 }
                 $attachent_cache = [];
                 foreach ( $filtered_urls as $url) {
+                    // remove size from the url, expects '-1000x230' format
                     $base_url = preg_replace('/(.+)(-\d+x\d+)(.+)/', '$1$3', $url);
 
                     $local_name = remove_query_arg( 'ver', wp_make_link_relative($url));
@@ -224,16 +225,16 @@ class Richie_Article {
 
                     $remote_url = richie_make_link_absolute($url);
 
-                    $attachment_id = false;
-                    if( isset( $attachment_cache[$base_url] ) ) {
-                        $attachment_id = $attachment_cache[$base_url];
-                    } else {
-                        $attachment_id = richie_get_image_id($base_url);
-                        $attachment_cache[$base_url] = $attachment_id;
-                    }
                     if ( richie_is_image_url($url) ) {
-                        $attachment = null; //get_post($attachment_id);
-                        if ( $attachment ) {
+                        $attachment_id = false;
+                        // if( isset( $attachment_cache[$base_url] ) ) {
+                        //     $attachment_id = $attachment_cache[$base_url];
+                        // } else {
+                        //     $attachment_id = richie_get_image_id($base_url);
+                        //     $attachment_cache[$base_url] = $attachment_id;
+                        // }
+                        if ( $attachment_id ) {
+                            $attachment = get_post($attachment_id);
                             $attachment_url = wp_get_attachment_url($attachment->ID);
                             if ( wp_attachment_is_image($attachment) ) {
                                 $rendered_content = str_replace($url, $local_name, $rendered_content);
