@@ -193,6 +193,7 @@ class Richie_Article {
                 // only parse urls with following extensions
                 $allowed_extensions = array('png', 'jpg', 'gif', 'js', 'css');
                 $filtered_urls = array();
+
                 foreach( $urls as $u ) {
                     // wordpress includes some script tags inside cdata and it messes the extract urls function
                     // ignore specific row in urls, since it is wrongly matched
@@ -202,9 +203,11 @@ class Richie_Article {
                     $path = wp_parse_url($u, PHP_URL_PATH);
                     if ( $path ) {
                         $filetype = pathinfo($path);
-                        $extension = $filetype['extension'];
-                        if( in_array( $extension, $allowed_extensions ) ) {
-                            array_push($filtered_urls, $u);
+                        if ( isset($filetype['extension'] ) ) {
+                            $extension = $filetype['extension'];
+                            if( in_array( $extension, $allowed_extensions ) ) {
+                                array_push($filtered_urls, $u);
+                            }
                         }
                     }
 
