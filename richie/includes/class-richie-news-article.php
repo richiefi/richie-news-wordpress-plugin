@@ -171,14 +171,18 @@ class Richie_Article {
 
         preg_match_all('/((href|src)=[\'"](.+?)[\'"])|([\'"](https?:\/\/.+?)[\'" ])/', $rendered_content, $matches);
         $asset_urls = array_column($this->assets, 'remote_url');
-        $asset_names = array_column($this->assets, 'local_name');
+
+        // remove version string for easier comparison
+        $asset_urls = array_map(function($u) {
+            return remove_query_arg('ver', $u);
+        }, $asset_urls);
 
         $found_urls = array_unique(array_merge($matches[3], $matches[5]));
         $urls = array_diff($found_urls, $asset_urls);
 
         // replace asset urls with localname
         foreach ( $this->assets as $asset ) {
-            $rendered_content = str_replace($asset->remote_url, ltrim( $asset->local_name, '/' ), $rendered_content);
+            $rendered_content = str_replace(remove_query_arg('ver', $asset->remote_url), ltrim( $asset->local_name, '/' ), $rendered_content);
         }
 
 
@@ -236,20 +240,12 @@ class Richie_Article {
                         if ( $attachment_id ) {
                             $attachment = get_post($attachment_id);
                             $attachment_url = wp_get_attachment_url($attachment->ID);
-                            if ( wp_attachment_is_image($attachment) ) {
-                                $rendered_content = str_replace($url, $local_name, $rendered_content);
-                                $photos[] = array(
-                                    'caption' => $attachment->post_excerpt,
-                                    'local_name' => $local_name,
-                                    'remote_url' => $remote_url
-                                );
-                            } else {
-                                $rendered_content = str_replace($url, $local_name, $rendered_content);
-                                array_push($assets, array(
-                                    'local_name' => $local_name,
-                                    'remote_url' => $remote_url
-                                ));
-                            }
+                            $rendered_content = str_replace($url, $local_name, $rendered_content);
+                            $photos[] = array(
+                                'caption' => $attachment->post_excerpt,
+                                'local_name' => $local_name,
+                                'remote_url' => $remote_url
+                            );
                         } else {
                             $rendered_content = str_replace($url, $local_name, $rendered_content);
                             array_push($photos, array(
@@ -260,12 +256,10 @@ class Richie_Article {
                     } else {
                         // not an attachment
                         $rendered_content = str_replace($url, $local_name, $rendered_content);
-                        if ( !in_array($local_name, $asset_names) ) {
-                            array_push($assets, array(
-                                'local_name' => $local_name,
-                                'remote_url' => $remote_url
-                            ));
-                        }
+                        array_push($assets, array(
+                            'local_name' => $local_name,
+                            'remote_url' => $remote_url
+                        ));
                     }
                 }
             }
