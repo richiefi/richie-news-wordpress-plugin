@@ -168,41 +168,31 @@ class Richie_Public {
     }
 
     public function asset_feed_handler() {
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-app-asset.php';
         $result = [];
 
         if (isset( $_GET['generate']) && $_GET['generate'] === 'true') {
+            global $wp_scripts, $wp_styles;
+
             ob_start();
             // these will cause styles/scripts to be included in global variables
             wp_head();
             wp_footer();
             ob_end_clean();
 
-            global $wp_scripts;
-            foreach ( $wp_scripts->queue as $script ) {
-                $remote_url = $wp_scripts->registered[$script]->src;
-                if ((substr($remote_url, -3) === '.js')) {
-                    if ( substr( $remote_url, 0, 4 ) !== "http" ) {
-                        $remote_url = get_site_url(null, $remote_url);
-                    }
-                    $result[] = array(
-                        'remote_url' => add_query_arg( 'ver', $wp_scripts->registered[$script]->ver, $remote_url ),
-                        'local_name' => ltrim(wp_make_link_relative($remote_url), '/')
-                    );
+            foreach ( $wp_scripts->do_items() as $script_name ) {
+                $script = $wp_scripts->registered[$script_name];
+                $remote_url = $script->src;
+                if ((substr($remote_url, -3) === '.js') && !strpos($remote_url, 'wp-admin')) {
+                    $result[] = new Richie_App_Asset($script);
                 }
             }
             // Print all loaded Styles (CSS)
-            global $wp_styles;
-            foreach( $wp_styles->queue as $style ) {
-                $remote_url = $wp_styles->registered[$style]->src;
-                if ((substr($remote_url, -4) === '.css')) {
-                    if ( substr( $remote_url, 0, 4 ) !== "http" ) {
-                        $remote_url = get_site_url(null, $remote_url);
-                    }
-
-                    $result[] = array(
-                        'remote_url' => add_query_arg( 'ver', $wp_styles->registered[$style]->ver, $remote_url ),
-                        'local_name' => ltrim(wp_make_link_relative($remote_url), '/')
-                    );
+            foreach( $wp_styles->do_items() as $style_name ) {
+                $style = $wp_styles->registered[$style_name];
+                $remote_url = $style->src;
+                if ((substr($remote_url, -4) === '.css') && !strpos($remote_url, 'wp-admin')) {
+                    $result[] = new Richie_App_Asset($style);
                 }
             }
         } else {
