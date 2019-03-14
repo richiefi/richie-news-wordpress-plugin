@@ -221,9 +221,7 @@ class Richie_Article {
                         continue;
                     }
                     $local_name = ltrim($local_name, '/');
-                    if (in_array($asset_urls, $local_name)) {
-                        continue;
-                    }
+
                     $remote_url = richie_make_link_absolute($url);
 
                     $attachment_id = false;
