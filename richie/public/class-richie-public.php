@@ -268,16 +268,16 @@ class Richie_Public {
     public function richie_template($template) {
         if (isset( $_GET['token']) && $this->richie_options['access_token'] === $_GET['token']) {
             if( isset( $_GET['richie_news'] ) ) {
-                // // remove version from scripts and styles
-                // remove_action('wp_head', 'wp_generator'); // remove wordpress version
-                // function remove_version_scripts_styles($src) {
-                //     if (strpos($src, 'ver=')) {
-                //         $src = remove_query_arg('ver', $src);
-                //     }
-                //     return $src;
-                // }
-                // add_filter('style_loader_src', 'remove_version_scripts_styles', 9999);
-                // add_filter('script_loader_src', 'remove_version_scripts_styles', 9999);
+                // remove version from scripts and styles
+                remove_action('wp_head', 'wp_generator'); // remove wordpress version
+                function remove_version_scripts_styles($src) {
+                    if (strpos($src, 'ver=')) {
+                        $src = remove_query_arg('ver', $src);
+                    }
+                    return $src;
+                }
+                add_filter('style_loader_src', 'remove_version_scripts_styles', 9999);
+                add_filter('script_loader_src', 'remove_version_scripts_styles', 9999);
                 // disable pmpro
                 add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
                 $richie_template_loader = new Richie_Template_Loader;
