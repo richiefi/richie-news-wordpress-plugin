@@ -109,9 +109,29 @@ class Richie_Article {
 
         //$article->debug_content_url = $content_url;
 
+        $transient_key = 'richie_' . $hash;
+        $rendered_content = get_transient($transient_key);
 
-        $rendered_content = $this->render_template('richie-news-article', $post_id);
+        if ( empty($rendered_content) ) {
+            $response = wp_remote_get($content_url);
+            //$response = wp_remote_get(str_replace('localhost:8000', 'skynet.local:8000', $content_url), array ( 'sslverify' => false));
 
+            if ( is_array( $response ) && ! is_wp_error( $response ) ) {
+                $rendered_content = $response['body'];
+                set_transient($transient_key, $rendered_content, 10);
+                $article->from_cache = false;
+            } else {
+                $rendered_content = 'Failed to get content';
+                if ( is_wp_error( $response ) ) {
+                    $article->content_error = $response->get_error_message();
+                }
+            }
+        } else {
+            $article->from_cache = true;
+        }
+
+        // render locally to get assets
+        $this->render_template('richie-news-article', $post_id);
         $article_assets = get_article_assets();
 
         // find local article assets (shortcodes etc)
