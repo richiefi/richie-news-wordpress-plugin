@@ -151,7 +151,7 @@ class Richie_Article {
 
         // preg_match_all('/((href|src)=[\'"](.+?)[\'"])|([\'"](https?:\/\/.+?)[\'" ])/', $rendered_content, $matches);
         // $extracted_urls = array_unique(array_merge($matches[3], $matches[5]));
-        $urls = wp_extract_urls($rendered_content);
+        $urls = array_unique(wp_extract_urls($rendered_content));
 
         $disable_url_handling = false;
 
