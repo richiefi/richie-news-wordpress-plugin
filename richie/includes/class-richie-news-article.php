@@ -129,12 +129,17 @@ class Richie_Article {
             $rendered_content = str_replace($asset->remote_url, ltrim( $asset->local_name, '/' ), $rendered_content);
         }
 
+        // preg_match_all('/((href|src)=[\'"](.+?)[\'"])|([\'"](https?:\/\/.+?)[\'" ])/', $rendered_content, $matches);
+        // $extracted_urls = array_unique(array_merge($matches[3], $matches[5]));
+        $urls = wp_extract_urls($rendered_content);
 
         $disable_url_handling = false;
 
         if( isset( $_GET['disable_asset_parsing'] ) ) {
             $disable_url_handling = $_GET['disable_asset_parsing'] === '1';
         }
+
+        $photos = array();
 
         if ( ! $disable_url_handling ) {
             if ( $urls ) {
@@ -199,11 +204,13 @@ class Richie_Article {
                         }
                     } else {
                         // not an attachment
-                        $rendered_content = str_replace($url, $local_name, $rendered_content);
-                        array_push($assets, array(
-                            'local_name' => $local_name,
-                            'remote_url' => $remote_url
-                        ));
+                        // if ( !in_array($remote_url, $asset_urls) ) {
+                        //     $rendered_content = str_replace($url, $local_name, $rendered_content);
+                        //     array_push($assets, array(
+                        //         'local_name' => $local_name,
+                        //         'remote_url' => $remote_url
+                        //     ));
+                        // }
                     }
                 }
             }
