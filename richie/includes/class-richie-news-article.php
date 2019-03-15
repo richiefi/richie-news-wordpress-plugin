@@ -107,42 +107,26 @@ class Richie_Article {
         $photos = array();
         $assets = array();
 
-        $transient_key = 'richie_' . $hash;
-        $rendered_content = get_transient($transient_key);
+        //$article->debug_content_url = $content_url;
 
 
-        if ( empty($rendered_content) ) {
-            $response = wp_remote_get($content_url);
-            //$response = wp_remote_get(str_replace('localhost:8000', '192.168.0.4:8000', $content_url), array ( 'sslverify' => false));
+        $rendered_content = $this->render_template('richie-news-article', $post_id);
 
-            if ( is_array( $response ) && ! is_wp_error( $response ) ) {
-                $rendered_content = $response['body'];
-                set_transient($transient_key, $rendered_content, 10);
-                $article->from_cache = false;
-            } else {
-                $rendered_content = 'Failed to get content';
-                if ( is_wp_error( $response ) ) {
-                    $article->content_error = $response->get_error_message();
-                }
-            }
-        } else {
-            $article->from_cache = true;
-        }
+        $article_assets = get_article_assets();
 
-        preg_match_all('/((href|src)=[\'"](.+?)[\'"])|([\'"](https?:\/\/.+?)[\'" ])/', $rendered_content, $matches);
-        $asset_urls = array_column($this->assets, 'remote_url');
-
-        // remove version string for easier comparison
-        $asset_urls = array_map(function($u) {
-            return remove_query_arg('ver', $u);
-        }, $asset_urls);
-
-        $found_urls = array_unique(array_merge($matches[3], $matches[5]));
-        $urls = array_diff($found_urls, $asset_urls);
+        // find local article assets (shortcodes etc)
+        $local_assets = array_udiff($article_assets, $this->assets, function($a, $b) {
+            return strcmp($a->remote_url, $b->remote_url);
+        });
 
         // replace asset urls with localname
         foreach ( $this->assets as $asset ) {
-            $rendered_content = str_replace(remove_query_arg('ver', $asset->remote_url), ltrim( $asset->local_name, '/' ), $rendered_content);
+            $rendered_content = str_replace($asset->remote_url, ltrim( $asset->local_name, '/' ), $rendered_content);
+        }
+
+        // replace local assets
+        foreach ( $local_assets as $asset ) {
+            $rendered_content = str_replace($asset->remote_url, ltrim( $asset->local_name, '/' ), $rendered_content);
         }
 
 
@@ -226,8 +210,7 @@ class Richie_Article {
         }
 
         $article->content_html_document = $rendered_content;
-
-        $article->assets = $assets;
+        $article->assets = array_values($local_assets);
         $article->photos = array(array_values($photos));
         return $article;
     }

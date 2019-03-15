@@ -205,4 +205,28 @@ function richie_is_image_url($image_url) {
     }
     return false;
 }
+
+function get_article_assets() {
+    require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-app-asset.php';
+
+    // get all scripts
+    global $wp_scripts, $wp_styles;
+    $article_assets = array();
+    foreach ( $wp_scripts->do_items() as $script_name ) {
+        $script = $wp_scripts->registered[$script_name];
+        $remote_url = $script->src;
+        if ((substr($remote_url, -3) === '.js') && !strpos($remote_url, 'wp-admin')) {
+            $article_assets[] = new Richie_App_Asset($script, '');
+        }
+    }
+    // Print all loaded Styles (CSS)
+    foreach( $wp_styles->do_items() as $style_name ) {
+        $style = $wp_styles->registered[$style_name];
+        $remote_url = $style->src;
+        if ((substr($remote_url, -4) === '.css') && !strpos($remote_url, 'wp-admin')) {
+            $article_assets[] = new Richie_App_Asset($style, '');
+        }
+    }
+
+    return $article_assets;
 }
