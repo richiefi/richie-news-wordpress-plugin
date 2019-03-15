@@ -164,7 +164,7 @@ class Richie_Article {
         if ( ! $disable_url_handling ) {
             if ( $urls ) {
                 // only parse urls with following extensions
-                $allowed_extensions = array('png', 'jpg', 'gif', 'js', 'css');
+                $allowed_extensions = array('png', 'jpg', 'gif');
                 $filtered_urls = array();
 
                 foreach( $urls as $u ) {
