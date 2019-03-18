@@ -9,6 +9,27 @@ Template Name: Richie Article template
     <meta charset="<?php bloginfo( 'charset' ); ?>" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <?php wp_head(); ?>
+    <style>
+        /** News article **/
+
+        .richie-content-wrapper {
+            padding: 50px;
+            max-width: 100vw;
+            margin: 20px auto;
+            background: white;
+            background-url: none !important;
+            overflow: hidden;
+        }
+
+        .richie-content-wrapper img {
+            max-width: 100%;
+        }
+
+        /** Seravo shadow display showing for STAGING environment, hide that **/
+        #shadow-indicator {
+            display: none;
+        }
+    </style>
 </head>
 
 <body <?php body_class(); ?>>
