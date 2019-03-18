@@ -108,11 +108,8 @@ class Richie_Article {
         $rendered_content = get_transient($transient_key);
 
         if ( empty($rendered_content) ) {
-            $response = wp_remote_get($content_url);
-            //$response = wp_remote_get(str_replace('localhost:8000', 'skynet.local:8000', $content_url), array ( 'sslverify' => false));
-            //$response = wp_remote_get($content_url);
             $response = wp_remote_get(
-                str_replace('localhost:8000', 'skynet.local:8000', $content_url),
+                $content_url,
                 array ( 'sslverify' => false, 'timeout' => 15 )
             );
 
@@ -174,6 +171,7 @@ class Richie_Article {
         if ( ! $disable_url_handling ) {
             $image_urls = [];
             $dom = new DOMDocument();
+            libxml_use_internal_errors(true);
             $dom->loadHTML(mb_convert_encoding($rendered_content, 'HTML-ENTITIES', 'UTF-8'));
             // Get all the images
             $images = $dom->getElementsByTagName('img');
