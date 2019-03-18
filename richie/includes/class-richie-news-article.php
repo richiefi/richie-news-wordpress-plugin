@@ -110,13 +110,18 @@ class Richie_Article {
         if ( empty($rendered_content) ) {
             $response = wp_remote_get($content_url);
             //$response = wp_remote_get(str_replace('localhost:8000', 'skynet.local:8000', $content_url), array ( 'sslverify' => false));
+            //$response = wp_remote_get($content_url);
+            $response = wp_remote_get(
+                str_replace('localhost:8000', 'skynet.local:8000', $content_url),
+                array ( 'sslverify' => false, 'timeout' => 15 )
+            );
 
             if ( is_array( $response ) && ! is_wp_error( $response ) ) {
                 $rendered_content = $response['body'];
                 set_transient($transient_key, $rendered_content, 10);
                 $article->from_cache = false;
             } else {
-                $rendered_content = 'Failed to get content';
+                $rendered_content = __('Failed to get content', 'richie');
                 if ( is_wp_error( $response ) ) {
                     $article->content_error = $response->get_error_message();
                 }
