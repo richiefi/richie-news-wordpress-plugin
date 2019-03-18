@@ -272,8 +272,15 @@ class Richie_Public {
                 add_filter('script_loader_src', 'remove_version_scripts_styles', 9999);
                 // disable pmpro
                 add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
+
+                $name = 'article';
+
+                if ( isset( $_GET['template'] ) ) {
+                    $name = sanitize_title($_GET['template']);
+                }
+
                 $richie_template_loader = new Richie_Template_Loader;
-                $template = $richie_template_loader->locate_template( 'richie-news-article.php', false );
+                $template = $richie_template_loader->get_template_part( 'richie-news', $name );
             }
         }
         return $template;
