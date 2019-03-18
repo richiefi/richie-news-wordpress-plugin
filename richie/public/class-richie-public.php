@@ -200,8 +200,10 @@ class Richie_Public {
             if ( $result === false ) {
                 $result = [];
             }
+            $etag = md5(json_encode($result));
+            header("Etag: $etag");
         }
-        return $result;
+        return array('app_assets' => $result);
     }
 
     /**
