@@ -135,6 +135,13 @@ class Richie_Article {
             return strcmp($a->remote_url, $b->remote_url);
         });
 
+        $urls = array_unique(wp_extract_urls($rendered_content));
+        // preg_match_all('/((href|src)=[\'"](.+?)[\'"])|([\'"](https?:\/\/.+?)[\'" ])/', $rendered_content, $matches);
+        // $urls = array_unique(array_merge($matches[3], $matches[5]));
+        $absolute_urls = array_map(function($url) {
+            return richie_make_link_absolute($url);
+        }, $urls);
+
         // replace asset urls with localname
         foreach ( $this->assets as $asset ) {
             $rendered_content = str_replace($asset->remote_url, ltrim( $asset->local_name, '/' ), $rendered_content);
@@ -150,7 +157,6 @@ class Richie_Article {
 
         // preg_match_all('/((href|src)=[\'"](.+?)[\'"])|([\'"](https?:\/\/.+?)[\'" ])/', $rendered_content, $matches);
         // $extracted_urls = array_unique(array_merge($matches[3], $matches[5]));
-        $urls = array_unique(wp_extract_urls($rendered_content));
 
         $disable_url_handling = false;
 
@@ -158,34 +164,58 @@ class Richie_Article {
             $disable_url_handling = $_GET['disable_asset_parsing'] === '1';
         }
 
-        $photos = array();
+        $article_photos = array();
 
         if ( ! $disable_url_handling ) {
-            if ( $urls ) {
-                // only parse urls with following extensions
-                $allowed_extensions = array('png', 'jpg', 'gif');
-                $filtered_urls = array();
+            $image_urls = [];
+            $dom = new DOMDocument();
+            $dom->loadHTML(mb_convert_encoding($rendered_content, 'HTML-ENTITIES', 'UTF-8'));
+            // Get all the images
+            $images = $dom->getElementsByTagName('img');
 
-                foreach( $urls as $u ) {
-                    // wordpress includes some script tags inside cdata and it messes the extract urls function
-                    // ignore specific row in urls, since it is wrongly matched
-                    if ( strpos( $u, 'admin-ajax.php' ) ) {
-                        continue;
-                    }
-                    $path = wp_parse_url($u, PHP_URL_PATH);
-                    if ( $path ) {
-                        $filetype = pathinfo($path);
-                        if ( isset($filetype['extension'] ) ) {
-                            $extension = $filetype['extension'];
-                            if( in_array( $extension, $allowed_extensions ) ) {
-                                array_push($filtered_urls, $u);
-                            }
+            // Loop the images
+            foreach ($images as $image) {
+                $image_urls[] = $image->getAttribute('src');
+                $image->removeAttribute('srcset');
+            }
+
+            // Save the HTML
+            $rendered_content = $dom->saveHTML();
+
+            $galleries = get_post_galleries($post_id, false);
+
+            if ( !empty( $galleries ) ) {
+                foreach( $galleries as $gallery ) {
+                    $photos_array = [];
+                    $ids = explode(',', $gallery['ids']);
+                    foreach ( $ids as $attachment_id ) {
+                        $attachment = get_post($attachment_id);
+                        $attachment_url = wp_get_attachment_url($attachment->ID);
+                        $local_name = remove_query_arg( 'ver', wp_make_link_relative($attachment_url));
+                        $local_name = ltrim($local_name, '/');
+                        $rendered_content = str_replace($attachment_url, $local_name, $rendered_content);
+                        $photos_array[] = array(
+                            'caption' => $attachment->post_excerpt,
+                            'local_name' => $local_name,
+                            'remote_url' => richie_make_link_absolute($attachment_url)
+                        );
+
+                        // remove from general image array, since we have already handled this url
+                        $index = array_search($attachment_url, $image_urls);
+                        if($index !== FALSE){
+                            unset($image_urls[$index]);
                         }
-                    }
 
+                    }
+                    $article_photos[] = $photos_array;
                 }
+            }
+
+            if ( $image_urls ) {
+
                 $attachent_cache = [];
-                foreach ( $filtered_urls as $url) {
+                $photos_array = [];
+                foreach ( array_unique($image_urls) as $url) {
                     // remove size from the url, expects '-1000x230' format
                     $base_url = preg_replace('/(.+)(-\d+x\d+)(.+)/', '$1$3', $url);
 
@@ -197,47 +227,38 @@ class Richie_Article {
 
                     $remote_url = richie_make_link_absolute($url);
 
-                    if ( richie_is_image_url($url) ) {
-                        $attachment_id = false;
-                        // if( isset( $attachment_cache[$base_url] ) ) {
-                        //     $attachment_id = $attachment_cache[$base_url];
-                        // } else {
-                        //     $attachment_id = richie_get_image_id($base_url);
-                        //     $attachment_cache[$base_url] = $attachment_id;
-                        // }
-                        if ( $attachment_id ) {
-                            $attachment = get_post($attachment_id);
-                            $attachment_url = wp_get_attachment_url($attachment->ID);
-                            $rendered_content = str_replace($url, $local_name, $rendered_content);
-                            $photos[] = array(
-                                'caption' => $attachment->post_excerpt,
-                                'local_name' => $local_name,
-                                'remote_url' => $remote_url
-                            );
-                        } else {
-                            $rendered_content = str_replace($url, $local_name, $rendered_content);
-                            array_push($photos, array(
-                                'local_name' => $local_name,
-                                'remote_url' => $remote_url
-                            ));
-                        }
+                    $attachment_id = false;
+                    // if( isset( $attachment_cache[$base_url] ) ) {
+                    //     $attachment_id = $attachment_cache[$base_url];
+                    // } else {
+                    //     $attachment_id = richie_get_image_id($base_url);
+                    //     $attachment_cache[$base_url] = $attachment_id;
+                    // }
+                    if ( $attachment_id ) {
+                        $attachment = get_post($attachment_id);
+                        $attachment_url = wp_get_attachment_url($attachment->ID);
+                        $rendered_content = str_replace($url, $local_name, $rendered_content);
+                        $photos_array[] = array(
+                            'caption' => $attachment->post_excerpt,
+                            'local_name' => $local_name,
+                            'remote_url' => $remote_url
+                        );
                     } else {
-                        // not an attachment
-                        // if ( !in_array($remote_url, $asset_urls) ) {
-                        //     $rendered_content = str_replace($url, $local_name, $rendered_content);
-                        //     array_push($assets, array(
-                        //         'local_name' => $local_name,
-                        //         'remote_url' => $remote_url
-                        //     ));
-                        // }
+                        $rendered_content = str_replace($url, $local_name, $rendered_content);
+                        $photos_array[] = array(
+                            'local_name' => $local_name,
+                            'remote_url' => $remote_url
+                        );
                     }
                 }
+
+                $article_photos[] = $photos_array;
             }
         }
 
         $article->content_html_document = $rendered_content;
         $article->assets = array_values($local_assets);
-        $article->photos = array(array_values($photos));
+        $article->photos = $article_photos;
         return $article;
     }
 }
