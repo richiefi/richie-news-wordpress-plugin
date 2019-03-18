@@ -16,7 +16,7 @@ class Richie_Article {
     }
 
 
-    private function render_template($name, $post_id) {
+    private function render_template($slug, $name, $post_id) {
         global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID, $wp_styles, $wp_scripts, $wp_filter;
         require_once plugin_dir_path( __FILE__ ) . 'class-richie-template-loader.php';
         $richie_template_loader = new Richie_Template_Loader;
@@ -30,9 +30,8 @@ class Richie_Article {
 
         ob_start();
         $richie_template_loader
-            ->get_template_part($name);
+            ->get_template_part($slug, $name);
 
-        // get_template_part($name);
         $rendered_content = ob_get_clean();
         wp_reset_query();
         wp_reset_postdata();
@@ -56,17 +55,13 @@ class Richie_Article {
         $thumbnail = get_the_post_thumbnail_url($post_id, 'full');
 
         if ( $thumbnail ) {
-            if ( substr( $thumbnail, 0, 4 ) === 'http' ) {
-                $article->image_url = $thumbnail;
-            } else {
-                $article->image_url = get_site_url(null, $thumbnail);
-            }
+            $article->image_url = richie_make_link_absolute($thumbnail);
         }
 
         $article->id = $post->guid;
         $article->title = $post->post_title;
         $article->summary = $post->post_excerpt;
-        if ($category) {
+        if ( $category ) {
             $article->kicker = $category[0]->name;
         }
 
@@ -131,7 +126,8 @@ class Richie_Article {
         }
 
         // render locally to get assets
-        $this->render_template('richie-news-article', $post_id);
+        $this->render_template('richie-news', 'article', $post_id);
+        // $wp_scripts and $wp_styles globals should now been set
         $article_assets = get_article_assets();
 
         // find local article assets (shortcodes etc)
