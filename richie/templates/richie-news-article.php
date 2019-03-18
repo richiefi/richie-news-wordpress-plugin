@@ -12,10 +12,13 @@ Template Name: Richie Article template
     <style>
         /** News article **/
 
+        body {
+            text-align: left;
+        }
+
         .richie-content-wrapper {
-            padding: 50px;
+            padding: 1em;
             max-width: 100vw;
-            margin: 20px auto;
             background: white;
             background-url: none !important;
             overflow: hidden;
