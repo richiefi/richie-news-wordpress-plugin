@@ -138,11 +138,14 @@ class Richie_Article {
         // replace asset urls with localname
         foreach ( $this->assets as $asset ) {
             $rendered_content = str_replace($asset->remote_url, ltrim( $asset->local_name, '/' ), $rendered_content);
+            $rendered_content = str_replace(wp_make_link_relative($asset->remote_url), ltrim( $asset->local_name, '/' ), $rendered_content);
+
         }
 
         // replace local assets
         foreach ( $local_assets as $asset ) {
             $rendered_content = str_replace($asset->remote_url, ltrim( $asset->local_name, '/' ), $rendered_content);
+            $rendered_content = str_replace(wp_make_link_relative($asset->remote_url), ltrim( $asset->local_name, '/' ), $rendered_content);
         }
 
         // preg_match_all('/((href|src)=[\'"](.+?)[\'"])|([\'"](https?:\/\/.+?)[\'" ])/', $rendered_content, $matches);
