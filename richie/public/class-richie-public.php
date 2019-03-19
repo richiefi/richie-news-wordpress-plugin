@@ -280,7 +280,7 @@ class Richie_Public {
                 }
 
                 $richie_template_loader = new Richie_Template_Loader;
-                $template = $richie_template_loader->get_template_part( 'richie-news', $name );
+                $template = $richie_template_loader->get_template_part( 'richie-news', $name, false );
             }
         }
         return $template;
