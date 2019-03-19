@@ -173,62 +173,100 @@ class Richie_Article {
             $rendered_content = preg_replace($regex, $local_name, $rendered_content);
         }
 
-        $disable_url_handling = false;
-
-        if( isset( $_GET['disable_asset_parsing'] ) ) {
-            $disable_url_handling = $_GET['disable_asset_parsing'] === '1';
-        }
-
         $article_photos = array();
 
-        if ( ! $disable_url_handling ) {
-            $image_urls = [];
-            $dom = new DOMDocument();
-            libxml_use_internal_errors(true);
-            $dom->loadHTML(mb_convert_encoding($rendered_content, 'HTML-ENTITIES', 'UTF-8'));
-            // Get all the images
-            $images = $dom->getElementsByTagName('img');
+        $main_gallery = [];
+        $thumbnail_id = get_post_thumbnail_id($my_post);
 
-            // Loop the images
-            foreach ($images as $image) {
-                $image_urls[] = $image->getAttribute('src');
-                $image->removeAttribute('srcset');
-            }
+        $image_urls = [];
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML(mb_convert_encoding($rendered_content, 'HTML-ENTITIES', 'UTF-8'));
+        // Get all the images
+        $images = $dom->getElementsByTagName('img');
 
-            // Save the HTML
-            $rendered_content = $dom->saveHTML();
+        // Loop the images
+        foreach ($images as $image) {
+            $image_urls[] = $image->getAttribute('src');
+            $image->removeAttribute('srcset');
+        }
 
-            $galleries = get_post_galleries($post_id, false);
+        // remove duplicate urls
+        $image_urls = array_unique($image_urls);
 
-            if ( !empty( $galleries ) ) {
-                foreach( $galleries as $gallery ) {
-                    $photos_array = [];
-                    $ids = explode(',', $gallery['ids']);
-                    foreach ( $ids as $attachment_id ) {
-                        $attachment = get_post($attachment_id);
-                        $attachment_url = wp_get_attachment_url($attachment->ID);
-                        $local_name = remove_query_arg( 'ver', wp_make_link_relative($attachment_url));
-                        $local_name = ltrim($local_name, '/');
-                        $rendered_content = str_replace($attachment_url, $local_name, $rendered_content);
-                        $photos_array[] = array(
-                            'caption' => $attachment->post_excerpt,
-                            'local_name' => $local_name,
-                            'remote_url' => richie_make_link_absolute($attachment_url)
-                        );
+        // Save the HTML
+        $rendered_content = $dom->saveHTML();
 
-                        // remove from general image array, since we have already handled this url
-                        $index = array_search($attachment_url, $image_urls);
-                        if($index !== FALSE){
-                            unset($image_urls[$index]);
-                        }
+        if ( $thumbnail_id ) {
+            $thumbnail = wp_get_attachment_image_url($thumbnail_id, 'full');
+            $remote_url = richie_make_link_absolute($thumbnail);
+            $article->image_url = $remote_url;
 
+            $all_sizes = get_intermediate_image_sizes();
+            $all_sizes[] = 'full'; // append full size also
+            foreach ( $all_sizes as $size) {
+                $thumbnail_url = null;
+                if ( $size === 'full' ) {
+                    // we already have full url
+                    $thumbnail_url = $thumbnail;
+                } else {
+                    $thumbnail_url = wp_get_attachment_image_url($thumbnail_id, $size);
+                }
+                if ( strpos($rendered_content, $thumbnail_url) !== false) {
+                    $local_name = wp_make_link_relative($thumbnail);
+                    $local_name = ltrim($local_name, '/');
+                    $rendered_content = str_replace($thumbnail_url, $local_name, $rendered_content);
+                    $main_gallery[] = array(
+                        'caption' => get_the_post_thumbnail_caption($my_post),
+                        'local_name' => $local_name,
+                        'remote_url' => $remote_url
+                    );
+                    // remove from general image array, since we have already handled this url
+                    $index = array_search($thumbnail_url, $image_urls);
+                    if($index !== FALSE){
+                        unset($image_urls[$index]);
                     }
-                    $article_photos[] = $photos_array;
+                }
+            }
+        }
+
+        if ( ! $disable_url_handling ) {
+            // find first gallery and append it to photos array
+            $gallery = get_post_gallery($my_post, false);
+            if ( $gallery !== false ) {
+                $ids = explode(',', $gallery['ids']);
+                foreach ( $ids as $attachment_id ) {
+                    $attachment = get_post($attachment_id);
+                    $attachment_url = wp_get_attachment_url($attachment->ID);
+                    $local_name = remove_query_arg( 'ver', wp_make_link_relative($attachment_url));
+                    $local_name = ltrim($local_name, '/');
+                    $rendered_content = str_replace($attachment_url, $local_name, $rendered_content);
+                    $main_gallery[] = array(
+                        'caption' => $attachment->post_excerpt,
+                        'local_name' => $local_name,
+                        'remote_url' => richie_make_link_absolute($attachment_url)
+                    );
+
+                    // remove from general image array, since we have already handled this url
+                    $index = array_search($attachment_url, $image_urls);
+                    if($index !== FALSE){
+                        unset($image_urls[$index]);
+                    }
+
                 }
             }
 
-            if ( $image_urls ) {
+            // remove possible duplicate entries from main gallery
+            $unique = array();
 
+            foreach ($main_gallery as $item)
+            {
+                $unique[$item['local_name']] = $item;
+            }
+
+            $article_photos[] = array_values($unique);
+
+            if ( $image_urls ) {
                 $attachent_cache = [];
                 $photos_array = [];
                 foreach ( array_unique($image_urls) as $url) {
