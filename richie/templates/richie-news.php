@@ -46,7 +46,15 @@ Template Name: Richie Article template
                             the_title( '<h1 class="entry-title">', '</h1>' );
                             echo '<p><strong>' . get_the_author() . '</strong></p>';
                             echo '<p><em>' . get_the_date('j.n.Y H:i') . '</em></p>';
-                            the_post_thumbnail();
+                            if ( has_post_thumbnail() ) {
+                                /* grab the url for the full size featured image */
+                                $featured_img_url = get_the_post_thumbnail_url(get_the_ID(), 'full');
+
+                                /* link thumbnail to full size image for use with lightbox*/
+                                echo '<a href="'.esc_url($featured_img_url).'" rel="lightbox">';
+                                    the_post_thumbnail('thumbnail');
+                                echo '</a>';
+                            }
                             the_content();
                         endwhile;
                     ?>
