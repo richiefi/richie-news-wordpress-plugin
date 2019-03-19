@@ -244,14 +244,15 @@ class Richie_Article {
                         );
                     } else {
                         $rendered_content = str_replace($url, $local_name, $rendered_content);
-                        $photos_array[] = array(
+                        $local_assets[] = array(
                             'local_name' => $local_name,
                             'remote_url' => $remote_url
                         );
                     }
                 }
-
-                $article_photos[] = $photos_array;
+                if ( !empty( $photos_array ) ) {
+                    $article_photos[] = $photos_array;
+                }
             }
         }
 
