@@ -40,33 +40,27 @@ class Richie_Article {
     }
 
     public function generate_article($my_post) {
+
         global $wpdb;
 
-        $post = $my_post;
         $hash = md5(serialize($my_post));
         $article = new stdClass();
         $article->hash = $hash;
 
         // get metadata
-        $post_id = $post->ID;
-        $user_data = get_userdata($post->post_author);
+        $post_id = $my_post->ID;
+        $user_data = get_userdata($my_post->post_author);
         $category = get_the_category($post_id);
 
-        $thumbnail = get_the_post_thumbnail_url($post_id, 'full');
-
-        if ( $thumbnail ) {
-            $article->image_url = richie_make_link_absolute($thumbnail);
-        }
-
-        $article->id = $post->guid;
-        $article->title = $post->post_title;
-        $article->summary = $post->post_excerpt;
+        $article->id = $my_post->guid;
+        $article->title = $my_post->post_title;
+        $article->summary = $my_post->post_excerpt;
         if ( $category ) {
             $article->kicker = $category[0]->name;
         }
 
-        $date = (new DateTime($post->post_date_gmt))->format('c');
-        $updated_date = (new DateTime($post->post_modified_gmt))->format('c');
+        $date = (new DateTime($my_post->post_date_gmt))->format('c');
+        $updated_date = (new DateTime($my_post->post_modified_gmt))->format('c');
         $article->date = $date;
         if ($date != $updated_date) {
             $article->updated_date = $updated_date;
@@ -79,7 +73,7 @@ class Richie_Article {
         $member_only_id = $this->news_options['member_only_pmpro_level'];
 
         // get paywall type
-        $sqlQuery = "SELECT mp.membership_id as id FROM $wpdb->pmpro_memberships_pages mp WHERE mp.page_id = '" . $post->ID . "'";
+        $sqlQuery = "SELECT mp.membership_id as id FROM $wpdb->pmpro_memberships_pages mp WHERE mp.page_id = '" . $my_post->ID . "'";
         $post_membership_levels = $wpdb->get_results($sqlQuery);
         $levels = array_column($post_membership_levels, 'id');
 
@@ -104,31 +98,50 @@ class Richie_Article {
 
         //$article->debug_content_url = $content_url;
 
-        $transient_key = 'richie_' . $hash;
-        $rendered_content = get_transient($transient_key);
+        $disable_url_handling = false;
 
-        if ( empty($rendered_content) ) {
-            $response = wp_remote_get(
-                $content_url,
-                array ( 'sslverify' => false, 'timeout' => 15 )
-            );
+        if( isset( $_GET['disable_asset_parsing'] ) ) {
+            $disable_url_handling = $_GET['disable_asset_parsing'] === '1';
+        }
 
-            if ( is_array( $response ) && ! is_wp_error( $response ) ) {
-                $rendered_content = $response['body'];
-                set_transient($transient_key, $rendered_content, 10);
-                $article->from_cache = false;
-            } else {
-                $rendered_content = __('Failed to get content', 'richie');
-                if ( is_wp_error( $response ) ) {
-                    $article->content_error = $response->get_error_message();
+        $use_local_render = false;
+        if( isset( $_GET['use_local_render'] ) ) {
+            $use_local_render = $_GET['use_local_render'] === '1';
+        }
+
+        //$article->debug_content_url = $content_url;
+
+        if ( ! $use_local_render ) {
+            $transient_key = 'richie_' . $hash;
+            $rendered_content = get_transient($transient_key);
+
+            if ( empty($rendered_content) ) {
+                $response = wp_remote_get(
+                    $content_url,
+                    array ( 'sslverify' => false, 'timeout' => 15 )
+                );
+
+                if ( is_array( $response ) && ! is_wp_error( $response ) ) {
+                    $rendered_content = $response['body'];
+                    set_transient($transient_key, $rendered_content, 10);
+                    $article->from_cache = false;
+                } else {
+                    $rendered_content = __('Failed to get content', 'richie');
+                    if ( is_wp_error( $response ) ) {
+                        $article->content_error = $response->get_error_message();
+                    }
                 }
+            } else {
+                $article->from_cache = true;
             }
-        } else {
-            $article->from_cache = true;
         }
 
         // render locally to get assets
-        $this->render_template('richie-news', 'article', $post_id);
+        $local_rendered_content = $this->render_template('richie-news', 'article', $post_id);
+
+        if ( $use_local_render ) {
+            $rendered_content = $local_rendered_content;
+        }
         // $wp_scripts and $wp_styles globals should now been set
         $article_assets = get_article_assets();
 
