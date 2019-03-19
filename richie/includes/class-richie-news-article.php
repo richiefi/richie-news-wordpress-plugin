@@ -158,15 +158,19 @@ class Richie_Article {
 
         // replace asset urls with localname
         foreach ( $this->assets as $asset ) {
-            $rendered_content = str_replace($asset->remote_url, ltrim( $asset->local_name, '/' ), $rendered_content);
-            $rendered_content = str_replace(wp_make_link_relative($asset->remote_url), ltrim( $asset->local_name, '/' ), $rendered_content);
+            $local_name = ltrim( $asset->local_name, '/' );
+            $rendered_content = str_replace($asset->remote_url, $local_name, $rendered_content);
+            $regex = '/(?<!app-assets)' . preg_quote(wp_make_link_relative($asset->remote_url), '/') . '/';
+            $rendered_content = preg_replace($regex, $local_name, $rendered_content);
 
         }
 
         // replace local assets
         foreach ( $local_assets as $asset ) {
-            $rendered_content = str_replace($asset->remote_url, ltrim( $asset->local_name, '/' ), $rendered_content);
-            $rendered_content = str_replace(wp_make_link_relative($asset->remote_url), ltrim( $asset->local_name, '/' ), $rendered_content);
+            $local_name = ltrim( $asset->local_name, '/' );
+            $rendered_content = str_replace($asset->remote_url, $local_name, $rendered_content);
+            $regex = '/(?<!app-assets)' . preg_quote(wp_make_link_relative($asset->remote_url), '/') . '/';
+            $rendered_content = preg_replace($regex, $local_name, $rendered_content);
         }
 
         $disable_url_handling = false;
