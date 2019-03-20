@@ -13,101 +13,56 @@ class Richie_Article {
     function __construct($richie_options, $assets = []) {
         $this->news_options = $richie_options;
         $this->assets = $assets;
-
-        function start_wp_head_buffer() {
-            ob_start();
-        }
-        add_action('wp_head','start_wp_head_buffer',0);
-
-        function end_wp_head_buffer() {
-            global $richie_cached_head;
-            if (empty($richie_cached_head)) {
-                $richie_cached_head = ob_get_clean();
-            } else {
-                ob_end_clean();
-            }
-            remove_action('wp_head', 'start_wp_head_buffer');
-            remove_action('wp_head', 'end_wp_head_buffer');
-        }
-        add_action('wp_head','end_wp_head_buffer', PHP_INT_MAX); //PHP_INT_MAX will ensure this action is called after all other actions that can modify head
-        add_action('wp_head', array($this, 'cached_head'), PHP_INT_MAX);
-
-
-        function start_wp_footer_buffer() {
-            ob_start();
-        }
-        add_action('wp_footer','start_wp_footer_buffer', 0);
-
-        function end_wp_footer_buffer() {
-            global $richie_cached_footer;
-            if (empty($richie_cached_footer)) {
-                $richie_cached_footer = ob_get_clean();
-            } else {
-                ob_end_clean();
-            }
-            remove_action('wp_footer', 'start_wp_footer_buffer');
-            remove_action('wp_footer', 'end_wp_footer_buffer');
-        }
-        add_action('wp_footer','end_wp_footer_buffer', PHP_INT_MAX); //PHP_INT_MAX will ensure this action is called after all other actions that can modify head
-        add_action('wp_footer', array($this, 'cached_footer'), PHP_INT_MAX);
-
-
-        function get_assets() {
-            global $wp_styles, $wp_scripts, $feed_assets;
-            $feed_assets = array();
-            foreach ( $wp_styles->queue as $handle) {
-                array_push($feed_assets, $wp_styles->registered[$handle]->src);
-            }
-            foreach ( $wp_scripts->queue as $handle) {
-                array_push($feed_assets, $wp_scripts->registered[$handle]->src);
-            }
-        }
-        add_action( 'wp_enqueue_scripts', 'get_assets', PHP_INT_MAX);
-    }
-
-    public function cached_head() {
-        global $richie_cached_head;
-        echo $richie_cached_head;
-    }
-
-    public function cached_footer() {
-        global $richie_cached_footer;
-        echo $richie_cached_footer;
     }
 
 
-    public function richie_pmpro_has_membership_access_filter( $hasaccess, $mypost, $myuser, $post_membership_levels ) {
-        return true;
+    private function render_template($slug, $name, $post_id) {
+        global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $user_ID, $wp_styles, $wp_scripts, $wp_filter;
+        require_once plugin_dir_path( __FILE__ ) . 'class-richie-template-loader.php';
+        $richie_template_loader = new Richie_Template_Loader;
+        $wp_query = new WP_Query(array(
+            'p' => $post_id
+        ));
+
+
+        // add pmpro filter which overrides access and always returns true
+        // this way it won't filter the content and always returns full content
+        add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
+
+        ob_start();
+        $richie_template_loader
+            ->get_template_part($slug, $name);
+
+        $rendered_content = ob_get_clean();
+        wp_reset_query();
+        wp_reset_postdata();
+
+        return $rendered_content;
     }
+
 
     public function generate_article($my_post) {
-        global $wpdb;
 
+        global $wpdb, $post;
         $post = $my_post;
         $hash = md5(serialize($my_post));
         $article = new stdClass();
         $article->hash = $hash;
 
         // get metadata
-        $post_id = $post->ID;
-        $user_data = get_userdata($post->post_author);
+        $post_id = $my_post->ID;
+        $user_data = get_userdata($my_post->post_author);
         $category = get_the_category($post_id);
 
-        $thumbnail_id = get_post_thumbnail_id($post_id);
-
-        if ( $thumbnail_id ) {
-            $article->image_url = wp_get_attachment_url($thumbnail_id);
-        }
-
-        $article->id = $post->guid;
-        $article->title = $post->post_title;
-        $article->summary = $post->post_excerpt;
-        if ($category) {
+        $article->id = $my_post->guid;
+        $article->title = $my_post->post_title;
+        $article->summary = $my_post->post_excerpt;
+        if ( $category ) {
             $article->kicker = $category[0]->name;
         }
 
-        $date = (new DateTime($post->post_date_gmt))->format('c');
-        $updated_date = (new DateTime($post->post_modified_gmt))->format('c');
+        $date = (new DateTime($my_post->post_date_gmt))->format('c');
+        $updated_date = (new DateTime($my_post->post_modified_gmt))->format('c');
         $article->date = $date;
         if ($date != $updated_date) {
             $article->updated_date = $updated_date;
@@ -120,7 +75,7 @@ class Richie_Article {
         $member_only_id = $this->news_options['member_only_pmpro_level'];
 
         // get paywall type
-        $sqlQuery = "SELECT m.id, m.name FROM $wpdb->pmpro_memberships_pages mp LEFT JOIN $wpdb->pmpro_membership_levels m ON mp.membership_id = m.id WHERE mp.page_id = '" . $post->ID . "'";
+        $sqlQuery = "SELECT mp.membership_id as id FROM $wpdb->pmpro_memberships_pages mp WHERE mp.page_id = '" . $my_post->ID . "'";
         $post_membership_levels = $wpdb->get_results($sqlQuery);
         $levels = array_column($post_membership_levels, 'id');
 
@@ -143,76 +98,223 @@ class Richie_Article {
         $photos = array();
         $assets = array();
 
-        $transient_key = 'richie_' . $hash;
-        $rendered_content = get_transient($transient_key);
 
+        $disable_url_handling = false;
 
-        if ( empty($rendered_content) ) {
-            $response = wp_remote_get($content_url);
-            //$response = wp_remote_get(str_replace('localhost:8000', '192.168.0.4:8000', $content_url), array ( 'sslverify' => false));
-
-            if ( is_array( $response ) && ! is_wp_error( $response ) ) {
-                $rendered_content = $response['body'];
-                set_transient($transient_key, $rendered_content, 10);
-                $article->from_cache = false;
-            }
-        } else {
-            $article->from_cache = true;
+        if( isset( $_GET['disable_asset_parsing'] ) ) {
+            $disable_url_handling = $_GET['disable_asset_parsing'] === '1';
         }
+
+        $use_local_render = true;
+        if( isset( $_GET['use_local_render'] ) ) {
+            $use_local_render = $_GET['use_local_render'] === '1';
+        }
+
+        //$article->debug_content_url = $content_url;
+
+        if ( ! $use_local_render ) {
+            $transient_key = 'richie_' . $hash;
+            $rendered_content = get_transient($transient_key);
+
+            if ( empty($rendered_content) ) {
+                $response = wp_remote_get(
+                    $content_url,
+                    array ( 'sslverify' => false, 'timeout' => 15 )
+                );
+
+                if ( is_array( $response ) && ! is_wp_error( $response ) ) {
+                    $rendered_content = $response['body'];
+                    set_transient($transient_key, $rendered_content, 10);
+                    $article->from_cache = false;
+                } else {
+                    $rendered_content = __('Failed to get content', 'richie');
+                    if ( is_wp_error( $response ) ) {
+                        $article->content_error = $response->get_error_message();
+                    }
+                }
+            } else {
+                $article->from_cache = true;
+            }
+        }
+
+        // render locally to get assets
+        $local_rendered_content = $this->render_template('richie-news', 'article', $post_id);
+
+        if ( $use_local_render ) {
+            $rendered_content = $local_rendered_content;
+        }
+        // $wp_scripts and $wp_styles globals should now been set
+        $article_assets = get_article_assets();
+
+        // find local article assets (shortcodes etc)
+        $local_assets = array_udiff($article_assets, $this->assets, function($a, $b) {
+            return strcmp($a->remote_url, $b->remote_url);
+        });
 
         $urls = array_unique(wp_extract_urls($rendered_content));
 
+        $absolute_urls = array_map(function($url) {
+            return richie_make_link_absolute($url);
+        }, $urls);
+
         // replace asset urls with localname
         foreach ( $this->assets as $asset ) {
-            $rendered_content = str_replace($asset->remote_url, ltrim( $asset->local_name, '/' ), $rendered_content);
+            $local_name = ltrim( $asset->local_name, '/' );
+            $rendered_content = str_replace($asset->remote_url, $local_name, $rendered_content);
+            $regex = '/(?<!app-assets)' . preg_quote(wp_make_link_relative($asset->remote_url), '/') . '/';
+            $rendered_content = preg_replace($regex, $local_name, $rendered_content);
+
         }
 
-        if ( $urls ) {
-            foreach ( $urls as $url) {
-                $local_url = ltrim(wp_make_link_relative($url), '/');
-                if ( empty($local_url) ) {
-                    continue;
-                }
+        // replace local assets
+        foreach ( $local_assets as $asset ) {
+            $local_name = ltrim( $asset->local_name, '/' );
+            $rendered_content = str_replace($asset->remote_url, $local_name, $rendered_content);
+            $regex = '/(?<!app-assets)' . preg_quote(wp_make_link_relative($asset->remote_url), '/') . '/';
+            $rendered_content = preg_replace($regex, $local_name, $rendered_content);
+        }
 
-                $attachment = attachment_url_to_postid($url);
+        $article_photos = array();
 
-                if ( $attachment ) {
-                    $item = get_post($attachment);
-                    $metadata = get_post_meta($item->ID);
-                    if ( wp_attachment_is_image($item) ) {
-                        $rendered_content = str_replace($url, $local_url, $rendered_content);
-                        array_push($photos, array(
-                            'caption' => wp_get_attachment_caption($item->ID),
-                            'local_name' => $local_url,
-                            'remote_url' => wp_get_attachment_url($attachment)
-                        ));
-                    } else {
-                        $rendered_content = str_replace($url, $local_url, $rendered_content);
-                        array_push($assets, array(
-                            'local_name' => $local_url,
-                            'remote_url' => wp_get_attachment_url($attachment)
-                        ));
-                    }
+        $main_gallery = [];
+        $thumbnail_id = get_post_thumbnail_id($my_post);
+
+        $image_urls = [];
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML(mb_convert_encoding($rendered_content, 'HTML-ENTITIES', 'UTF-8'));
+        // Get all the images
+        $images = $dom->getElementsByTagName('img');
+
+        // Loop the images
+        foreach ($images as $image) {
+            $image_urls[] = $image->getAttribute('src');
+            $image->removeAttribute('srcset');
+        }
+
+        // remove duplicate urls
+        $image_urls = array_unique($image_urls);
+
+        // Save the HTML
+        $rendered_content = $dom->saveHTML();
+
+        if ( $thumbnail_id ) {
+            $thumbnail = wp_get_attachment_image_url($thumbnail_id, 'full');
+            $remote_url = richie_make_link_absolute($thumbnail);
+            $article->image_url = $remote_url;
+
+            $all_sizes = get_intermediate_image_sizes();
+            $all_sizes[] = 'full'; // append full size also
+            foreach ( $all_sizes as $size) {
+                $thumbnail_url = null;
+                if ( $size === 'full' ) {
+                    // we already have full url
+                    $thumbnail_url = $thumbnail;
                 } else {
-                    // not an attachment
-                    // foreach ( array_unique($feed_assets) as $asset) {
-                    //     if (strpos($url, $asset) === 0) {
-                    //         $rendered_content = str_replace($url, $local_url, $rendered_content);
-                    //         array_push($assets, array(
-                    //             'local_name' => $local_url,
-                    //             'remote_url' => $url
-                    //         ));
-                    //     }
+                    $thumbnail_url = wp_get_attachment_image_url($thumbnail_id, $size);
+                }
+                if ( strpos($rendered_content, $thumbnail_url) !== false) {
+                    $local_name = wp_make_link_relative($thumbnail);
+                    $local_name = ltrim($local_name, '/');
+                    $rendered_content = str_replace($thumbnail_url, $local_name, $rendered_content);
+                    $main_gallery[] = array(
+                        'caption' => get_the_post_thumbnail_caption($my_post),
+                        'local_name' => $local_name,
+                        'remote_url' => $remote_url
+                    );
+                    // remove from general image array, since we have already handled this url
+                    $index = array_search($thumbnail_url, $image_urls);
+                    if($index !== FALSE){
+                        unset($image_urls[$index]);
+                    }
+                }
+            }
+        }
 
-                    // }
+        if ( ! $disable_url_handling ) {
+            // find first gallery and append it to photos array
+            $gallery = get_post_gallery($my_post, false);
+            if ( $gallery !== false ) {
+                $ids = explode(',', $gallery['ids']);
+                foreach ( $ids as $attachment_id ) {
+                    $attachment = get_post($attachment_id);
+                    $attachment_url = wp_get_attachment_url($attachment->ID);
+                    $local_name = remove_query_arg( 'ver', wp_make_link_relative($attachment_url));
+                    $local_name = ltrim($local_name, '/');
+                    $rendered_content = str_replace($attachment_url, $local_name, $rendered_content);
+                    $main_gallery[] = array(
+                        'caption' => $attachment->post_excerpt,
+                        'local_name' => $local_name,
+                        'remote_url' => richie_make_link_absolute($attachment_url)
+                    );
+
+                    // remove from general image array, since we have already handled this url
+                    $index = array_search($attachment_url, $image_urls);
+                    if($index !== FALSE){
+                        unset($image_urls[$index]);
+                    }
+
                 }
             }
 
-            $article->content_html_document = $rendered_content;
+            // remove possible duplicate entries from main gallery
+            $unique = array();
+
+            foreach ($main_gallery as $item)
+            {
+                $unique[$item['local_name']] = $item;
+            }
+
+            $article_photos[] = array_values($unique);
+
+            if ( $image_urls ) {
+                $attachent_cache = [];
+                $photos_array = [];
+                foreach ( array_unique($image_urls) as $url) {
+                    // remove size from the url, expects '-1000x230' format
+                    $base_url = preg_replace('/(.+)(-\d+x\d+)(.+)/', '$1$3', $url);
+
+                    $local_name = remove_query_arg( 'ver', wp_make_link_relative($url));
+                    if ( empty($local_name) ) {
+                        continue;
+                    }
+                    $local_name = ltrim($local_name, '/');
+
+                    $remote_url = richie_make_link_absolute($url);
+
+                    $attachment_id = false;
+                    // if( isset( $attachment_cache[$base_url] ) ) {
+                    //     $attachment_id = $attachment_cache[$base_url];
+                    // } else {
+                    //     $attachment_id = richie_get_image_id($base_url);
+                    //     $attachment_cache[$base_url] = $attachment_id;
+                    // }
+                    if ( $attachment_id ) {
+                        $attachment = get_post($attachment_id);
+                        $attachment_url = wp_get_attachment_url($attachment->ID);
+                        $rendered_content = str_replace($url, $local_name, $rendered_content);
+                        $photos_array[] = array(
+                            'caption' => $attachment->post_excerpt,
+                            'local_name' => $local_name,
+                            'remote_url' => $remote_url
+                        );
+                    } else {
+                        $rendered_content = str_replace($url, $local_name, $rendered_content);
+                        $local_assets[] = array(
+                            'local_name' => $local_name,
+                            'remote_url' => $remote_url
+                        );
+                    }
+                }
+                if ( !empty( $photos_array ) ) {
+                    $article_photos[] = $photos_array;
+                }
+            }
         }
 
-        $article->assets = $assets;
-        $article->photos = array($photos);
+        $article->content_html_document = $rendered_content;
+        $article->assets = array_values($local_assets);
+        $article->photos = $article_photos;
         return $article;
     }
 }
