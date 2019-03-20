@@ -100,12 +100,17 @@ class Richie_Public {
 
             $source_posts = get_posts($args);
 
+
             $article_attributes = array(
                 'list_layout_style' => $source['list_layout_style']
             );
 
             if ( !empty( $source['list_group_title']) ) {
                 $article_attributes['list_group_title'] = $source['list_group_title'];
+            }
+
+            if ( isset( $source['disable_summary'] ) && $source['disable_summary'] === true ) {
+                $article_attributes['summary'] = null;
             }
 
             foreach ( $source_posts as $p) {
