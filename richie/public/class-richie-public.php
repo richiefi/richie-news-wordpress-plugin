@@ -347,14 +347,13 @@ class Richie_Public {
 
         $atts = shortcode_atts(
             array(
-                'id' => null,
                 'product' => null,
                 'organization' => isset( $this->richie_options['maggio_organization']) ? $this->richie_options['maggio_organization'] : null,
                 'number_of_issues' => null,
             ), $attributes, 'maggio' );
 
-        if( empty( $atts['id'] ) && empty( $atts['product'] ) ) {
-            return __('<div>"id" or "product" attribute is required</div>', $this->plugin_name);
+        if( empty( $atts['product'] ) ) {
+            return __('<div>"product" attribute is required</div>', $this->plugin_name);
         }
 
         if( empty( $atts['organization'] ) ) {
@@ -365,11 +364,11 @@ class Richie_Public {
 
         $index_url = $this->richie_options['maggio_hostname'] . '/_data/index.json';
         $organization = $atts['organization'];
+        $product = $atts['product'];
 
         $maggio_service = new Richie_Maggio_Service($index_url, $organization);
-        $id = $attributes['product'] ?: $attributes['id'];
 
-        $issues = $maggio_service->get_issues($id, $atts['number_of_issues']);
+        $issues = $maggio_service->get_issues($product, $atts['number_of_issues']);
         $required_pmpro_level = isset( $this->richie_options['maggio_required_pmpro_level'] ) ? $this->richie_options['maggio_required_pmpro_level'] : 0;
         $user_has_access = richie_has_maggio_access( $required_pmpro_level );
 
