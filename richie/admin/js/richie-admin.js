@@ -57,12 +57,25 @@
       });
 
       $('.feed-source-list').on('click', '.remove-source-item', function() {
+        var row = $(this).parents('tr');
         var data = {
           action: 'remove_source_item',
           source_id: $(this).parents('tr').data('source-id')
         }
         $.post(ajaxurl, data, function(response) {
-          window.location.reload();
+          if (response.deleted) {
+            row.remove();
+          }
+        });
+      });
+
+      $('.feed-source-list').on('click', '.disable-summary', function() {
+        var data = {
+          action: 'set_disable_summary',
+          source_id: $(this).parents('tr').data('source-id'),
+          disable_summary: $(this)[0].checked
+        }
+        $.post(ajaxurl, data, function(response) {
         });
       });
 

@@ -67,6 +67,8 @@ class Richie_Admin {
 
         add_action('wp_ajax_list_update_order', array($this, 'order_source_list'));
         add_action('wp_ajax_remove_source_item', array($this, 'remove_source_item'));
+        add_action('wp_ajax_set_disable_summary', array($this, 'set_disable_summary'));
+
         $this->register_taxonomy_article_set();
 
     }
@@ -555,6 +557,34 @@ small_group_item of a group', $this->plugin_name ); ?></span>
         $updated = update_option($this->sources_option_name, $option);
         add_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
         wp_send_json_success($updated);
+    public function set_disable_summary() {
+        if ( !isset($_POST['source_id']) ) {
+            echo 'Missing source id';
+            wp_die();
+        }
+
+        $source_id = intval($_POST['source_id']);
+        $disable_summary = $_POST['disable_summary'] === "true";
+        $option = get_option($this->sources_option_name);
+        $current_list = isset($option['sources']) ? $option['sources'] : array();
+        $test = null;
+        foreach($current_list as &$source) {
+            if( $source['id'] === $source_id) {
+                $test = array('source' => $source, 'disabled' => $disable_summary);
+                if ( $disable_summary ) {
+                    $source['disable_summary'] = $disable_summary;
+                } else {
+                    unset($source['disable_summary']);
+                }
+                break;
+            }
+        }
+        $option['sources'] = $current_list;
+        //skip validate source
+        remove_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
+        $updated = update_option($this->sources_option_name, $option);
+        add_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
+        wp_send_json(array('updated' => $updated));
     }
 
 
@@ -570,7 +600,7 @@ small_group_item of a group', $this->plugin_name ); ?></span>
                     <th>Posts</th>
                     <th>Order</th>
                     <th>List layout</th>
-                    <th style="text-align: center">Show summary</th>
+                    <th style="text-align: center">Disable summary</th>
                     <th>Actions</th>
                 </thead>
                 <tbody>
@@ -600,7 +630,7 @@ small_group_item of a group', $this->plugin_name ); ?></span>
                         <td><?php echo isset($source['order_by']) ? "{$source['order_by']} {$source['order_direction']}" : '' ?> </td>
                         <td><?php echo isset($source['list_layout_style']) ? $source['list_layout_style'] : 'none' ?></td>
                         <td style="text-align: center">
-                            <input type="checkbox" disabled <?php echo isset($source['disable_summary']) && $source['disable_summary'] === true ? '' : 'checked' ?>>
+                            <input class="disable-summary" type="checkbox" <?php echo isset($source['disable_summary']) && $source['disable_summary'] === true ? 'checked' : '' ?>>
                         </td>
                         <td>
                             <a href="#" class="remove-source-item"">Remove</a>
