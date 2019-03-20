@@ -379,7 +379,7 @@ class Richie_Admin {
 
         print "<input class='regular-text' type='$type' name='$name' value='$value'>";
 
-        if ( $args['description'] ) {
+        if ( isset( $args['description'] ) ) {
             printf('<span class="description">%s</span>', esc_html__( $args['description'], $this->plugin_name ));
         }
     }
@@ -391,7 +391,7 @@ class Richie_Admin {
         $name = $args['namespace'] . '[' . $args['id'] . ']';
         print "<input type='checkbox' name='$name' value='$value' $checked>";
 
-        if ( $args['description'] ) {
+        if ( isset( $args['description'] ) ) {
             printf('<span class="description">%s</span>', esc_html__( $args['description'], $this->plugin_name ));
         }
     }
