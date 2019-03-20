@@ -244,6 +244,10 @@ class Richie_Admin {
                 $source['list_group_title'] = sanitize_text_field($input['list_group_title']);
             }
 
+            if ( isset( $input['disable_summary' ] ) && intval($input['disable_summary']) === 1 ) {
+                $source['disable_summary'] = true;
+            }
+
             array_push($sources, $source);
         } else {
             add_settings_error(
@@ -325,8 +329,9 @@ class Richie_Admin {
         add_settings_field ('richie_source_amount',    __('Number of posts', $this->plugin_name),  array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_source_order_by',  __('Order by', $this->plugin_name),         array($this, 'order_by_render'),        $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_source_order_dir', __('Order direction', $this->plugin_name),  array($this, 'order_direction_render'), $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_list_layout_style',     __('List layout', $this->plugin_name),      array($this, 'list_layout_style_render'),$this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_list_group_title',      __('List group title', $this->plugin_name), array($this, 'list_group_title_render'),$this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_list_layout_style', __('List layout', $this->plugin_name),      array($this, 'list_layout_style_render'),       $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_list_group_title',  __('List group title', $this->plugin_name), array($this, 'list_group_title_render'),        $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_disable_summary',    __('Disable article summary', $this->plugin_name), array($this, 'checkbox_render'),        $this->sources_option_name, $sources_section_name, array('id' => 'disable_summary', 'description' => 'Do not show summary text in news list', 'namespace' => $this->sources_option_name));
 
         // create assets section
         add_settings_section ($assets_section_name, __('Asset feed', $this->plugin_name), null, $this->assets_option_name);
@@ -369,7 +374,24 @@ class Richie_Admin {
         $type = isset($args['type']) ? $args['type'] : 'test';
         $name = $this->plugin_name . '[' . $args['id'] . ']';
         $value = isset($options{$id}) ? $options{$id} : '';
+
         print "<input class='regular-text' type='$type' name='$name' value='$value'>";
+
+        if ( $args['description'] ) {
+            printf('<span class="description">%s</span>', esc_html__( $args['description'], $this->plugin_name ));
+        }
+    }
+
+    public function checkbox_render( array $args ) {
+        $current = isset( $args['current'] ) ? $args['current'] : '';
+        $value = isset ( $args['value'] ) ? $args['value'] : '1';
+        $checked = checked( $current, $value, false );
+        $name = $args['namespace'] . '[' . $args['id'] . ']';
+        print "<input type='checkbox' name='$name' value='$value' $checked>";
+
+        if ( $args['description'] ) {
+            printf('<span class="description">%s</span>', esc_html__( $args['description'], $this->plugin_name ));
+        }
     }
 
     public function pmpro_level_render( array $args ) {
@@ -548,6 +570,7 @@ small_group_item of a group', $this->plugin_name ); ?></span>
                     <th>Posts</th>
                     <th>Order</th>
                     <th>List layout</th>
+                    <th style="text-align: center">Show summary</th>
                     <th>Actions</th>
                 </thead>
                 <tbody>
@@ -576,6 +599,9 @@ small_group_item of a group', $this->plugin_name ); ?></span>
                         <td><?php echo $source['number_of_posts']; ?></td>
                         <td><?php echo isset($source['order_by']) ? "{$source['order_by']} {$source['order_direction']}" : '' ?> </td>
                         <td><?php echo isset($source['list_layout_style']) ? $source['list_layout_style'] : 'none' ?></td>
+                        <td style="text-align: center">
+                            <input type="checkbox" disabled <?php echo isset($source['disable_summary']) && $source['disable_summary'] === true ? '' : 'checked' ?>>
+                        </td>
                         <td>
                             <a href="#" class="remove-source-item"">Remove</a>
                         </td>
