@@ -540,14 +540,12 @@ small_group_item of a group', $this->plugin_name ); ?></span>
         $source_id = intval($_POST['source_id']);
         $option = get_option($this->sources_option_name);
         $current_list = isset($option['sources']) ? $option['sources'] : array();
-        foreach($current_list as $k=>$v) {
-            foreach ($current_list[$k] as $key=>$value) {
-              if ($key === "id") {
-                  if ($value == $source_id) {
-                    unset($current_list[$k]); //Delete from Array
-                  }
-                  break;
-              }
+        $deleted = false;
+        foreach($current_list as $sid => $source) {
+            if ( $source['id'] === $source_id ) {
+                unset($current_list[$sid]); //Delete from Array
+                $deleted = true;
+                break;
             }
         }
         $option['sources'] = $current_list;
@@ -556,7 +554,9 @@ small_group_item of a group', $this->plugin_name ); ?></span>
         remove_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
         $updated = update_option($this->sources_option_name, $option);
         add_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
-        wp_send_json_success($updated);
+        wp_send_json(array('deleted' => $updated && $deleted));
+    }
+
     public function set_disable_summary() {
         if ( !isset($_POST['source_id']) ) {
             echo 'Missing source id';
