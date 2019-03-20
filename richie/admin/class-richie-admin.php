@@ -509,7 +509,7 @@ small_group_item of a group', $this->plugin_name ); ?></span>
         $new_order = $_POST['source_items'];
         $new_list = array();
 
-        if ( count($current_list) == count($sources)) {
+        if ( count($current_list) != count($new_order)) {
             $error = new WP_Error('-1', 'Current list and received list size doesn\'t match');
             wp_send_json_error( $error, 400 );
         }
