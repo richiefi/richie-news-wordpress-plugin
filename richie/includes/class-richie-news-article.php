@@ -17,12 +17,13 @@ class Richie_Article {
 
 
     private function render_template($slug, $name, $post_id) {
-        global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID, $wp_styles, $wp_scripts, $wp_filter;
+        global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $user_ID, $wp_styles, $wp_scripts, $wp_filter;
         require_once plugin_dir_path( __FILE__ ) . 'class-richie-template-loader.php';
         $richie_template_loader = new Richie_Template_Loader;
         $wp_query = new WP_Query(array(
             'p' => $post_id
         ));
+
 
         // add pmpro filter which overrides access and always returns true
         // this way it won't filter the content and always returns full content
@@ -39,10 +40,11 @@ class Richie_Article {
         return $rendered_content;
     }
 
+
     public function generate_article($my_post) {
 
-        global $wpdb;
-
+        global $wpdb, $post;
+        $post = $my_post;
         $hash = md5(serialize($my_post));
         $article = new stdClass();
         $article->hash = $hash;
@@ -96,7 +98,6 @@ class Richie_Article {
         $photos = array();
         $assets = array();
 
-        //$article->debug_content_url = $content_url;
 
         $disable_url_handling = false;
 
@@ -104,7 +105,7 @@ class Richie_Article {
             $disable_url_handling = $_GET['disable_asset_parsing'] === '1';
         }
 
-        $use_local_render = false;
+        $use_local_render = true;
         if( isset( $_GET['use_local_render'] ) ) {
             $use_local_render = $_GET['use_local_render'] === '1';
         }
