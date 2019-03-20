@@ -57,6 +57,10 @@
       });
 
       $('.feed-source-list').on('click', '.remove-source-item', function() {
+        var result = confirm('Are you sure?');
+        if (!result) {
+          return;
+        }
         var row = $(this).parents('tr');
         var data = {
           action: 'remove_source_item',
