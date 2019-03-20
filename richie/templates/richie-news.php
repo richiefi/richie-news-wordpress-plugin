@@ -52,7 +52,7 @@ Template Name: Richie Article template
 
                                 /* link thumbnail to full size image for use with lightbox*/
                                 echo '<a href="'.esc_url($featured_img_url).'" rel="lightbox">';
-                                    the_post_thumbnail('thumbnail');
+                                    the_post_thumbnail('full');
                                 echo '</a>';
                             }
                             the_content();
