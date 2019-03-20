@@ -205,9 +205,7 @@ class Richie_Admin {
     }
 
     public function validate_source($input) {
-        $current_option = get_option($this->sources_option_name, array(
-            'sources' => array()
-        ));
+        $current_option = get_option($this->sources_option_name);
 
         $sources = isset($current_option['sources']) ? $current_option['sources'] : array();
         $next_id = 0;
@@ -282,6 +280,12 @@ class Richie_Admin {
 
     public function options_update() {
         // run on admin_init
+
+        $sources = get_option( $this->sources_option_name );
+
+        if ( $sources === false ) {
+            add_option($this->sources_option_name, array('sources' => array()));
+        }
 
         register_setting($this->settings_option_name, $this->settings_option_name, array(
             'sanitize_callback' => array($this, 'validate_settings'))
