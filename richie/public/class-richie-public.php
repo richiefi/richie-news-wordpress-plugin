@@ -342,7 +342,7 @@ class Richie_Public {
      */
     public function load_maggio_index_content($attributes) {
         if ( !isset( $this->richie_options['maggio_hostname'] ) ) {
-            return '<div>Invalid configuration</div>';
+            return sprintf('<div>%s</div>', __('Invalid configuration', $this->plugin_name));
         }
 
         $atts = shortcode_atts(
