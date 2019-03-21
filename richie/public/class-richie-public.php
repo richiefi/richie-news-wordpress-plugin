@@ -368,7 +368,7 @@ class Richie_Public {
 
         $maggio_service = new Richie_Maggio_Service($index_url, $organization);
 
-        $issues = $maggio_service->get_issues($product, $atts['number_of_issues']);
+        $issues = $maggio_service->get_issues($product, intval($atts['number_of_issues']));
         $required_pmpro_level = isset( $this->richie_options['maggio_required_pmpro_level'] ) ? $this->richie_options['maggio_required_pmpro_level'] : 0;
         $user_has_access = richie_has_maggio_access( $required_pmpro_level );
 
