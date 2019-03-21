@@ -86,6 +86,7 @@ class Richie_Public {
         foreach( $sources as $source ) {
             $args = array(
                 'numberposts' => $source['number_of_posts'],
+                'exclude' => $found_ids
             );
 
 
