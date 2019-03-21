@@ -248,7 +248,7 @@ class Richie_Admin {
                 $source['disable_summary'] = true;
             }
 
-            array_push($sources, $source);
+            $sources[$id] = $source;
         } else {
             add_settings_error(
                 $this->sources_option_name,
@@ -281,10 +281,33 @@ class Richie_Admin {
     public function options_update() {
         // run on admin_init
 
+
+        $this->debug_sources = false;
+
+        if ( isset($_GET['richie_debug_sources'] ) && $_GET['richie_debug_sources'] === '1') {
+            $this->debug_sources = true;
+        }
+
+        if ( get_option( $this->sources_option_name ) === false ) {
+            add_option($this->sources_option_name, array('sources' => array()));
+        }
+
         $sources = get_option( $this->sources_option_name );
 
-        if ( $sources === false ) {
-            add_option($this->sources_option_name, array('sources' => array()));
+        if (isset($sources['sources'])) {
+            if ( isset($_GET['richie_migrate_sources'] ) && $_GET['richie_migrate_sources'] === '1' && (!isset($sources['version']) || $sources['version'] < 2)) {
+                //migrate sources to associative array using id as key
+                $new_sources = [];
+                $current_sources = $sources['sources'];
+
+                foreach( $current_sources as $s ) {
+                    $new_sources[$s['id']] = $s;
+                }
+                $sources['sources'] = $new_sources;
+                $sources['version'] = 2;
+                $sources['updated'] = time();
+                update_option($this->sources_option_name, $sources);
+            }
         }
 
         register_setting($this->settings_option_name, $this->settings_option_name, array(
@@ -298,6 +321,7 @@ class Richie_Admin {
         register_setting($this->assets_option_name, $this->assets_option_name, array(
             'sanitize_callback' => array($this, 'validate_assets')
         ));
+
         $options = get_option( $this->settings_option_name );
         if ( ! isset($options['access_token'])) {
             $options['access_token'] = bin2hex(random_bytes(16));
@@ -514,27 +538,16 @@ small_group_item of a group', $this->plugin_name ); ?></span>
             wp_send_json_error( $error, 400 );
         }
 
-        foreach( $new_order as $id ) {
-            $item = array_search($id, array_column($current_list, 'id'));
-            if ( $item !== false ) {
-                array_push($new_list, $current_list[$item]);
-            } else {
-                $error = new WP_Error('-1', 'Something wrong');
-                wp_send_json_error ( $error, 500);
-            }
-        }
+        $new_list = array_replace(array_flip($new_order), $current_list);
 
         //make sure that array sizes match
-        if ( count($current_list) != count($new_list)) {
-            $error = new WP_Error('-1', 'Current list and new list size doesn\'t match');
-            wp_send_json_error( $error, 400 );
+        if ( count($current_list) === count($new_list)) {
+            $option['sources'] = $new_list;
+            // skip validate source
+            remove_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
+            $updated = update_option($this->sources_option_name, $option);
+            add_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
         }
-
-        $option['sources'] = $new_list;
-        // skip validate source
-        remove_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
-        $updated = update_option($this->sources_option_name, $option);
-        add_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
 
         wp_send_json_success($updated);
     }
@@ -549,12 +562,9 @@ small_group_item of a group', $this->plugin_name ); ?></span>
         $option = get_option($this->sources_option_name);
         $current_list = isset($option['sources']) ? $option['sources'] : array();
         $deleted = false;
-        foreach($current_list as $sid => $source) {
-            if ( $source['id'] === $source_id ) {
-                unset($current_list[$sid]); //Delete from Array
-                $deleted = true;
-                break;
-            }
+        if ( isset($current_list[$source_id]) ) {
+            unset($current_list[$source_id]); //Delete from Array
+            $deleted = true;
         }
         $option['sources'] = $current_list;
 
@@ -575,18 +585,15 @@ small_group_item of a group', $this->plugin_name ); ?></span>
         $disable_summary = $_POST['disable_summary'] === "true";
         $option = get_option($this->sources_option_name);
         $current_list = isset($option['sources']) ? $option['sources'] : array();
-        $test = null;
-        foreach($current_list as &$source) {
-            if( $source['id'] === $source_id) {
-                $test = array('source' => $source, 'disabled' => $disable_summary);
-                if ( $disable_summary ) {
-                    $source['disable_summary'] = $disable_summary;
-                } else {
-                    unset($source['disable_summary']);
-                }
-                break;
+
+        if ( isset($current_list[$source_id]) ) {
+            if ( $disable_summary ) {
+                $current_list[$source_id]['disable_summary'] = $disable_summary;
+            } else {
+                unset($current_list[$source_id]['disable_summary']);
             }
         }
+
         $option['sources'] = $current_list;
         //skip validate source
         remove_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
@@ -598,10 +605,16 @@ small_group_item of a group', $this->plugin_name ); ?></span>
 
     public function source_list() {
         $options = get_option($this->sources_option_name);
+        if ($this->debug_sources) {
+            echo '<pre>';
+            print_r($options);
+            echo '</pre>';
+        }
         if ( isset($options['sources']) && ! empty( $options['sources'] ) ): ?>
             <table class="widefat feed-source-list sortable-list">
                 <thead>
                     <th style="width: 30px;"></th>
+                    <th>ID</th>
                     <th>Article Set</th>
                     <th>Name</th>
                     <th>Categories</th>
@@ -631,6 +644,7 @@ small_group_item of a group', $this->plugin_name ); ?></span>
                     ?>
                     <tr id="source-<?php echo $source['id']; ?>" data-source-id="<?php echo $source['id'] ?>" class="source-item">
                         <td><span class="dashicons dashicons-menu"></span></td>
+                        <td><?php echo $source['id'] ?></td>
                         <td><?php echo $article_set->name; ?></td>
                         <td><?php echo $source['name'] ?></td>
                         <td><?php echo implode(', ', $category_names); ?></td>
