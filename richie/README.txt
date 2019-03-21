@@ -55,7 +55,7 @@ Richie Platform plugin provides following features:
 Plugin provides `[maggio]` shortcode, which may be used to show grid of available issues.
 Shortcode supports two attributes:
   - `product` (required): Maggio product id
-  - `organization` (optiona): Maggio organization, default value can be set in settings.
+  - `organization` (optional): Maggio organization, default value can be set in settings.
   - `number_of_issues` (optional): Amount of issues to be shown. If omitted, shows all issues.
 
 Example:
