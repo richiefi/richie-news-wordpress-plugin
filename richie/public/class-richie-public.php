@@ -341,35 +341,39 @@ class Richie_Public {
      * Load maggio display content
      */
     public function load_maggio_index_content($attributes) {
+        if ( !isset( $this->richie_options['maggio_hostname'] ) || empty( $this->richie_options['maggio_hostname'] ) ) {
+            return sprintf('<div>%s</div>', __('Invalid configuration, missing hostname in settings', $this->plugin_name));
+        }
+
         $atts = shortcode_atts(
             array(
-                'id' => null,
+                'product' => null,
+                'organization' => isset( $this->richie_options['maggio_organization']) ? $this->richie_options['maggio_organization'] : null,
                 'number_of_issues' => null,
             ), $attributes, 'maggio' );
 
-        if( empty( $atts['id'] ) ) {
-            return '<div>ID attribute is required</div>';
+        if( empty( $atts['product'] ) ) {
+            return sprintf('<div>%s</div>', __('"product" attribute is required', $this->plugin_name));
         }
 
-
-        if (
-            !isset( $this->richie_options['maggio_hostname'] )||
-            !isset( $this->richie_options['maggio_organization'] )
-        ) {
-            return '<div>Invalid configuration</div>';
+        if( empty( $atts['organization'] ) ) {
+            return sprintf('<div>%s</div>', __('Invalid organization', $this->plugin_name));
         }
 
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
 
         $index_url = $this->richie_options['maggio_hostname'] . '/_data/index.json';
-        $organization = $this->richie_options['maggio_organization'];
+        $organization = $atts['organization'];
+        $product = $atts['product'];
+
         $maggio_service = new Richie_Maggio_Service($index_url, $organization);
-        $issues = $maggio_service->get_issues($attributes['id'], $atts['number_of_issues']);
+
+        $issues = $maggio_service->get_issues($product, intval($atts['number_of_issues']));
         $required_pmpro_level = isset( $this->richie_options['maggio_required_pmpro_level'] ) ? $this->richie_options['maggio_required_pmpro_level'] : 0;
         $user_has_access = richie_has_maggio_access( $required_pmpro_level );
 
         if( $issues === false ) {
-            return '<div>Failed to fetch issues</div>';
+            return sprintf('<div>%s</div>', __('Failed to fetch issues', $this->plugin_name));
         }
 
         $richie_template_loader = new Richie_Template_Loader();
