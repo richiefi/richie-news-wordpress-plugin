@@ -489,6 +489,18 @@ class Richie_Admin {
     }
 
     public function order_by_render() {
+        $metakeys = [];
+        // check support for event views plugin
+        if ( function_exists( 'ev_get_meta_key' ) ) {
+            $args['orderby'] = 'meta_value_num';
+            $args['meta_key'] = ev_get_meta_key();
+            $metakeys[] = array(
+                'key' => ev_get_meta_key(),
+                'orderby' => 'meta_value_num',
+                'title' => 'Post views'
+            );
+        }
+
         ?>
             <select name='<?php echo $this->sources_option_name ; ?>[order_by]' id='<?php echo $this->sources_option_name ; ?>-order-by'>
                 <option selected="selected" value="date">Post date</option>
@@ -496,6 +508,9 @@ class Richie_Admin {
                 <option value="title">Post title</option>
                 <option value="author">Post author</option>
                 <option value="id">Post ID</option>
+                <?php foreach( $metakeys as $metakey ): ?>
+                    <option value="metakey:<?php esc_attr_e($metakey['key']) ?>:<?php esc_attr_e($metakey['orderby']) ?>"><?php esc_attr_e($metakey['title']) ?></option>
+                <?php endforeach; ?>
             </select>
         <?php
     }
