@@ -289,7 +289,7 @@ class Richie_Admin {
         }
 
         if ( get_option( $this->sources_option_name ) === false ) {
-            add_option($this->sources_option_name, array('sources' => array()));
+            add_option($this->sources_option_name, array('sources' => array(), 'version' => 2, 'updated' => time()));
         }
 
         $sources = get_option( $this->sources_option_name );
