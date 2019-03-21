@@ -52,6 +52,7 @@
               source_items: $(this).sortable('toArray', {attribute: 'data-source-id'})
             }
             $.post(ajaxurl, data, function(response){
+              console.log(response);
             });
         }
       });

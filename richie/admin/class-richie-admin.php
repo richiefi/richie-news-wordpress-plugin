@@ -514,16 +514,20 @@ small_group_item of a group', $this->plugin_name ); ?></span>
             wp_send_json_error( $error, 400 );
         }
 
-        $map = null;
-
         foreach( $new_order as $id ) {
             $item = array_search($id, array_column($current_list, 'id'));
-            if ( isset($item) ) {
+            if ( $item !== false ) {
                 array_push($new_list, $current_list[$item]);
             } else {
                 $error = new WP_Error('-1', 'Something wrong');
                 wp_send_json_error ( $error, 500);
             }
+        }
+
+        //make sure that array sizes match
+        if ( count($current_list) != count($new_list)) {
+            $error = new WP_Error('-1', 'Current list and new list size doesn\'t match');
+            wp_send_json_error( $error, 400 );
         }
 
         $option['sources'] = $new_list;
