@@ -353,11 +353,11 @@ class Richie_Public {
             ), $attributes, 'maggio' );
 
         if( empty( $atts['product'] ) ) {
-            return __('<div>"product" attribute is required</div>', $this->plugin_name);
+            return sprintf('<div>%s</div>', __('"product" attribute is required', $this->plugin_name));
         }
 
         if( empty( $atts['organization'] ) ) {
-            return __('<div>Invalid organization</div>', $this->plugin_name);
+            return sprintf('<div>%s</div>', __('Invalid organization', $this->plugin_name));
         }
 
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
@@ -373,7 +373,7 @@ class Richie_Public {
         $user_has_access = richie_has_maggio_access( $required_pmpro_level );
 
         if( $issues === false ) {
-            return __('<div>Failed to fetch issues</div>', $this->plugin_name);
+            return sprintf('<div>%s</div>', __('Failed to fetch issues', $this->plugin_name));
         }
 
         $richie_template_loader = new Richie_Template_Loader();
