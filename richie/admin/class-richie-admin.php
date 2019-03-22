@@ -253,7 +253,7 @@ class Richie_Admin {
                 $source['max_age'] = sanitize_text_field($input['max_age']);
             }
 
-            $sources[$id] = $source;
+            $sources[$next_id] = $source;
         } else {
             add_settings_error(
                 $this->sources_option_name,
