@@ -45,6 +45,7 @@ class Richie_Admin {
     private $assets_option_name;
     private $settings_page_slug;
     private $available_layout_names;
+    private $debug_sources;
 
     /**
     * Initialize the class and set its properties.
