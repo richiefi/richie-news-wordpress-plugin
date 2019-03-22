@@ -587,16 +587,19 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
 
         $new_list = array_replace(array_flip($new_order), $current_list);
 
-        //make sure that array sizes match
-        if ( count($current_list) === count($new_list)) {
+        //sanitize, make sure that array sizes match and keys matches
+        if ( count($current_list) === count($new_list) && empty(array_diff_key($current_list, $new_list))) {
             $option['sources'] = $new_list;
             // skip validate source
             remove_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
             $updated = update_option($this->sources_option_name, $option);
             add_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
+            wp_send_json_success(array( 'updated' => $updated ));
+        } else {
+            $error = new WP_Error('001', 'Current list and sorted list size doesn\'t match, something wrong');
+            wp_send_json_error( $error, 500 );
         }
 
-        wp_send_json_success($updated);
     }
 
     public function remove_source_item() {
