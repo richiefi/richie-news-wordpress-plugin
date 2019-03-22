@@ -248,6 +248,10 @@ class Richie_Admin {
                 $source['disable_summary'] = true;
             }
 
+            if ( isset( $input['max_age'] ) && $input['max-age'] !== 'All time') {
+                $source['max_age'] = sanitize_text_field($input['max_age']);
+            }
+
             $sources[$id] = $source;
         } else {
             add_settings_error(
@@ -359,6 +363,7 @@ class Richie_Admin {
         add_settings_field ('richie_source_amount',    __('Number of posts', $this->plugin_name),  array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_source_order_by',  __('Order by', $this->plugin_name),         array($this, 'order_by_render'),        $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_source_order_dir', __('Order direction', $this->plugin_name),  array($this, 'order_direction_render'), $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_source_max_age',   __('Post max age', $this->plugin_name),     array($this, 'max_age_render'),         $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_list_layout_style', __('List layout', $this->plugin_name),      array($this, 'list_layout_style_render'),       $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_list_group_title',  __('List group title', $this->plugin_name), array($this, 'list_group_title_render'),        $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_disable_summary',    __('Disable article summary', $this->plugin_name), array($this, 'checkbox_render'),        $this->sources_option_name, $sources_section_name, array('id' => 'disable_summary', 'description' => 'Do not show summary text in news list', 'namespace' => $this->sources_option_name));
@@ -519,7 +524,34 @@ class Richie_Admin {
         ?>
         <input class="regular-text" type='text' name='<?php echo $this->sources_option_name; ?>[list_group_title]'>
         <span class="description"><?php esc_attr_e( 'Header to display before the story, useful on the first
-small_group_item of a group', $this->plugin_name ); ?></span>
+small_group_item of a group', $this->plugin_name ); ?>></span>
+        <?php
+    }
+
+    public function max_age_render() {
+        $available_options = array(
+            '1 day',
+            '3 days',
+            '1 week',
+            '2 weeks',
+            '1 month',
+            '3 months',
+            '6 months',
+            '1 year',
+            'All time'
+        )
+        ?>
+        <fieldset>
+            <?php foreach( $available_options as $opt ): ?>
+            <div>
+                <label>
+                    <input type='radio' name='<?php echo $this->sources_option_name; ?>[max_age]' value='<?php echo $opt; ?>' <?php checked('All time', $opt) ?>>
+                    <span class="description"><?php _e($opt, $this->plugin_name) ?></span>
+                </label>
+            </div>
+            <?php endforeach; ?>
+            <span class="description"><?php esc_attr_e( 'Include posts that are not older than specific time range', $this->plugin_name ); ?>></span>
+        </fieldset>
         <?php
     }
 
@@ -620,6 +652,7 @@ small_group_item of a group', $this->plugin_name ); ?></span>
                     <th>Categories</th>
                     <th>Posts</th>
                     <th>Order</th>
+                    <th>Max age</th>
                     <th>List layout</th>
                     <th style="text-align: center">Disable summary</th>
                     <th>Actions</th>
@@ -650,6 +683,7 @@ small_group_item of a group', $this->plugin_name ); ?></span>
                         <td><?php echo implode(', ', $category_names); ?></td>
                         <td><?php echo $source['number_of_posts']; ?></td>
                         <td><?php echo isset($source['order_by']) ? "{$source['order_by']} {$source['order_direction']}" : '' ?> </td>
+                        <td><?php echo isset($source['max_age']) ? $source['max_age'] : 'All time' ?></td>
                         <td><?php echo isset($source['list_layout_style']) ? $source['list_layout_style'] : 'none' ?></td>
                         <td style="text-align: center">
                             <input class="disable-summary" type="checkbox" <?php echo isset($source['disable_summary']) && $source['disable_summary'] === true ? 'checked' : '' ?>>
