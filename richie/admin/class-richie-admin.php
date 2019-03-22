@@ -262,9 +262,10 @@ class Richie_Admin {
                 'error'
             );
         }
-        return array(
-            'sources' => $sources
-        );
+
+        $current_option['sources'] = $sources;
+        $current_option['updated'] = time();
+        return $current_option;
     }
 
     public function validate_assets($input) {
@@ -591,6 +592,7 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
         //sanitize, make sure that array sizes match and keys matches
         if ( count($current_list) === count($new_list) && empty(array_diff_key($current_list, $new_list))) {
             $option['sources'] = $new_list;
+            $option['updated'] = time();
             // skip validate source
             remove_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
             $updated = update_option($this->sources_option_name, $option);
@@ -618,6 +620,7 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
             $deleted = true;
         }
         $option['sources'] = $current_list;
+        $option['updated'] = time();
 
         //skip validate source
         remove_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
@@ -646,6 +649,8 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
         }
 
         $option['sources'] = $current_list;
+        $option['updated'] = time();
+
         //skip validate source
         remove_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
         $updated = update_option($this->sources_option_name, $option);
