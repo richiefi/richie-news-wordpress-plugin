@@ -40,6 +40,14 @@ class Richie_Article {
         return $rendered_content;
     }
 
+    private function append_wpp_shadow($url) {
+        if (isset($_GET['wpp_shadow'])) {
+            return add_query_arg( 'wpp_shadow', $_GET['wpp_shadow'], $url );
+        } else {
+            return $url;
+        }
+    }
+
 
     public function generate_article($my_post) {
 
@@ -95,8 +103,7 @@ class Richie_Article {
             'token' =>  $this->news_options['access_token']
         ), get_permalink($post_id));
 
-        $photos = array();
-        $assets = array();
+        $content_url = $this->append_wpp_shadow($content_url );
 
 
         $disable_url_handling = false;
@@ -220,7 +227,7 @@ class Richie_Article {
                     $main_gallery[] = array(
                         'caption' => get_the_post_thumbnail_caption($my_post),
                         'local_name' => $local_name,
-                        'remote_url' => $remote_url
+                        'remote_url' => $this->append_wpp_shadow($remote_url)
                     );
                     // remove from general image array, since we have already handled this url
                     $index = array_search($thumbnail_url, $image_urls);
@@ -245,7 +252,7 @@ class Richie_Article {
                     $main_gallery[] = array(
                         'caption' => $attachment->post_excerpt,
                         'local_name' => $local_name,
-                        'remote_url' => richie_make_link_absolute($attachment_url)
+                        'remote_url' => $this->append_wpp_shadow(richie_make_link_absolute($attachment_url))
                     );
 
                     // remove from general image array, since we have already handled this url
