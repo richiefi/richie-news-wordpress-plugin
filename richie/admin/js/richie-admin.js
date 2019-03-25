@@ -51,8 +51,12 @@
               action: 'list_update_order',
               source_items: $(this).sortable('toArray', {attribute: 'data-source-id'})
             }
-            $.post(ajaxurl, data, function(response){
+            $.post(ajaxurl, data)
+            .done(function(response){
               console.log(response);
+            })
+            .fail(function(err) {
+              console.error(err.responseJSON);
             });
         }
       });

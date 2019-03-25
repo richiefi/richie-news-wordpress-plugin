@@ -95,8 +95,30 @@ class Richie_Public {
             }
 
             if ( isset( $source['order_by'] ) && ! empty( $source['order_by'] ) ) {
-                $args['orderby'] = $source['order_by'];
+                $order_by = 'date';
+                $is_metakey = strpos($source['order_by'], 'metakey:');
+                if ( $is_metakey === false) {
+                    $order_by = $source['order_by'];
+                } else {
+                    $meta = explode(':', $source['order_by']);
+                    if (count( $meta ) === 3) {
+                        if( isset( $meta[1] ) && isset( $meta[2] ) && !empty( $meta[1] ) && !empty( $meta[2] ) ) {
+                            $args['meta_key'] = $meta[1];
+                            $order_by = $meta[2];
+                        }
+                    }
+                }
+
+                $args['orderby'] = $order_by;
                 $args['order'] = isset($source['order_direction']) ? $source['order_direction'] : 'DESC';
+            }
+
+            if ( isset( $source['max_age'] ) && !empty( $source['max_age'] ) ) {
+                $args['date_query'] = array(
+                    array(
+                      'after' => sprintf('%s ago', $source['max_age'])
+                    )
+                );
             }
 
             $source_posts = get_posts($args);
