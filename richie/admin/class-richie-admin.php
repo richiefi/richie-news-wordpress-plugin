@@ -426,7 +426,7 @@ class Richie_Admin {
         $value = isset($options{$id}) ? $options{$id} : '';
         $class_name = isset($args['class']) ? $args['class'] : 'regular-text';
 
-        print "<input class='$class_name' type='$type' name='$name' value='$value' $size>";
+        print "<input class='$class_name' type='$type' name='$name' value='$value'>";
 
         if ( isset( $args['description'] ) ) {
             printf('<br><span class="description">%s</span>', esc_html__( $args['description'], $this->plugin_name ));
