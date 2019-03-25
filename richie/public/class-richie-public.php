@@ -85,44 +85,98 @@ class Richie_Public {
 
         foreach( $sources as $source ) {
             $args = array(
-                'numberposts' => $source['number_of_posts'],
-                'exclude' => $found_ids
+                'posts_per_page' => $source['number_of_posts'],
+                'post__not_in' => $found_ids
             );
 
-
-            if ( isset( $source['categories'] ) && ! empty( $source['categories'] ) ) {
-                $args['cat'] = $source['categories'];
-            }
-
-            if ( isset( $source['order_by'] ) && ! empty( $source['order_by'] ) ) {
-                $order_by = 'date';
-                $is_metakey = strpos($source['order_by'], 'metakey:');
-                if ( $is_metakey === false) {
-                    $order_by = $source['order_by'];
-                } else {
-                    $meta = explode(':', $source['order_by']);
-                    if (count( $meta ) === 3) {
-                        if( isset( $meta[1] ) && isset( $meta[2] ) && !empty( $meta[1] ) && !empty( $meta[2] ) ) {
-                            $args['meta_key'] = $meta[1];
-                            $order_by = $meta[2];
-                        }
-                    }
+            if ( isset($source['herald_featured_post_id']) ) {
+                if ( !defined('HERALD_THEME_VERSION') ) {
+                    // herald not active, ignore source
+                    continue;
                 }
 
-                $args['orderby'] = $order_by;
-                $args['order'] = isset($source['order_direction']) ? $source['order_direction'] : 'DESC';
-            }
+                // use herald featured module
+                $page_id = (int)$source['herald_featured_post_id'];
+                $meta = get_post_meta( $page_id, '_herald_meta', true );
+                if (empty($meta)) {
+                    // no metadata found
+                    continue;
+                }
 
-            if ( isset( $source['max_age'] ) && !empty( $source['max_age'] ) ) {
-                $args['date_query'] = array(
-                    array(
-                      'after' => sprintf('%s ago', $source['max_age'])
-                    )
-                );
+                if ( isset($meta['sections']) && !empty( $meta['sections'] ) ) {
+                    $module = null;
+                    foreach( $meta['sections'] as $sec ) {
+                        if ( $module ) {
+                            break;
+                        }
+                        if( isset($sec['modules']) && !empty($sec['modules'] ) ) {
+                            foreach ( $sec['modules'] as $mod ) {
+                                if ( $mod['type'] === 'featured' ) {
+                                    // use first
+                                    $module = $mod;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+
+                    if ( $module !== null ) {
+                        if ( isset( $module['manual'] ) && !empty( $module['manual']) ) {
+                            $args['post__in'] = array_diff($module['manual'], $found_ids); // post__not_in is ignored if post__in used, so use diff
+                            $args['ignore_sticky_posts'] = true;  //https://developer.wordpress.org/reference/classes/wp_query/parse_query/
+                            $args['orderby'] = 'post__in';
+                        } else {
+                            $args['orderby'] = $module['order'];
+                            $args['order'] = $module['sort'] === 'ASC' ? 'ASC' : 'DESC';
+                            if ( isset( $module['cat'] ) ) {
+                                $args['cat'] = $module['cat'];
+                            }
+
+                            if ( isset( $module['exclude_by_id'] ) && !empty( $module['exclude_by_id'] ) ) {
+                                $args['post__not_in'] = array_merge( $args['post__not_in'], $module['exclude_by_id'] );
+                            }
+                        }
+                    }
+
+                }
+
+
+
+            } else {
+                if ( isset( $source['categories'] ) && ! empty( $source['categories'] ) ) {
+                    $args['cat'] = $source['categories'];
+                }
+
+                if ( isset( $source['order_by'] ) && ! empty( $source['order_by'] ) ) {
+                    $order_by = 'date';
+                    $is_metakey = strpos($source['order_by'], 'metakey:');
+                    if ( $is_metakey === false) {
+                        $order_by = $source['order_by'];
+                    } else {
+                        $meta = explode(':', $source['order_by']);
+                        if (count( $meta ) === 3) {
+                            if( isset( $meta[1] ) && isset( $meta[2] ) && !empty( $meta[1] ) && !empty( $meta[2] ) ) {
+                                $args['meta_key'] = $meta[1];
+                                $order_by = $meta[2];
+                            }
+                        }
+                    }
+
+                    $args['orderby'] = $order_by;
+                    $args['order'] = isset($source['order_direction']) ? $source['order_direction'] : 'DESC';
+                }
+
+                if ( isset( $source['max_age'] ) && !empty( $source['max_age'] ) ) {
+                    $args['date_query'] = array(
+                        array(
+                        'after' => sprintf('%s ago', $source['max_age'])
+                        )
+                    );
+                }
             }
 
             $source_posts = get_posts($args);
-
 
             $article_attributes = array(
                 'list_layout_style' => $source['list_layout_style']
