@@ -528,6 +528,13 @@ class Richie_Admin {
                 <?php foreach( $metakeys as $metakey ): ?>
                     <option value="metakey:<?php esc_attr_e($metakey['key']) ?>:<?php esc_attr_e($metakey['orderby']) ?>"><?php esc_attr_e($metakey['title']) ?></option>
                 <?php endforeach; ?>
+                <?php
+                    if ( class_exists( 'WPP_query' ) ) {
+                        echo '<option value="popular:last24hours">Popular posts (24 hours)</option>';
+                        echo '<option value="popular:last7days">Popular posts (week)</option>';
+                        echo '<option value="popular:last30days">Popular posts (month)</option>';
+                    }
+                ?>
             </select>
         <?php
     }
