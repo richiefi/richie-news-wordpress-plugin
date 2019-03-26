@@ -235,7 +235,7 @@ class Richie_Admin {
                 'article_set' => intval($input['article_set']),
             );
 
-            if ( isset( $input['herald_featured_post_id'] ) ) {
+            if ( isset( $input['herald_featured_post_id'] ) && !empty( $input['herald_featured_post_id'] ) ) {
                 $source['herald_featured_post_id'] = intval($input['herald_featured_post_id']);
             }
 
@@ -245,11 +245,11 @@ class Richie_Admin {
 
             $source['list_layout_style'] = in_array($input['list_layout_style'], $this->available_layout_names) ? sanitize_text_field($input['list_layout_style']) : 'none';
 
-            if ( isset($input['list_group_title']) ) {
+            if ( isset($input['list_group_title']) && !empty( $input['list_group_title'] ) ) {
                 $source['list_group_title'] = sanitize_text_field($input['list_group_title']);
             }
 
-            if ( isset( $input['disable_summary' ] ) && intval($input['disable_summary']) === 1 ) {
+            if ( isset( $input['disable_summary' ] ) && intval($input['disable_summary'] ) === 1 ) {
                 $source['disable_summary'] = true;
             }
 
