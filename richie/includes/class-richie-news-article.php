@@ -208,7 +208,7 @@ class Richie_Article {
         if ( $thumbnail_id ) {
             $thumbnail = wp_get_attachment_image_url($thumbnail_id, 'full');
             $remote_url = richie_make_link_absolute($thumbnail);
-            $article->image_url = $remote_url;
+            $article->image_url = $this->append_wpp_shadow($remote_url);
 
             $all_sizes = get_intermediate_image_sizes();
             $all_sizes[] = 'full'; // append full size also
