@@ -269,6 +269,7 @@ class Richie_Article {
 
             foreach ($main_gallery as $item)
             {
+                // duplicate items will replace the key in unique array
                 $unique[$item['local_name']] = $item;
             }
 
@@ -286,6 +287,10 @@ class Richie_Article {
                         continue;
                     }
                     $local_name = ltrim($local_name, '/');
+
+                    if ( isset($unique[$local_name]) ) {
+                        continue; //already have image in gallery array
+                    }
 
                     $remote_url = richie_make_link_absolute($url);
 
