@@ -232,8 +232,12 @@ class Richie_Admin {
                 'number_of_posts' => intval($input['number_of_posts']),
                 'order_by' => sanitize_text_field($input['order_by']),
                 'order_direction' => $input['order_direction'] === 'DESC' ? 'DESC' :  'ASC',
-                'article_set' => intval($input['article_set'])
+                'article_set' => intval($input['article_set']),
             );
+
+            if ( isset( $input['herald_featured_post_id'] ) && !empty( $input['herald_featured_post_id'] ) ) {
+                $source['herald_featured_post_id'] = intval($input['herald_featured_post_id']);
+            }
 
             if (isset($input['source_categories']) && ! empty($input['source_categories'])) {
                 $source['categories'] = $input['source_categories'];
@@ -241,11 +245,11 @@ class Richie_Admin {
 
             $source['list_layout_style'] = in_array($input['list_layout_style'], $this->available_layout_names) ? sanitize_text_field($input['list_layout_style']) : 'none';
 
-            if ( isset($input['list_group_title']) ) {
+            if ( isset($input['list_group_title']) && !empty( $input['list_group_title'] ) ) {
                 $source['list_group_title'] = sanitize_text_field($input['list_group_title']);
             }
 
-            if ( isset( $input['disable_summary' ] ) && intval($input['disable_summary']) === 1 ) {
+            if ( isset( $input['disable_summary' ] ) && intval($input['disable_summary'] ) === 1 ) {
                 $source['disable_summary'] = true;
             }
 
@@ -361,8 +365,16 @@ class Richie_Admin {
         add_settings_section ($sources_section_name, __('Add new feed source', $this->plugin_name), null, $this->sources_option_name);
         add_settings_field ('richie_source_name',      __('Name', $this->plugin_name),             array($this, 'source_name_render'),     $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_source_set',       __('Article set', $this->plugin_name),      array($this, 'article_set_render'),     $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_source_category',  __('Categories', $this->plugin_name),       array($this, 'category_list_render'),   $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_source_amount',    __('Number of posts', $this->plugin_name),  array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
+        if ( defined('HERALD_THEME_VERSION') ) {
+            $front_page = (int)get_option( 'page_on_front' );
+            $description = 'Fetch posts from first featured module for given page id. Rest of filters will be ignored.';
+            if ( $front_page > 0) {
+                $description = $description . ' Current front page id is ' . $front_page;
+            }
+            add_settings_field ('richie_source_herald_featured', __('Herald featured module', $this->plugin_name), array($this, 'input_field_render'), $this->sources_option_name, $sources_section_name, array('id' => 'herald_featured_post_id', 'namespace' => $this->sources_option_name, 'description' => $description, 'class' => ''));
+        }
+        add_settings_field ('richie_source_category',  __('Categories', $this->plugin_name),       array($this, 'category_list_render'),   $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_source_order_by',  __('Order by', $this->plugin_name),         array($this, 'order_by_render'),        $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_source_order_dir', __('Order direction', $this->plugin_name),  array($this, 'order_direction_render'), $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_source_max_age',   __('Post max age', $this->plugin_name),     array($this, 'max_age_render'),         $this->sources_option_name, $sources_section_name);
@@ -409,13 +421,15 @@ class Richie_Admin {
         $options = get_option( $this->plugin_name );
         $id = $args['id'];
         $type = isset($args['type']) ? $args['type'] : 'test';
-        $name = $this->plugin_name . '[' . $args['id'] . ']';
+        $namespace = isset($args['namespace']) ? $args['namespace'] : $this->plugin_name;
+        $name = $namespace . '[' . $args['id'] . ']';
         $value = isset($options{$id}) ? $options{$id} : '';
+        $class_name = isset($args['class']) ? $args['class'] : 'regular-text';
 
-        print "<input class='regular-text' type='$type' name='$name' value='$value'>";
+        print "<input class='$class_name' type='$type' name='$name' value='$value'>";
 
         if ( isset( $args['description'] ) ) {
-            printf('<span class="description">%s</span>', esc_html__( $args['description'], $this->plugin_name ));
+            printf('<br><span class="description">%s</span>', esc_html__( $args['description'], $this->plugin_name ));
         }
     }
 
@@ -423,7 +437,8 @@ class Richie_Admin {
         $current = isset( $args['current'] ) ? $args['current'] : '';
         $value = isset ( $args['value'] ) ? $args['value'] : '1';
         $checked = checked( $current, $value, false );
-        $name = $args['namespace'] . '[' . $args['id'] . ']';
+        $namespace = isset($args['namespace']) ? $args['namespace'] : $this->plugin_name;
+        $name = $namespace . '[' . $args['id'] . ']';
         print "<input type='checkbox' name='$name' value='$value' $checked>";
 
         if ( isset( $args['description'] ) ) {
@@ -697,6 +712,7 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
                     }
 
                     $article_set = get_term($source['article_set']);
+                    $herald_featured = isset($source['herald_featured_post_id']);
 
                     ?>
                     <tr id="source-<?php echo $source['id']; ?>" data-source-id="<?php echo $source['id'] ?>" class="source-item">
@@ -704,9 +720,9 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
                         <td><?php echo $source['id'] ?></td>
                         <td><?php echo $article_set->name; ?></td>
                         <td><?php echo $source['name'] ?></td>
-                        <td><?php echo implode(', ', $category_names); ?></td>
+                        <td><?php echo ! $herald_featured ? implode(', ', $category_names) : 'Herald featured module'; ?></td>
                         <td><?php echo $source['number_of_posts']; ?></td>
-                        <td><?php echo isset($source['order_by']) ? "{$source['order_by']} {$source['order_direction']}" : '' ?> </td>
+                        <td><?php echo isset($source['order_by']) && !$herald_featured ? "{$source['order_by']} {$source['order_direction']}" : '' ?> </td>
                         <td><?php echo isset($source['max_age']) ? $source['max_age'] : 'All time' ?></td>
                         <td><?php echo isset($source['list_layout_style']) ? $source['list_layout_style'] : 'none' ?></td>
                         <td style="text-align: center">
