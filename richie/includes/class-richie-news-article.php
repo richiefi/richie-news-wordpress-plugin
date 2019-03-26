@@ -318,7 +318,7 @@ class Richie_Article {
                         $rendered_content = str_replace($url, $local_name, $rendered_content);
                         $local_assets[] = array(
                             'local_name' => $local_name,
-                            'remote_url' => $remote_url
+                            'remote_url' => $this->append_wpp_shadow($remote_url)
                         );
                     }
                 }
