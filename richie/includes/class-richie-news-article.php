@@ -248,7 +248,11 @@ class Richie_Article {
                     $attachment_url = wp_get_attachment_url($attachment->ID);
                     $local_name = remove_query_arg( 'ver', wp_make_link_relative($attachment_url));
                     $local_name = ltrim($local_name, '/');
-                    $rendered_content = str_replace($attachment_url, $local_name, $rendered_content);
+                    if (strpos($rendered_content, richie_make_link_absolute($attachment_url)) !== false) {
+                        $rendered_content = str_replace(richie_make_link_absolute($attachment_url), $local_name, $rendered_content);
+                    } else {
+                        $rendered_content = str_replace($attachment_url, $local_name, $rendered_content);
+                    }
                     $main_gallery[] = array(
                         'caption' => $attachment->post_excerpt,
                         'local_name' => $local_name,
