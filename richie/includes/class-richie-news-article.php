@@ -248,7 +248,11 @@ class Richie_Article {
                     $attachment_url = wp_get_attachment_url($attachment->ID);
                     $local_name = remove_query_arg( 'ver', wp_make_link_relative($attachment_url));
                     $local_name = ltrim($local_name, '/');
-                    $rendered_content = str_replace($attachment_url, $local_name, $rendered_content);
+                    if (strpos($rendered_content, richie_make_link_absolute($attachment_url)) !== false) {
+                        $rendered_content = str_replace(richie_make_link_absolute($attachment_url), $local_name, $rendered_content);
+                    } else {
+                        $rendered_content = str_replace($attachment_url, $local_name, $rendered_content);
+                    }
                     $main_gallery[] = array(
                         'caption' => $attachment->post_excerpt,
                         'local_name' => $local_name,
@@ -269,6 +273,7 @@ class Richie_Article {
 
             foreach ($main_gallery as $item)
             {
+                // duplicate items will replace the key in unique array
                 $unique[$item['local_name']] = $item;
             }
 
@@ -286,6 +291,10 @@ class Richie_Article {
                         continue;
                     }
                     $local_name = ltrim($local_name, '/');
+
+                    if ( isset($unique[$local_name]) ) {
+                        continue; //already have image in gallery array
+                    }
 
                     $remote_url = richie_make_link_absolute($url);
 
@@ -309,7 +318,7 @@ class Richie_Article {
                         $rendered_content = str_replace($url, $local_name, $rendered_content);
                         $local_assets[] = array(
                             'local_name' => $local_name,
-                            'remote_url' => $remote_url
+                            'remote_url' => $this->append_wpp_shadow($remote_url)
                         );
                     }
                 }
