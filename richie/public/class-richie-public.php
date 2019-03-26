@@ -150,10 +150,10 @@ class Richie_Public {
 
                 if ( isset( $source['order_by'] ) && ! empty( $source['order_by'] ) ) {
                     $order_by = 'date';
-                    $is_metakey = strpos($source['order_by'], 'metakey:');
-                    if ( $is_metakey === false) {
-                        $order_by = $source['order_by'];
-                    } else {
+                    $is_metakey = strpos($source['order_by'], 'metakey:') === 0;
+                    $is_popular = strpos($source['order_by'], 'popular:') === 0;
+
+                    if ( $is_metakey === true) {
                         $meta = explode(':', $source['order_by']);
                         if (count( $meta ) === 3) {
                             if( isset( $meta[1] ) && isset( $meta[2] ) && !empty( $meta[1] ) && !empty( $meta[2] ) ) {
@@ -161,6 +161,36 @@ class Richie_Public {
                                 $order_by = $meta[2];
                             }
                         }
+                    } elseif ( $is_popular === true ) {
+                        if ( !class_exists('WPP_query') ) {
+                            continue; // no plugin found, ignore source
+                        }
+                        // popular:<unit>
+                        $popular_settings = explode(':', $source['order_by']);
+                        if ( count( $popular_settings ) !== 2) {
+                            continue; // invalid configuration, ignore source
+                        }
+
+                        $popular_range = $popular_settings[1];
+
+                        $popular_args = array(
+                            'range' => $popular_range,
+                            'limit' => (int)$source['number_of_posts'],
+                            'post_type' => 'post'
+                        );
+
+                        //print_r($popular_args);
+
+                        if ( isset( $source['categories'] ) && ! empty( $source['categories'] ) ) {
+                            $popular_args['cat'] = $source['categories'];
+                        }
+                        $popular_query = new WPP_query( $popular_args );
+                        $popular_posts = array_column($popular_query->get_posts(), 'id');
+                        $args['post__in'] = $popular_posts;
+                        $args['ignore_sticky_posts'] = true;
+                        $order_by = 'post__in';
+                    } else {
+                        $order_by = $source['order_by'];
                     }
 
                     $args['orderby'] = $order_by;
@@ -175,7 +205,7 @@ class Richie_Public {
                     );
                 }
             }
-
+            //print_r($args);
             $source_posts = get_posts($args);
 
             $article_attributes = array(
@@ -227,6 +257,7 @@ class Richie_Public {
         //     wp_send_json();
         // }
         header( 'Last-Modified: ' . date( 'D, d M Y H:i:s', $last_updated ) );
+
         return array( 'article_set' => $article_set->slug, 'article_set_name' => $article_set->name, 'article_ids' => $articles );
     }
 
