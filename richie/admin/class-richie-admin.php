@@ -70,6 +70,8 @@ class Richie_Admin {
         add_action('wp_ajax_remove_source_item', array($this, 'remove_source_item'));
         add_action('wp_ajax_set_disable_summary', array($this, 'set_disable_summary'));
 
+        add_action('admin_notices', array($this, 'sources_live_check'));
+
         $this->register_taxonomy_article_set();
 
     }
@@ -285,6 +287,31 @@ class Richie_Admin {
             return get_option($this->assets_option_name);
         } else {
             return $assets;
+        }
+    }
+
+    public function sources_live_check() {
+
+        $sources = get_option( $this->sources_option_name );
+
+        if ($sources !== false && isset( $sources['sources'] ) ) {
+            if ( empty($sources['published']) || $sources['sources'] !== $sources['published'] ) {
+                ?>
+                    <div class="notice notice-warning">
+                    <p>
+                        <strong><?php _e('News sources have unpublished changes.', $this->plugin_name); ?></strong>
+                        <a href="#" id="publish-sources">Publish now</a> |
+                        <a href="#" id="revert-source-changes">Revert changes</a>
+                    </p>
+                    </div>
+                <?php
+            } else {
+                ?>
+                    <div class="notice notice-success is-dismissible">
+                    <p><?php _e('News sources are up to date.', $this->plugin_name); ?></p>
+                    </div>
+                <?php
+            }
         }
     }
 
