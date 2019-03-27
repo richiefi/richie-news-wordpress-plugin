@@ -55,6 +55,9 @@ class Richie_Cached_Request {
      *
      */
     function __construct( $url, $minimum_cache_time, $maximum_cache_time = 0 ) {
+        if ( empty( $url ) ) {
+            throw new Exception('Missing url argument');
+        }
         $this->url = $url;
         $this->cache_key = md5( 'remote_request|' . $this->url );
         $this->minimum_cache_time = $minimum_cache_time;
@@ -205,19 +208,17 @@ class Richie_Cached_Request {
  * @author     Markku Uusitupa <markku@richie.fi>
 */
 class Richie_Maggio_Service {
-    public  $organization;
     private $cached_request;
 
-    function __construct($index_url, $organization)  {
-        $this->organization = $organization;
+    function __construct( $host_name )  {
         $minimum_cache_time = MINUTE_IN_SECONDS;
         $maximum_cache_time = 0; // no cache
+        $index_url = $host_name . '/_data/index.json';
         $this->cached_request = new Richie_Cached_Request( $index_url, $minimum_cache_time, $maximum_cache_time );
     }
 
-    public function get_issues( $product, $number_of_issues = -1 ) {
+    private function get_cached_response() {
         $response = $this->cached_request->get_response();
-
 
         if ( $response === false) {
             return false;
@@ -227,8 +228,26 @@ class Richie_Maggio_Service {
 
         $data = json_decode( $body );
 
+        if ( empty( $data ) ) {
+            return false;
+        }
+
+        return $data;
+    }
+
+    public function get_issues( $organization, $product, $number_of_issues = -1 ) {
+        if ( empty( $organization ) || empty( $product ) ) {
+            return false;
+        }
+
+        $data = $this->get_cached_response();
+
+        if ( $data === false ) {
+            return false;
+        }
+
         $issues = array();
-        $product_id = $this->organization . '.magg.io/' . $product;
+        $product_id = $organization . '.magg.io/' . $product;
         if( !isset($data->issues->{$product_id})) {
             return false;
         }
