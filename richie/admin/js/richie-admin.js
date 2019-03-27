@@ -109,5 +109,25 @@
         });
       }
 
+      $('a#publish-sources').on('click', function() {
+        var data = {
+          action: 'publish_source_changes',
+        }
+        $.post(ajaxurl, data, function(response) {
+          console.log(response);
+          location.reload();
+        });
+        return false;
+      });
+      $('a#revert-source-changes').on('click', function() {
+        var data = {
+          action: 'revert_source_changes',
+        }
+        $.post(ajaxurl, data, function(response) {
+          console.log(response);
+          location.reload();
+        });
+        return false;
+      });
     });
 })( jQuery );
