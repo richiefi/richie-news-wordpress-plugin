@@ -248,18 +248,17 @@ class Richie_Public {
         }
 
         $last_updated = strtotime( max( array_column($articles, 'last_updated' ) ) );
-        // $if_modified_since = null;
-        // if (isset($_ENV['HTTP_IF_MODIFIED_SINCE']))
-        //     $if_modified_since = strtotime(substr($_ENV['HTTP_IF_MODIFIED_SINCE'], 5));
-        // if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']))
-        //     $if_modified_since = strtotime(substr($_SERVER['HTTP_IF_MODIFIED_SINCE'], 5));
-        // if ($if_modified_since && $if_modified_since >= $last_updated) {
-        //     header($_SERVER['SERVER_PROTOCOL'] . ' 304 Not Modified');
-        //     wp_send_json();
-        // }
-        header( 'Last-Modified: ' . date( 'D, d M Y H:i:s', $last_updated ) );
+        $etag = '"' . md5(serialize($articles)) . '"';
+        $etagHeader = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? stripslashes($_SERVER['HTTP_IF_NONE_MATCH']) : false;
 
-        return array( 'article_set' => $article_set->slug, 'article_set_name' => $article_set->name, 'article_ids' => $articles );
+        header("Etag: {$etag}");
+
+        if ( $etagHeader === $etag ) {
+            header($_SERVER['SERVER_PROTOCOL'] . ' 304 Not Modified');
+            wp_send_json(); // send response and exit
+        }
+
+        return array( 'article_ids' => $articles );
     }
 
     public function article_route_handler($data) {
