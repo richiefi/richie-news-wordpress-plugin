@@ -10,6 +10,7 @@
 * @subpackage Richie/public
 */
 
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
 
 /**
 * The public-facing functionality of the plugin.
@@ -468,15 +469,17 @@ class Richie_Public {
             return sprintf('<div>%s</div>', __('Invalid organization', $this->plugin_name));
         }
 
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
-
-        $index_url = $this->richie_options['maggio_hostname'] . '/_data/index.json';
+        $host_name = $this->richie_options['maggio_hostname'];
         $organization = $atts['organization'];
         $product = $atts['product'];
 
-        $maggio_service = new Richie_Maggio_Service($index_url, $organization);
+        try {
+            $maggio_service = new Richie_Maggio_Service($host_name);
+        } catch ( Exception $e ) {
+            return sprintf('<div>%s</div>', __('Failed to fetch issues'));
+        }
 
-        $issues = $maggio_service->get_issues($product, intval($atts['number_of_issues']));
+        $issues = $maggio_service->get_issues($organization, $product, intval($atts['number_of_issues']));
         $required_pmpro_level = isset( $this->richie_options['maggio_required_pmpro_level'] ) ? $this->richie_options['maggio_required_pmpro_level'] : 0;
         $user_has_access = richie_has_maggio_access( $required_pmpro_level );
 
