@@ -159,7 +159,7 @@ class Richie_Public {
                         if (count( $meta ) === 3) {
                             if( isset( $meta[1] ) && isset( $meta[2] ) && !empty( $meta[1] ) && !empty( $meta[2] ) ) {
                                 $args['meta_key'] = $meta[1];
-                                $order_by = $meta[2];
+                                $order_by = $meta[2] . ' ID';
                             }
                         }
                     } elseif ( $is_popular === true ) {
