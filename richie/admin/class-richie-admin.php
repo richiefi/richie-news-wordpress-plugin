@@ -69,6 +69,8 @@ class Richie_Admin {
         add_action('wp_ajax_list_update_order', array($this, 'order_source_list'));
         add_action('wp_ajax_remove_source_item', array($this, 'remove_source_item'));
         add_action('wp_ajax_set_disable_summary', array($this, 'set_disable_summary'));
+        add_action('wp_ajax_publish_source_changes', array($this, 'publish_source_changes'));
+        add_action('wp_ajax_revert_source_changes', array($this, 'revert_source_changes'));
 
         add_action('admin_notices', array($this, 'sources_live_check'));
 
@@ -701,6 +703,28 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
         $option['updated'] = time();
 
         //skip validate source
+        remove_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
+        $updated = update_option($this->sources_option_name, $option);
+        add_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
+        wp_send_json(array('updated' => $updated));
+    }
+
+    public function publish_source_changes() {
+        $option = get_option($this->sources_option_name);
+        $sources = !empty( $option['sources'] ) ? $option['sources'] : array();
+        $option['published'] = $sources;
+
+        remove_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
+        $updated = update_option($this->sources_option_name, $option);
+        add_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
+        wp_send_json(array('updated' => $updated));
+    }
+
+    public function revert_source_changes() {
+        $option = get_option($this->sources_option_name);
+        $published_sources = !empty( $option['published'] ) ? $option['published'] : array();
+        $option['sources'] = $published_sources;
+
         remove_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
         $updated = update_option($this->sources_option_name, $option);
         add_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
