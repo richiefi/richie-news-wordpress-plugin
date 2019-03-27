@@ -530,9 +530,20 @@ class Richie_Public {
                 exit();
             }
 
+            $hostname = $this->richie_options['maggio_hostname'];
+            $uuid = $wp->query_vars['maggio_redirect'];
+
+            try {
+                $maggio_service = new Richie_Maggio_Service($hostname);
+            } catch ( Exception $e ) {
+                return sprintf('<div>%s</div>', __('Failed to fetch issues'));
+            }
+
+            $is_free_issue = $maggio_service->is_issue_free( $uuid );
+
             $required_pmpro_level = isset( $this->richie_options['maggio_required_pmpro_level'] ) ? $this->richie_options['maggio_required_pmpro_level'] : 0;
 
-            if ( !richie_has_maggio_access( $required_pmpro_level ) ) {
+            if ( !$is_free_issue && !richie_has_maggio_access( $required_pmpro_level ) ) {
                 if (wp_get_referer()) {
                     wp_safe_redirect( wp_get_referer() );
                 } else {
@@ -542,8 +553,6 @@ class Richie_Public {
             }
 
             // has access, continue redirect
-            $hostname = $this->richie_options['maggio_hostname'];
-            $uuid = $wp->query_vars['maggio_redirect'];
             $timestamp = time();
 
             $secret = $this->richie_options['maggio_secret'];

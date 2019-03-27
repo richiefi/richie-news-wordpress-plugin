@@ -235,6 +235,29 @@ class Richie_Maggio_Service {
         return $data;
     }
 
+    public function is_issue_free( $issue_uuid ) {
+        if ( empty( $issue_uuid ) || !wp_is_uuid($issue_uuid) ) {
+            return false;
+        }
+
+        $data = $this->get_cached_response();
+
+        if ( $data === false ) {
+            return false;
+        }
+
+        $found = false;
+        foreach (  $data->issues as $org => $issues) {
+            foreach ( $issues as $issue ) {
+                if ( $issue->uuid === $issue_uuid ) {
+                    return $issue->isFree === true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public function get_issues( $organization, $product, $number_of_issues = -1 ) {
         if ( empty( $organization ) || empty( $product ) ) {
             return false;
