@@ -178,7 +178,7 @@ class Richie_Public {
                             'range' => $popular_range,
                             'limit' => (int)$source['number_of_posts'],
                             'post_type' => 'post',
-                            'pid' => $found_ids
+                            'pid' => implode(',', $found_ids)
                         );
 
                         //print_r($popular_args);
