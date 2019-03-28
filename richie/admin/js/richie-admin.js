@@ -104,7 +104,9 @@
         $('button#generate-assets').on('click', function() {
           $.getJSON(assetUrl + '?generate=true')
           .then(function(assets) {
-            editor.codemirror.setValue(JSON.stringify(assets, null, 2));
+            if (assets && assets.app_assets) {
+              editor.codemirror.setValue(JSON.stringify(assets.app_assets, null, 2));
+            }
           });
         });
       }
