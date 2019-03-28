@@ -279,7 +279,6 @@ class Richie_Admin {
     public function validate_assets($input) {
         $assets = json_decode($input);
         if ( $assets === false or empty( $assets ) ) {
-            echo 'error';
             add_settings_error(
                 $this->assets_option_name,
                 esc_attr( 'assets_error' ),
