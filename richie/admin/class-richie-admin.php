@@ -304,7 +304,7 @@ class Richie_Admin {
                 </span>
             </p>
             </div>
-            <?
+            <?php
         }
     }
 
