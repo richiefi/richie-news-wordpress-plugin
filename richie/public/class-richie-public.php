@@ -254,6 +254,7 @@ class Richie_Public {
         $etagHeader = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? stripslashes($_SERVER['HTTP_IF_NONE_MATCH']) : false;
 
         header("Etag: {$etag}");
+        header('Cache-Control: private, no-cache');
 
         if ( $etagHeader === $etag ) {
             header($_SERVER['SERVER_PROTOCOL'] . ' 304 Not Modified');
@@ -269,6 +270,8 @@ class Richie_Public {
         if ( $assets === false) {
             $assets = [];
         }
+
+        header('Cache-Control: private, no-cache');
 
         $article = new Richie_Article($this->richie_options, $assets);
         $post = get_post($data['id']);
@@ -322,6 +325,7 @@ class Richie_Public {
             }
             $etag = md5(json_encode($result));
             header("Etag: $etag");
+            header('Cache-Control: private, no-cache');
         }
         return array('app_assets' => $result);
     }
