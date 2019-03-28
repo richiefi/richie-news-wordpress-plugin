@@ -72,7 +72,7 @@ class Richie_Admin {
         add_action('wp_ajax_publish_source_changes', array($this, 'publish_source_changes'));
         add_action('wp_ajax_revert_source_changes', array($this, 'revert_source_changes'));
 
-        add_action('admin_notices', array($this, 'sources_live_check'));
+        add_action('admin_notices', array($this, 'add_admin_notices'));
 
         $this->register_taxonomy_article_set();
 
@@ -292,28 +292,19 @@ class Richie_Admin {
         }
     }
 
-    public function sources_live_check() {
-
-        $sources = get_option( $this->sources_option_name );
-
-        if ($sources !== false && isset( $sources['sources'] ) ) {
-            if ( empty($sources['published']) || $sources['sources'] !== $sources['published'] ) {
-                ?>
-                    <div class="notice notice-warning">
-                    <p>
-                        <strong><?php _e('News sources have unpublished changes.', $this->plugin_name); ?></strong>
-                        <a href="#" id="publish-sources">Publish now</a> |
-                        <a href="#" id="revert-source-changes">Revert changes</a>
-                    </p>
-                    </div>
-                <?php
-            } else {
-                ?>
-                    <div class="notice notice-success is-dismissible">
-                    <p><?php _e('News sources are up to date.', $this->plugin_name); ?></p>
-                    </div>
-                <?php
-            }
+    public function add_admin_notices() {
+        if ( $this->has_unpublished_changes()) {
+            ?>
+            <div class="notice notice-warning">
+            <p>
+                <strong><?php _e('News sources have unpublished changes.', $this->plugin_name); ?></strong>
+                <span>
+                <a class="button-link" href="#" id="publish-sources">Publish now</a> |
+                <a class="button-link" href="#" id="revert-source-changes">Revert changes</a>
+                </span>
+            </p>
+            </div>
+            <?
         }
     }
 
@@ -713,6 +704,7 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
         $option = get_option($this->sources_option_name);
         $sources = !empty( $option['sources'] ) ? $option['sources'] : array();
         $option['published'] = $sources;
+        $option['published_at'] = time();
 
         remove_filter( 'sanitize_option_' . $this->sources_option_name, array($this, 'validate_source'));
         $updated = update_option($this->sources_option_name, $option);
@@ -731,6 +723,17 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
         wp_send_json(array('updated' => $updated));
     }
 
+    public function has_unpublished_changes() {
+        $sources = get_option( $this->sources_option_name );
+
+        if ($sources !== false && isset( $sources['sources'] ) ) {
+            if ( empty($sources['published']) || $sources['sources'] !== $sources['published'] ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     public function source_list() {
         $options = get_option($this->sources_option_name);
@@ -740,6 +743,10 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
             echo '</pre>';
         }
         if ( isset($options['sources']) && ! empty( $options['sources'] ) ): ?>
+            <?php if ( !empty($options['published_at']) ): ?>
+            <span>Last publish time: <em><?php echo get_date_from_gmt( date( 'Y-m-d H:i:s', $options['published_at'] ), get_option( 'date_format' ) . ' ' . get_option('time_format') ); ?></em></span>
+            <?php endif; ?>
+            <a class="button-primary" style="float:right; margin-bottom: 1em;" href="#" id="publish-sources">Publish</a>
             <table class="widefat feed-source-list sortable-list">
                 <thead>
                     <th style="width: 30px;"></th>
