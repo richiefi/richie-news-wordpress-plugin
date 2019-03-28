@@ -68,7 +68,7 @@ class Richie_Public {
         $this->version = $version;
         $this->richie_options = get_option($plugin_name);
         $sourcelist = get_option($plugin_name . 'news_sources');
-        $this->richie_news_sources = isset($sourcelist['sources']) ? $sourcelist['sources'] : array();
+        $this->richie_news_sources = isset($sourcelist['published']) ? $sourcelist['published'] : array();
     }
 
     function feed_route_handler($data) {
