@@ -265,6 +265,11 @@ class Richie_Public {
 
     public function article_route_handler($data) {
         $assets = get_option($this->plugin_name . '_assets');
+
+        if ( $assets === false) {
+            $assets = [];
+        }
+
         $article = new Richie_Article($this->richie_options, $assets);
         $post = get_post($data['id']);
         if ( empty( $post ) ) {
