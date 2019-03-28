@@ -50,7 +50,7 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
         </form>
 
     <?php elseif ($active_tab === 'assets') : ?>
-    <form method="post" name="richie-options" action="options.php">
+    <form method="post" name="richie-assets-feed" action="options.php">
     <?php
         settings_fields($this->assets_option_name);
         do_settings_sections($this->assets_option_name);

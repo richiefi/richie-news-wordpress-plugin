@@ -277,12 +277,24 @@ class Richie_Admin {
     }
 
     public function validate_assets($input) {
-        $assets = json_decode($input);
-        if ( $assets === false or empty( $assets ) ) {
+        if (!isset($input['data'])) {
             add_settings_error(
                 $this->assets_option_name,
                 esc_attr( 'assets_error' ),
-                __('Failed to parse json, unable to save'),
+                __('No data found'),
+                'error'
+            );
+            return get_option($this->assets_option_name);
+        }
+
+        $assets = json_decode($input['data']);
+
+        if ( json_last_error() !== JSON_ERROR_NONE || $assets === false || empty( $assets ) ) {
+            $error = json_last_error() !== JSON_ERROR_NONE ? json_last_error_msg() : 'Unknown error';
+            add_settings_error(
+                $this->assets_option_name,
+                esc_attr( 'assets_error' ),
+                sprintf(__('Failed to parse json, unable to save: %s', $this->plugin_name), $error),
                 'error'
             );
             return get_option($this->assets_option_name);
@@ -348,6 +360,7 @@ class Richie_Admin {
         );
 
         register_setting($this->assets_option_name, $this->assets_option_name, array(
+            'type' => 'string',
             'sanitize_callback' => array($this, 'validate_assets')
         ));
 
@@ -432,7 +445,7 @@ class Richie_Admin {
             var assetUrl = "<?php echo get_rest_url(null, '/richie/v1/assets'); ?>";
         </script>
         <button id="generate-assets" type="button">Generate base list (overrides current content)</button>
-        <textarea id="code_editor_page_js" rows="10" name="<?php echo $this->assets_option_name; ?>" class="widefat textarea"><?php echo wp_unslash( wp_json_encode($assets, JSON_PRETTY_PRINT) ); ?></textarea>
+        <textarea id="code_editor_page_js" rows="10" name="<?php echo $this->assets_option_name; ?>[data]" class="widefat textarea"><?php echo wp_unslash( wp_json_encode($assets, JSON_PRETTY_PRINT) ); ?></textarea>
         <?php
     }
 
