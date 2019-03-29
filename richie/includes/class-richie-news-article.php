@@ -69,11 +69,11 @@ class Richie_Article {
             $article->kicker = $category[0]->name;
         }
 
-        $date = (new DateTime($my_post->post_date_gmt))->format('c');
-        $updated_date = (new DateTime($my_post->post_modified_gmt))->format('c');
-        $article->date = $date;
-        if ($date != $updated_date) {
-            $article->updated_date = $updated_date;
+        $date = new DateTime($my_post->post_date_gmt);
+        $updated_date = new DateTime($my_post->post_modified_gmt);
+        $article->date = $date->format('c');
+        if ( $updated_date > $date ) {
+            $article->updated_date = $updated_date->format('c');
         }
 
         $article->share_link_url = get_permalink($post_id);
