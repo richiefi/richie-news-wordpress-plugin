@@ -30,7 +30,7 @@ Richie Platform plugin provides following features:
 = 1.0.1 =
 * Bug fixes
 
-= WIP =
+= 1.0.2 (29.03.2019) =
 * Fix issue with updated_date in news feed
 
 == Configuration ==
