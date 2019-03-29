@@ -27,6 +27,12 @@ Richie Platform plugin provides following features:
 = 1.0 =
 * Initial version
 
+= 1.0.1 =
+* Bug fixes
+
+= WIP =
+* Fix issue with updated_date in news feed
+
 == Configuration ==
 
 = General =
@@ -49,6 +55,11 @@ Richie Platform plugin provides following features:
 - Article set may contain multiple source items.
 - Source includes filters like category and number of posts, which is used to determine, which articles are included.
 - Sources can be reordered with drag&drop.
+- Sources have "draft" and "published" versions. Modifying sources requires publish to make changes "live".
+
+= Assets =
+
+JSON array of assets required in articles. These will be available offline.
 
 == Shortcode ==
 
@@ -72,9 +83,11 @@ A basic template as a base can be found inside plugin's templates folder.
 Plugin provides following rest apis:
 `/wp-json/richie/v1/news/<article_set_name>?token=<configured_token>`
 `/wp-json/richie/v1/article/<article_id>?token=<configured_token>`
+`/wp-json/richie/v1/assets`
 
 `news` endpoint returns an array of articles for the specific article set, using configured sources.
 `article` endpoint returns details for specific article, including rendered html content
+`assets` endpoint returns configured assets (in plugin settings)
 
 Rendering is done using a template system. Theme may provide an template for this content by placing `richie-news-article.php?`
 inside `<theme_path>/richie` folder. It should return full html page starting from doctype.
