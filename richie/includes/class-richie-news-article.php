@@ -245,6 +245,9 @@ class Richie_Article {
                 $ids = explode(',', $gallery['ids']);
                 foreach ( $ids as $attachment_id ) {
                     $attachment = get_post($attachment_id);
+                    if ( $attachment === null ) {
+                        continue;
+                    }
                     $attachment_url = wp_get_attachment_url($attachment->ID);
                     $local_name = remove_query_arg( 'ver', wp_make_link_relative($attachment_url));
                     $local_name = ltrim($local_name, '/');
