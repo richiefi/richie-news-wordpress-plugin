@@ -266,6 +266,17 @@ class Richie_Public {
             ));
         }
 
+        if ( !empty($adslots) ) {
+            // we have slots left, include them at the end
+            foreach ( $adslots as $slot ) {
+                array_push($articles, array(
+                    'id' => $slot['attributes']['id'],
+                    'last_updated' => date('c', $slot['updated']),
+                    'article_attributes' => $attributes
+                ));
+            }
+        }
+
         $etag = 'W/"' . md5(serialize($articles)) . '"';
         // if_none_match may contain slashes before ", so strip those
         $etagHeader = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? stripslashes($_SERVER['HTTP_IF_NONE_MATCH']) : false;
