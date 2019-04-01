@@ -72,6 +72,7 @@ class Richie_Admin {
         add_action('wp_ajax_set_disable_summary', array($this, 'set_disable_summary'));
         add_action('wp_ajax_publish_source_changes', array($this, 'publish_source_changes'));
         add_action('wp_ajax_revert_source_changes', array($this, 'revert_source_changes'));
+        add_action('wp_ajax_remove_ad_slot', array($this, 'remove_ad_slot'));
 
         add_action('admin_notices', array($this, 'add_admin_notices'));
 
@@ -879,6 +880,28 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
         return false;
     }
 
+    public function remove_ad_slot() {
+        if ( !isset($_POST['index']) || !isset($_POST['article_set_id'])) {
+            wp_send_json_error('Missing arguments', 400);
+        }
+        $option = get_option($this->adslots_option_name);
+        $article_set = intval($_POST['article_set_id']);
+        $index = intval($_POST['index']);
+        if ( isset($option['slots']) && isset($option['slots'][$article_set]) ) {
+            $slots = $option['slots'][$article_set];
+            if ( isset($slots[$index]) ) {
+                unset($slots[$index]);
+                remove_filter( 'sanitize_option_' . $this->adslots_option_name, array($this, 'validate_adslot'));
+                $option['slots'][$article_set] = $slots;
+                $updated = update_option($this->adslots_option_name, $option);
+                add_filter( 'sanitize_option_' . $this->adslots_option_name, array($this, 'validate_adlot'));
+                wp_send_json(array('deleted' => $updated));
+            }
+        } else {
+            wp_send_json_error('Failed to remove slot', 500);
+        }
+    }
+
 
     public function source_list() {
         $options = get_option($this->sources_option_name);
@@ -990,7 +1013,7 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
                             </td>
                             <td>
                                 <a href="#" class="copy-slot-value">Copy to form</a> |
-                                <a href="#" class="remove-slot-item"">Remove</a>
+                                <a href="#" class="remove-slot-item">Remove</a>
                             </td>
                         </tr>
                         <?php

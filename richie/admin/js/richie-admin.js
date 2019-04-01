@@ -131,5 +131,24 @@
         });
         return false;
       });
+
+      $('.slot-list').on('click', '.remove-slot-item', function() {
+        var result = confirm('Are you sure?');
+        if (!result) {
+          return;
+        }
+        var row = $(this).parents('tr');
+        var data = {
+          action: 'remove_ad_slot',
+          index: row.data('slot-id'),
+          article_set_id: row.data('slot-article-set')
+        };
+        $.post(ajaxurl, data, function(response) {
+          console.log(response);
+          if (response.deleted) {
+            row.remove();
+          }
+        });
+      })
     });
 })( jQuery );
