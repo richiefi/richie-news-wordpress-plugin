@@ -309,6 +309,61 @@ class Richie_Admin {
 
         $adslots = isset($current_option['slots']) ? $current_option['slots'] : array();
 
+        $slot = array();
+        $error = null;
+        $alternatives = [];
+
+        if ( empty($input['article_set']) ) {
+            $error = 'Invalid article_set';
+        }
+
+        if ( empty($input['adslot_position_index']) || !is_numeric($input['adslot_position_index']) || intval($input['adslot_position_index']) < 0 ) {
+            $error = 'Invalid slot position index';
+        }
+
+        if ( empty($input['adslot_provider']) ) {
+            $error = 'Invalid input provider';
+        }
+
+        if ( empty($input['adslot_ad_page_id']) || !is_numeric($input['adslot_ad_page_id']) || intval($input['adslot_ad_page_id']) < 0 ) {
+            $error = 'Invalid ad page id';
+        }
+
+
+        if ( !empty($input['alternatives']) ) {
+            $alternatives = json_decode($input['alternatives']);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $error = sprintf('JSON parsing failed for alternatives: %s', json_last_error_msg());
+            }
+        }
+
+        if ( $error !== null) {
+            add_settings_error(
+                $this->assets_option_name,
+                esc_attr( 'adslot_error' ),
+                sprintf(__('Failed to save adslot, validation failed: %s', 'richie'), $error),
+                'error'
+            );
+            return $current_option;
+        }
+        $index = intval($input['adslot_position_index']);
+
+        $adslots[$index] = array(
+            'index' => $index,
+            'article_set' => intval($input['article_set']),
+            'updated' => time(),
+            'attributes' => array(
+                'id' => wp_generate_uuid4(),
+                'list_layout_style' => 'ad',
+                'ad_provider' => sanitize_text_field($input['adslot_provider']),
+                'ad_data' => array(
+                    'page_id' => intval($input['adslot_ad_page_id']),
+                    'alternatives' => $alternatives
+                )
+            )
+        );
+
+        $current_option['slots'] = $adslots;
 
         return $current_option;
     }
