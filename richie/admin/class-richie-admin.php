@@ -972,7 +972,7 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
             </table>
         <?php
         else:
-            echo _e('<em>No sources configured. Add news feed sources with the form bellow.</em>');
+            echo _e('<em>No sources configured. Add news feed sources with the form below.</em>');
         endif;
     }
 
@@ -1024,7 +1024,7 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
             </table>
         <?php
         else:
-            echo _e('<em>No slots configured. Add ad slots with the form bellow.</em>');
+            echo _e('<em>No slots configured. Add ad slots with the form below.</em>');
         endif;
     }
 }
