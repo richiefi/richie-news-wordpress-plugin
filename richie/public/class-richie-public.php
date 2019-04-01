@@ -84,6 +84,9 @@ class Richie_Public {
             return $article_set->term_id === $source['article_set'];
         } );
 
+        $adslots_option = get_option($this->plugin_name . '_adslots');
+        $adslots = isset($adslots_option['slots']) && isset($adslots_option['slots'][$article_set->term_id]) ? $adslots_option['slots'][$article_set->term_id] : array();
+
         foreach( $sources as $source ) {
             $args = array(
                 'posts_per_page' => $source['number_of_posts'],
@@ -234,7 +237,22 @@ class Richie_Public {
             }
         }
         $articles = array();
-        foreach ($posts as $p) {
+
+        foreach ($posts as $key => $p) {
+            // check available adslot, adslot index is 1-based
+            if( isset( $adslots[$key + 1] ) ) {
+                $slot = $adslots[$key + 1];
+                $attributes = $slot['attributes'];
+                $attributes['updated'] = date('c', $slot['updated']);
+
+                // we have adslots for the index, include it first
+                array_push($articles, array(
+                    'id' => $attributes['id'],
+                    'last_updated' => date('c', $slot['updated']),
+                    'article_attributes' => $attributes
+                ));
+                unset($adslots[$key + 1]);
+            }
             $content_post = $p['post_data'];
             $date = (new DateTime($content_post->post_date_gmt))->format('c');
             $updated_date = (new DateTime($content_post->post_modified_gmt))->format('c');
