@@ -949,7 +949,43 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
     }
 
     function adslot_list() {
-        echo 'Some adslots should be here!!!1!';
-    }
+        $options = get_option($this->adslots_option_name);
 
+        if ( isset($options['slots']) && ! empty( $options['slots'] ) ): ?>
+            <table class="widefat slot-list">
+                <thead>
+                    <th>Index</th>
+                    <th>Article set</th>
+                    <th>ID</th>
+                    <th>Ad provider</th>
+                    <th>Ad data</th>
+                    <th>Actions</th>
+                </thead>
+                <tbody>
+                <?php
+                foreach( $options['slots'] as $slot ) {
+                    $article_set = get_term($slot['article_set']);
+                    $attributes = $slot['attributes'];
+                    ?>
+                    <tr id="slot-<?php echo $slot['index']; ?>" data-slot-id="<?php echo $slot['index'] ?>" class="slot-item">
+                        <td><?php echo $slot['index'] ?></td>
+                        <td><?php echo $article_set->name ?></td>
+                        <td><?php echo $attributes['id'] ?></td>
+                        <td><?php echo $attributes['ad_provider'] ?></td>
+                        <td style="font-size: 11px; !important"><pre><?php echo json_encode($attributes['ad_data'], JSON_PRETTY_PRINT) ?></pre></td>
+                        <td>
+                            <a href="#" class="copy-slot-value">Copy to form</a> |
+                            <a href="#" class="remove-slot-item"">Remove</a>
+                        </td>
+                    </tr>
+                    <?php
+                }
+                ?>
+                </tbody>
+            </table>
+        <?php
+        else:
+            echo _e('<em>No slots configured. Add ad slots with the form bellow.</em>');
+        endif;
+    }
 }
