@@ -123,6 +123,7 @@ class Richie_Admin {
 
         wp_enqueue_script( 'jquery-ui-core' );
         wp_enqueue_script( 'jquery-ui-sortable' );
+        add_thickbox();
         wp_enqueue_script('suggest');
         wp_enqueue_code_editor( array( 'type' => 'application/json' ) );
         wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery' ), $this->version, false );
@@ -497,7 +498,7 @@ class Richie_Admin {
         $slot_index_description = __('Specify an index number for the ad slot placement in the article set feed. 1-based index, so 1 means the first item on the feed.');
         add_settings_section ($adslots_section_name, __('Add new ad slot', 'richie'), null, $this->adslots_option_name);
         add_settings_field ('richie_article_set',       __('Article set', 'richie'),    array($this, 'article_set_render'),     $this->adslots_option_name, $adslots_section_name, array('namespace' => $this->adslots_option_name));
-        add_settings_field ('richie_adslot_position',   __('Slot position', 'richie'),  array($this, 'input_field_render'),     $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_position_index', 'namespace' => $this->adslots_option_name, 'class' => '', description => $slot_index_description));
+        add_settings_field ('richie_adslot_position',   __('Slot position', 'richie'),  array($this, 'input_field_render'),     $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_position_index', 'namespace' => $this->adslots_option_name, 'class' => '', 'description' => $slot_index_description));
         add_settings_field ('richie_adslot_provider',   __('Ad provider', 'richie'),    array($this, 'adprovider_render'),      $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_provider', 'namespace' => $this->adslots_option_name));
         add_settings_field ('richie_adslot_page_id',    __('Ad page id', 'richie'),     array($this, 'input_field_render'),     $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_ad_page_id', 'namespace' => $this->adslots_option_name, 'class' => ''));
         add_settings_field ('richie_adslot_alternatives', __('Alternatives', 'richie'), array($this, 'adslot_alternative_editor_render'), $this->adslots_option_name, $adslots_section_name);
@@ -971,13 +972,22 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
                     $article_set = get_term($article_set_id);
                     foreach ( $slots as $slot ) {
                         $attributes = $slot['attributes'];
+                        $id = $article_set->slug . '-slot-' . $slot['index'];
                         ?>
-                        <tr id="slot-<?php echo $slot['index']; ?>" data-slot-id="<?php echo $slot['index'] ?>" class="slot-item">
+                        <tr id="<?php echo $id; ?>" data-slot-article-set="<?php echo $article_set_id ?>" data-slot-id="<?php echo $slot['index'] ?>" class="slot-item">
                             <td><?php echo $article_set->name ?></td>
                             <td><?php echo $slot['index'] ?></td>
                             <td><?php echo $attributes['id'] ?></td>
                             <td><?php echo $attributes['ad_provider'] ?></td>
-                            <td style="font-size: 11px; !important"><pre><?php echo json_encode($attributes['ad_data'], JSON_PRETTY_PRINT) ?></pre></td>
+                            <td>
+                                <div id="<?php echo $id ?>-data" style="display:none;">
+                                    <div>
+                                        <pre><?php echo json_encode($attributes['ad_data'], JSON_PRETTY_PRINT) ?></pre>
+                                    </div>
+                                </div>
+
+                                <a href="#TB_inline?width=600&height=350&inlineId=<?php echo $id ?>-data" title="Ad slot data" class="thickbox">View details</a>
+                            </td>
                             <td>
                                 <a href="#" class="copy-slot-value">Copy to form</a> |
                                 <a href="#" class="remove-slot-item"">Remove</a>
