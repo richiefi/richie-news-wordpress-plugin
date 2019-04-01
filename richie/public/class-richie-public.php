@@ -248,7 +248,6 @@ class Richie_Public {
             ));
         }
 
-        $last_updated = strtotime( max( array_column($articles, 'last_updated' ) ) );
         $etag = 'W/"' . md5(serialize($articles)) . '"';
         // if_none_match may contain slashes before ", so strip those
         $etagHeader = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? stripslashes($_SERVER['HTTP_IF_NONE_MATCH']) : false;
