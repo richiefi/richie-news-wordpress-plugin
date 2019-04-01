@@ -435,9 +435,10 @@ class Richie_Admin {
 
 
         // create adslots section
+        $slot_index_description = __('Specify an index number for the ad slot placement in the article set feed. 1-based index, so 1 means the first item on the feed.');
         add_settings_section ($adslots_section_name, __('Add new ad slot', 'richie'), null, $this->adslots_option_name);
         add_settings_field ('richie_article_set',       __('Article set', 'richie'),    array($this, 'article_set_render'),     $this->adslots_option_name, $adslots_section_name, array('namespace' => $this->adslots_option_name));
-        add_settings_field ('richie_adslot_position',   __('Slot position', 'richie'),  array($this, 'input_field_render'),     $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_position_index', 'namespace' => $this->adslots_option_name, 'class' => ''));
+        add_settings_field ('richie_adslot_position',   __('Slot position', 'richie'),  array($this, 'input_field_render'),     $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_position_index', 'namespace' => $this->adslots_option_name, 'class' => '', description => $slot_index_description));
         add_settings_field ('richie_adslot_provider',   __('Ad provider', 'richie'),    array($this, 'adprovider_render'),      $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_provider', 'namespace' => $this->adslots_option_name));
         add_settings_field ('richie_adslot_page_id',    __('Ad page id', 'richie'),     array($this, 'input_field_render'),     $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_ad_page_id', 'namespace' => $this->adslots_option_name, 'class' => ''));
         add_settings_field ('richie_adslot_alternatives', __('Alternatives', 'richie'), array($this, 'adslot_alternative_editor_render'), $this->adslots_option_name, $adslots_section_name);
