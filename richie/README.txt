@@ -33,6 +33,9 @@ Richie Platform plugin provides following features:
 = 1.0.2 (29.03.2019) =
 * Fix issue with updated_date in news feed
 
+= WIP =
+* Fix an issue with non existing gallery images
+
 == Configuration ==
 
 = General =
