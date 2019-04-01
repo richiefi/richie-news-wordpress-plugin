@@ -317,8 +317,8 @@ class Richie_Admin {
             $error = 'Invalid article_set';
         }
 
-        if ( empty($input['adslot_position_index']) || !is_numeric($input['adslot_position_index']) || intval($input['adslot_position_index']) < 0 ) {
-            $error = 'Invalid slot position index';
+        if ( empty($input['adslot_position_index']) || !is_numeric($input['adslot_position_index']) || intval($input['adslot_position_index']) < 1 ) {
+            $error = 'Invalid slot position index, it must be 1 or bigger integer';
         }
 
         if ( empty($input['adslot_provider']) ) {
