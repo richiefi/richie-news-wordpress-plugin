@@ -514,7 +514,7 @@ class Richie_Public {
         try {
             $maggio_service = new Richie_Maggio_Service($host_name);
         } catch ( Exception $e ) {
-            return sprintf('<div>%s</div>', __('Failed to fetch issues'));
+            return sprintf('<div>%s</div>', __('Failed to fetch issues', 'richie'));
         }
 
         $issues = $maggio_service->get_issues($organization, $product, intval($atts['number_of_issues']));
@@ -574,7 +574,7 @@ class Richie_Public {
             try {
                 $maggio_service = new Richie_Maggio_Service($hostname);
             } catch ( Exception $e ) {
-                return sprintf('<div>%s</div>', __('Failed to fetch issues'));
+                return sprintf('<div>%s</div>', __('Failed to fetch issues', 'richie'));
             }
 
             $is_free_issue = $maggio_service->is_issue_free( $uuid );

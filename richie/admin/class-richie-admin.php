@@ -176,15 +176,15 @@ class Richie_Admin {
         $labels = [
             'name'              => _x('Richie Article Sets', 'taxonomy general name'),
             'singular_name'     => _x('Richie Article Set', 'taxonomy singular name'),
-            'search_items'      => __('Search Richie Article Sets'),
-            'all_items'         => __('All Richie Article Sets'),
-            'parent_item'       => __('Parent Richie Article Set'),
-            'parent_item_colon' => __('Parent Richie Article Set:'),
-            'edit_item'         => __('Edit Richie Article Set'),
-            'update_item'       => __('Update Richie Article Set'),
-            'add_new_item'      => __('Add New Richie Article Set'),
-            'new_item_name'     => __('New Richie Article Set Name'),
-            'menu_name'         => __('Richie Article Set'),
+            'search_items'      => __('Search Richie Article Sets', 'richie'),
+            'all_items'         => __('All Richie Article Sets', 'richie'),
+            'parent_item'       => __('Parent Richie Article Set', 'richie'),
+            'parent_item_colon' => __('Parent Richie Article Set:', 'richie'),
+            'edit_item'         => __('Edit Richie Article Set', 'richie'),
+            'update_item'       => __('Update Richie Article Set', 'richie'),
+            'add_new_item'      => __('Add New Richie Article Set', 'richie'),
+            'new_item_name'     => __('New Richie Article Set Name', 'richie'),
+            'menu_name'         => __('Richie Article Set', 'richie'),
         ];
         $args = [
             'hierarchical'      => false,
@@ -270,7 +270,7 @@ class Richie_Admin {
             add_settings_error(
                 $this->sources_option_name,
                 esc_attr( 'sources_error' ),
-                __('Name and number of posts are required'),
+                __('Name and number of posts are required', 'richie'),
                 'error'
             );
         }
@@ -285,7 +285,7 @@ class Richie_Admin {
             add_settings_error(
                 $this->assets_option_name,
                 esc_attr( 'assets_error' ),
-                __('No data found'),
+                __('No data found', 'richie'),
                 'error'
             );
             return get_option($this->assets_option_name);
@@ -930,7 +930,7 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
         }
         if ( isset($options['sources']) && ! empty( $options['sources'] ) ): ?>
             <?php if ( !empty($options['published_at']) ): ?>
-            <span>Last publish time: <em><?php echo get_date_from_gmt( date( 'Y-m-d H:i:s', $options['published_at'] ), get_option( 'date_format' ) . ' ' . get_option('time_format') ); ?></em></span>
+            <span><?php _e('Last publish time:', 'richie') ?> <em><?php echo get_date_from_gmt( date( 'Y-m-d H:i:s', $options['published_at'] ), get_option( 'date_format' ) . ' ' . get_option('time_format') ); ?></em></span>
             <?php endif; ?>
             <a class="button-primary" style="float:right; margin-bottom: 1em;" href="#" id="publish-sources">Publish</a>
             <table class="widefat feed-source-list sortable-list">
@@ -990,7 +990,7 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
             </table>
         <?php
         else:
-            echo _e('<em>No sources configured. Add news feed sources with the form below.</em>');
+            printf('<em>%s</em>', __('No sources configured. Add news feed sources with the form below.', 'richie'));
         endif;
     }
 
@@ -1042,7 +1042,7 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
             </table>
         <?php
         else:
-            echo _e('<em>No slots configured. Add ad slots with the form below.</em>');
+            printf('<em>%s</em>', __('No slots configured. Add ad slots with the form below.', 'richie'));
         endif;
     }
 }

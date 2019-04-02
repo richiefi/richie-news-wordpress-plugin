@@ -39,7 +39,7 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
         </form>
 
     <?php elseif ($active_tab === 'sources') : ?>
-        <h3><?php _e('News sources') ?></h3>
+        <h3><?php _e('News sources', 'richie') ?></h3>
         <?php echo $this->source_list() ?>
         <hr>
         <form method="post" name="richie-source-form" action="options.php">
@@ -50,7 +50,7 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
             ?>
         </form>
     <?php elseif ( $active_tab === 'adslots' ) : ?>
-        <h3><?php _e('Ad slots') ?></h3>
+        <h3><?php _e('Ad slots', 'richie') ?></h3>
         <?php echo $this->adslot_list() ?>
         <hr>
         <form method="post" name="richie-adslots-form" action="options.php">

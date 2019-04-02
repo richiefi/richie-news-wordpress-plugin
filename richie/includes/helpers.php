@@ -79,11 +79,11 @@ function richie_build_query ( $params ) {
  */
 function richie_generate_signature_hash( $secret, $issue_id, $timestamp, $query_string = '') {
     if ( !isset( $secret ) ) {
-        return new WP_Error( 'secret', __('Missing secret') );
+        return new WP_Error( 'secret', __('Missing secret', 'richie') );
     }
 
     if ( !wp_is_uuid( $issue_id ) ) {
-        return new WP_Error( 'uuid', __('Invalid issue uuid') );
+        return new WP_Error( 'uuid', __('Invalid issue uuid', 'richie') );
     }
 
     if ( !is_int( $timestamp ) ) {
