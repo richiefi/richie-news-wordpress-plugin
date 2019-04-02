@@ -35,6 +35,7 @@ Richie Platform plugin provides following features:
 
 = WIP =
 * Fix an issue with non existing gallery images
+* Feature: ad slots configuration
 
 == Configuration ==
 
