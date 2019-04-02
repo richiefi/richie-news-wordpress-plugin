@@ -889,7 +889,11 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
             if ( isset($slots[$index]) ) {
                 unset($slots[$index]);
                 remove_filter( 'sanitize_option_' . $this->adslots_option_name, array($this, 'validate_adslot'));
-                $option['slots'][$article_set] = $slots;
+                if ( !empty($slots) ) {
+                    $option['slots'][$article_set] = $slots;
+                } else {
+                    unset( $option['slots'][$article_set] );
+                }
                 $updated = update_option($this->adslots_option_name, $option);
                 add_filter( 'sanitize_option_' . $this->adslots_option_name, array($this, 'validate_adlot'));
                 wp_send_json(array('deleted' => $updated));
