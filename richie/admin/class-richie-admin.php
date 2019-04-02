@@ -534,7 +534,7 @@ class Richie_Admin {
 
     public function adslot_ad_data_editor_render() {
         ?>
-        <textarea id="code_editor_page_js" rows="10" name="<?php echo $this->adslots_option_name; ?>[ad_data]" class="textarea"><?php echo wp_unslash( wp_json_encode(array('alternatives' => array('page_id' => '', 'format_id' => '', 'min_width' => '')), JSON_PRETTY_PRINT) ); ?></textarea>
+        <textarea id="code_editor_page_js" rows="10" name="<?php echo $this->adslots_option_name; ?>[ad_data]" class="textarea"><?php echo wp_unslash( wp_json_encode(array('alternatives' => array(array('page_id' => '', 'format_id' => '', 'min_width' => ''))), JSON_PRETTY_PRINT) ); ?></textarea>
         <div style="font-size: 11px">
         <p>
             Accepts valid json array. Example:
