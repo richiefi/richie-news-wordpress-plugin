@@ -174,8 +174,8 @@ class Richie_Admin {
 
     public function register_taxonomy_article_set() {
         $labels = [
-            'name'              => _x('Richie Article Sets', 'taxonomy general name'),
-            'singular_name'     => _x('Richie Article Set', 'taxonomy singular name'),
+            'name'              => _x('Richie Article Sets', 'taxonomy general name', 'richie'),
+            'singular_name'     => _x('Richie Article Set', 'taxonomy singular name', 'richie'),
             'search_items'      => __('Search Richie Article Sets', 'richie'),
             'all_items'         => __('All Richie Article Sets', 'richie'),
             'parent_item'       => __('Parent Richie Article Set', 'richie'),
@@ -298,6 +298,7 @@ class Richie_Admin {
             add_settings_error(
                 $this->assets_option_name,
                 esc_attr( 'assets_error' ),
+                /* translators: %s is replaced with the error */
                 sprintf(__('Failed to parse json, unable to save: %s', 'richie'), $error),
                 'error'
             );
@@ -339,6 +340,7 @@ class Richie_Admin {
             add_settings_error(
                 $this->assets_option_name,
                 esc_attr( 'adslot_error' ),
+                /* translators: %s is replaced with the error */
                 sprintf(__('Failed to save adslot, validation failed: %s', 'richie'), $error),
                 'error'
             );
