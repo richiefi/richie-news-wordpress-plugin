@@ -376,8 +376,8 @@ class Richie_Admin {
             <p>
                 <strong><?php _e('News sources have unpublished changes.', 'richie'); ?></strong>
                 <span>
-                <a class="button-link" href="#" id="publish-sources">Publish now</a> |
-                <a class="button-link" href="#" id="revert-source-changes">Revert changes</a>
+                <a class="button-link" href="#" id="publish-sources"><?php _e('Publish now', 'richie') ?></a> |
+                <a class="button-link" href="#" id="revert-source-changes"><?php _e('Revert changes', 'richie') ?></a>
                 </span>
             </p>
             </div>
@@ -475,9 +475,9 @@ class Richie_Admin {
         add_settings_field ('richie_source_amount',    __('Number of posts', 'richie'),  array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
         if ( defined('HERALD_THEME_VERSION') ) {
             $front_page = (int)get_option( 'page_on_front' );
-            $description = 'Fetch posts from first featured module for given page id. Rest of filters will be ignored.';
+            $description = __('Fetch posts from first featured module for given page id. Rest of filters will be ignored.', 'richie');
             if ( $front_page > 0) {
-                $description = $description . ' Current front page id is ' . $front_page;
+                $description = sprintf('%s %s %u.', $description, __('Current front page id is', 'richie'), $front_page);
             }
             add_settings_field ('richie_source_herald_featured', __('Herald featured module', 'richie'), array($this, 'input_field_render'), $this->sources_option_name, $sources_section_name, array('id' => 'herald_featured_post_id', 'namespace' => $this->sources_option_name, 'description' => $description, 'class' => ''));
         }
@@ -487,11 +487,11 @@ class Richie_Admin {
         add_settings_field ('richie_source_max_age',   __('Post max age', 'richie'),     array($this, 'max_age_render'),         $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_list_layout_style', __('List layout', 'richie'),      array($this, 'list_layout_style_render'),       $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_list_group_title',  __('List group title', 'richie'), array($this, 'list_group_title_render'),        $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_disable_summary',    __('Disable article summary', 'richie'), array($this, 'checkbox_render'),        $this->sources_option_name, $sources_section_name, array('id' => 'disable_summary', 'description' => 'Do not show summary text in news list', 'namespace' => $this->sources_option_name));
+        add_settings_field ('richie_disable_summary',    __('Disable article summary', 'richie'), array($this, 'checkbox_render'),        $this->sources_option_name, $sources_section_name, array('id' => 'disable_summary', 'description' => __('Do not show summary text in news list', 'richie'), 'namespace' => $this->sources_option_name));
 
 
         // create adslots section
-        $slot_index_description = __('Specify an index number for the ad slot placement in the article set feed. 1-based index, so 1 means the first item on the feed. Existing index for the article set is overwritten.');
+        $slot_index_description = __('Specify an index number for the ad slot placement in the article set feed. 1-based index, so 1 means the first item on the feed. Existing index for the article set is overwritten.', 'richie');
         add_settings_section ($adslots_section_name, __('Add new ad slot', 'richie'), null, $this->adslots_option_name);
         add_settings_field ('richie_article_set',       __('Article set', 'richie'),    array($this, 'article_set_render'),     $this->adslots_option_name, $adslots_section_name, array('namespace' => $this->adslots_option_name));
         add_settings_field ('richie_adslot_position',   __('Slot position', 'richie'),  array($this, 'input_field_render'),     $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_position_index', 'namespace' => $this->adslots_option_name, 'class' => '', 'description' => $slot_index_description));
@@ -648,7 +648,7 @@ class Richie_Admin {
             </select>
         <?php
         if ( isset( $args['description'] ) ) {
-            printf('<br><span class="description">%s</span>', esc_html__( $args['description'], $this->plugin_name ));
+            printf('<br><span class="description">%s</span>', esc_html__( $args['description'] ));
         }
     }
 
@@ -666,7 +666,7 @@ class Richie_Admin {
     public function number_of_posts_render() {
         ?>
             <input class="small-text" type='text' name='<?php echo $this->sources_option_name ; ?>[number_of_posts]'>
-            <span class="description"><?php esc_attr_e( 'Amount of posts included in the feed', $this->plugin_name ); ?></span>
+            <span class="description"><?php esc_attr_e( 'Amount of posts included in the feed', 'richie' ); ?></span>
         <?php
     }
 
@@ -679,25 +679,25 @@ class Richie_Admin {
             $metakeys[] = array(
                 'key' => ev_get_meta_key(),
                 'orderby' => 'meta_value_num',
-                'title' => 'Post views'
+                'title' => __('Post views', 'richie')
             );
         }
 
         ?>
             <select name='<?php echo $this->sources_option_name ; ?>[order_by]' id='<?php echo $this->sources_option_name ; ?>-order-by'>
-                <option selected="selected" value="date">Post date</option>
-                <option value="modified">Post modified time</option>
-                <option value="title">Post title</option>
-                <option value="author">Post author</option>
-                <option value="id">Post ID</option>
+                <option selected="selected" value="date"><?php _e('Post date', 'richie') ?></option>
+                <option value="modified"><?php _e('Post modified time', 'richie') ?></option>
+                <option value="title"><?php _e('Post title', 'richie') ?></option>
+                <option value="author"><?php _e('Post author', 'richie') ?></option>
+                <option value="id"><?php _e('Post ID', 'richie') ?></option>
                 <?php foreach( $metakeys as $metakey ): ?>
                     <option value="metakey:<?php esc_attr_e($metakey['key']) ?>:<?php esc_attr_e($metakey['orderby']) ?>"><?php esc_attr_e($metakey['title']) ?></option>
                 <?php endforeach; ?>
                 <?php
                     if ( class_exists( 'WPP_query' ) ) {
-                        echo '<option value="popular:last24hours">Popular posts (24 hours)</option>';
-                        echo '<option value="popular:last7days">Popular posts (week)</option>';
-                        echo '<option value="popular:last30days">Popular posts (month)</option>';
+                        printf('<option value="popular:last24hours">%s</option>', __('Popular posts (24 hours)', 'richie'));
+                        printf('<option value="popular:last7days">%s</option>', __('Popular posts (week)', 'richie'));
+                        printf('<option value="popular:last30days">%s</option>', __('Popular posts (month)', 'richie'));
                     }
                 ?>
             </select>
@@ -707,8 +707,8 @@ class Richie_Admin {
     public function order_direction_render() {
         ?>
             <select name='<?php echo $this->sources_option_name ; ?>[order_direction]' id='<?php echo $this->sources_option_name ; ?>-order-direction'>
-                <option selected="selected" value="DESC">DESC</option>
-                <option value="ASC">ASC</option>
+                <option selected="selected" value="DESC"><?php _e('DESC', 'richie') ?></option>
+                <option value="ASC"><?php _e('ASC', 'richie') ?></option>
             </select>
         <?php
     }
@@ -728,33 +728,33 @@ class Richie_Admin {
         ?>
         <input class="regular-text" type='text' name='<?php echo $this->sources_option_name; ?>[list_group_title]'>
         <span class="description"><?php esc_attr_e( 'Header to display before the story, useful on the first
-small_group_item of a group', $this->plugin_name ); ?>></span>
+small_group_item of a group', 'richie'); ?>></span>
         <?php
     }
 
     public function max_age_render() {
         $available_options = array(
-            '1 day',
-            '3 days',
-            '1 week',
-            '2 weeks',
-            '1 month',
-            '3 months',
-            '6 months',
-            '1 year',
-            'All time'
+            array('value' => '1 day',     'title' => sprintf('%d %s', 1, _n('day', 'days', 1, 'richie'))),
+            array('value' => '3 days',    'title' => sprintf('%d %s', 3, _n('day', 'days', 3, 'richie'))),
+            array('value' => '1 week',    'title' => sprintf('%d %s', 1, _n('week', 'weeks', 1, 'richie'))),
+            array('value' => '2 weeks',   'title' => sprintf('%d %s', 2, _n('week', 'weeks', 2, 'richie'))),
+            array('value' => '1 month',   'title' => sprintf('%d %s', 1, _n('month', 'months', 1, 'richie'))),
+            array('value' => '3 months',  'title' => sprintf('%d %s', 3, _n('month', 'months', 3, 'richie'))),
+            array('value' => '6 months',  'title' => sprintf('%d %s', 6, _n('month', 'months', 6, 'richie'))),
+            array('value' => '1 year',    'title' => __('1 year', 'richie')),
+            array('value' => 'All time',  'title' => __('All time', 'richie')),
         )
         ?>
         <fieldset>
             <?php foreach( $available_options as $opt ): ?>
             <div>
                 <label>
-                    <input type='radio' name='<?php echo $this->sources_option_name; ?>[max_age]' value='<?php echo $opt; ?>' <?php checked('All time', $opt) ?>>
-                    <span class="description"><?php _e($opt, $this->plugin_name) ?></span>
+                    <input type='radio' name='<?php echo $this->sources_option_name; ?>[max_age]' value='<?php echo $opt['value']; ?>' <?php checked('All time', $opt['value']) ?>>
+                    <span class="description"><?php esc_html_e($opt['title']) ?></span>
                 </label>
             </div>
             <?php endforeach; ?>
-            <span class="description"><?php esc_attr_e( 'Include posts that are not older than specific time range', $this->plugin_name ); ?>></span>
+            <span class="description"><?php esc_attr_e( 'Include posts that are not older than specific time range', 'richie' ); ?>></span>
         </fieldset>
         <?php
     }
@@ -934,20 +934,20 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
             <?php if ( !empty($options['published_at']) ): ?>
             <span><?php _e('Last publish time:', 'richie') ?> <em><?php echo get_date_from_gmt( date( 'Y-m-d H:i:s', $options['published_at'] ), get_option( 'date_format' ) . ' ' . get_option('time_format') ); ?></em></span>
             <?php endif; ?>
-            <a class="button-primary" style="float:right; margin-bottom: 1em;" href="#" id="publish-sources">Publish</a>
+            <a class="button-primary" style="float:right; margin-bottom: 1em;" href="#" id="publish-sources"><?php esc_html_e('Publish', 'richie') ?></a>
             <table class="widefat feed-source-list sortable-list">
                 <thead>
                     <th style="width: 30px;"></th>
-                    <th>ID</th>
-                    <th>Article Set</th>
-                    <th>Name</th>
-                    <th>Categories</th>
-                    <th>Posts</th>
-                    <th>Order</th>
-                    <th>Max age</th>
-                    <th>List layout</th>
-                    <th style="text-align: center">Disable summary</th>
-                    <th>Actions</th>
+                    <th><?php echo esc_html_x('ID', 'column name', 'richie') ?></th>
+                    <th><?php echo esc_html_x('Article Set', 'column name', 'richie') ?></th>
+                    <th><?php echo esc_html_x('Name', 'column name', 'richie') ?></th>
+                    <th><?php echo esc_html_x('Categories', 'column name', 'richie') ?></th>
+                    <th><?php echo esc_html_x('Posts', 'column name', 'richie') ?></th>
+                    <th><?php echo esc_html_x('Order', 'column name', 'richie') ?></th>
+                    <th><?php echo esc_html_x('Max age', 'column name', 'richie') ?></th>
+                    <th><?php echo esc_html_x('List layout', 'column name', 'richie') ?></th>
+                    <th style="text-align: center"><?php echo esc_html_x('Disable summary', 'column name', 'richie') ?></th>
+                    <th><?php echo esc_html_x('Actions', 'column name', 'richie') ?></th>
                 </thead>
                 <tbody>
                 <?php
@@ -982,7 +982,7 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
                             <input class="disable-summary" type="checkbox" <?php echo isset($source['disable_summary']) && $source['disable_summary'] === true ? 'checked' : '' ?>>
                         </td>
                         <td>
-                            <a href="#" class="remove-source-item"">Remove</a>
+                            <a href="#" class="remove-source-item""><?php esc_html_e('Remove', 'richie') ?></a>
                         </td>
                     </tr>
                     <?php
@@ -1002,12 +1002,12 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
         if ( isset($options['slots']) && ! empty( $options['slots'] ) ): ?>
             <table class="widefat slot-list">
                 <thead>
-                    <th>Article set</th>
-                    <th>Index</th>
-                    <th>ID</th>
-                    <th>Ad provider</th>
-                    <th>Ad data</th>
-                    <th>Actions</th>
+                    <th><?php echo esc_html_x('Article Set', 'column name', 'richie') ?></th>
+                    <th><?php echo esc_html_x('Index', 'column name', 'richie') ?></th>
+                    <th><?php echo esc_html_x('ID', 'column name', 'richie') ?></th>
+                    <th><?php echo esc_html_x('Ad provider', 'column name', 'richie') ?></th>
+                    <th><?php echo esc_html_x('Ad data', 'column name', 'richie') ?></th>
+                    <th><?php echo esc_html_x('Actions', 'column name', 'richie') ?></th>
                 </thead>
                 <tbody>
                 <?php
@@ -1032,8 +1032,8 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
                                 <a href="#TB_inline?width=600&height=350&inlineId=<?php echo $id ?>-data" title="Ad slot data" class="thickbox">View details</a>
                             </td>
                             <td>
-                                <a href="#" class="copy-slot-value">Copy to form</a> |
-                                <a href="#" class="remove-slot-item">Remove</a>
+                                <a href="#" class="copy-slot-value"><?php esc_html_e('Copy to form', 'richie') ?></a> |
+                                <a href="#" class="remove-slot-item"><?php esc_html_e('Remove', 'richie') ?></a>
                             </td>
                         </tr>
                         <?php

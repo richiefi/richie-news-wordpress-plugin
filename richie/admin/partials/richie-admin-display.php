@@ -21,10 +21,10 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
 <div class="wrap">
     <h2><?php echo esc_html(get_admin_page_title()); ?></h2>
     <h2 class="nav-tab-wrapper">
-        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=settings' ) ?>" class="nav-tab <?php echo $active_tab == 'settings' || '' ? 'nav-tab-active' : ''; ?>">Settings</a>
-        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=sources' ) ?>" class="nav-tab <?php echo $active_tab == 'sources' ? 'nav-tab-active' : ''; ?>">News sources</a>
-        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=adslots' ) ?>" class="nav-tab <?php echo $active_tab == 'adslots' ? 'nav-tab-active' : ''; ?>">Ad slots</a>
-        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=assets' ) ?>" class="nav-tab <?php echo $active_tab == 'assets' ? 'nav-tab-active' : ''; ?>">News assets</a>
+        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=settings' ) ?>" class="nav-tab <?php echo $active_tab == 'settings' || '' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Settings', 'richie') ?></a>
+        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=sources' ) ?>" class="nav-tab <?php echo $active_tab == 'sources' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('News sources', 'richie') ?></a>
+        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=adslots' ) ?>" class="nav-tab <?php echo $active_tab == 'adslots' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Ad slots', 'richie') ?></a>
+        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=assets' ) ?>" class="nav-tab <?php echo $active_tab == 'assets' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('News assets', 'richie') ?></a>
     </h2>
 
     <?php if ( $active_tab === 'settings' ) : ?>
@@ -35,7 +35,7 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
                 do_settings_sections($this->settings_option_name);
             ?>
 
-            <?php submit_button('Save all changes', 'primary','submit', TRUE); ?>
+            <?php submit_button(esc_html__('Save all changes', 'richie'), 'primary','submit', TRUE); ?>
         </form>
 
     <?php elseif ($active_tab === 'sources') : ?>
@@ -46,7 +46,7 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
             <?php
                 settings_fields($this->sources_option_name);
                 do_settings_sections($this->sources_option_name);
-                submit_button('Add source', 'primary','submit', TRUE);
+                submit_button(esc_html__('Add source', 'richie'), 'primary','submit', TRUE);
             ?>
         </form>
     <?php elseif ( $active_tab === 'adslots' ) : ?>
@@ -57,7 +57,7 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
             <?php
                 settings_fields($this->adslots_option_name);
                 do_settings_sections($this->adslots_option_name);
-                submit_button('Add ad slot', 'primary','submit', TRUE);
+                submit_button(esc_html__('Add ad slot', 'richie'), 'primary','submit', TRUE);
             ?>
         </form>
     <?php elseif ($active_tab === 'assets') : ?>
@@ -67,7 +67,7 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
         do_settings_sections($this->assets_option_name);
     ?>
 
-    <?php submit_button('Save all changes', 'primary','submit', TRUE); ?>
+    <?php submit_button(esc_html__('Save all changes', 'richie'), 'primary','submit', TRUE); ?>
     </form>
     <?php endif; ?>
 </div>
