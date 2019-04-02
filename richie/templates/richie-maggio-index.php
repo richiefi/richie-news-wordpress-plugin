@@ -28,7 +28,7 @@
 <?php if ( !$user_has_access ): ?>
     <div style="text-align: center;">
         <strong>
-            <?php _e('You need to be logged in and have an active order to access these magazines', $this->plugin_name); ?>
+            <?php _e('You need to be logged in and have an active order to access these magazines', 'richie'); ?>
         </strong>
     </div>
 <?php endif; ?>

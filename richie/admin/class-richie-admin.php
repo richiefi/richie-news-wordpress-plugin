@@ -161,7 +161,7 @@ class Richie_Admin {
         *  Documentation : https://codex.wordpress.org/Plugin_API/Filter_Reference/plugin_action_links_(plugin_file_name)
         */
         $settings_link = array(
-            '<a href="' . admin_url( 'options-general.php?page=' . $this->settings_page_slug ) . '">' . __('Settings', $this->plugin_name) . '</a>',
+            '<a href="' . admin_url( 'options-general.php?page=' . $this->settings_page_slug ) . '">' . __('Settings', 'richie') . '</a>',
         );
         return array_merge(  $settings_link, $links );
 
@@ -298,7 +298,7 @@ class Richie_Admin {
             add_settings_error(
                 $this->assets_option_name,
                 esc_attr( 'assets_error' ),
-                sprintf(__('Failed to parse json, unable to save: %s', $this->plugin_name), $error),
+                sprintf(__('Failed to parse json, unable to save: %s', 'richie'), $error),
                 'error'
             );
             return get_option($this->assets_option_name);
@@ -372,7 +372,7 @@ class Richie_Admin {
             ?>
             <div class="notice notice-warning">
             <p>
-                <strong><?php _e('News sources have unpublished changes.', $this->plugin_name); ?></strong>
+                <strong><?php _e('News sources have unpublished changes.', 'richie'); ?></strong>
                 <span>
                 <a class="button-link" href="#" id="publish-sources">Publish now</a> |
                 <a class="button-link" href="#" id="revert-source-changes">Revert changes</a>
@@ -450,42 +450,42 @@ class Richie_Admin {
         $adslots_section_name = 'richie_ad_slot';
 
         // create general section
-        add_settings_section ($general_section_name, __('General settings', $this->plugin_name), null, $this->settings_option_name);
-        add_settings_field('richie_access_token', __('Access token', $this->plugin_name), array($this, 'input_field_render'), $this->settings_option_name, $general_section_name, array('id' => 'access_token'));
+        add_settings_section ($general_section_name, __('General settings', 'richie'), null, $this->settings_option_name);
+        add_settings_field('richie_access_token', __('Access token', 'richie'), array($this, 'input_field_render'), $this->settings_option_name, $general_section_name, array('id' => 'access_token'));
 
         // create paywall section
-        add_settings_section ($paywall_section_name, __('Paywall', $this->plugin_name), null, $this->settings_option_name);
-        add_settings_field('richie_metered_pmpro_level', __('Metered level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'metered_pmpro_level'));
-        add_settings_field('richie_member_only_pmpro_level', __('Member only level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'member_only_pmpro_level'));
+        add_settings_section ($paywall_section_name, __('Paywall', 'richie'), null, $this->settings_option_name);
+        add_settings_field('richie_metered_pmpro_level', __('Metered level', 'richie'), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'metered_pmpro_level'));
+        add_settings_field('richie_member_only_pmpro_level', __('Member only level', 'richie'), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'member_only_pmpro_level'));
 
         // create maggio section
 
-        add_settings_section ($maggio_section_name, __('Maggio settings', $this->plugin_name), null, $this->settings_option_name);
-        add_settings_field('richie_maggio_organization',   __('Maggio organization', $this->plugin_name),  array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_organization'));
-        add_settings_field('richie_maggio_hostname',       __('Maggio hostname', $this->plugin_name),      array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_hostname'));
-        add_settings_field('richie_maggio_secret',         __('Maggio secret', $this->plugin_name),        array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_secret'));
-        add_settings_field('richie_maggio_required_pmpro_level', __('Required membership level', $this->plugin_name), array($this, 'pmpro_level_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_required_pmpro_level'));
+        add_settings_section ($maggio_section_name, __('Maggio settings', 'richie'), null, $this->settings_option_name);
+        add_settings_field('richie_maggio_organization',   __('Maggio organization', 'richie'),  array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_organization'));
+        add_settings_field('richie_maggio_hostname',       __('Maggio hostname', 'richie'),      array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_hostname'));
+        add_settings_field('richie_maggio_secret',         __('Maggio secret', 'richie'),        array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_secret'));
+        add_settings_field('richie_maggio_required_pmpro_level', __('Required membership level', 'richie'), array($this, 'pmpro_level_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_required_pmpro_level'));
 
         // create source section
-        add_settings_section ($sources_section_name, __('Add new feed source', $this->plugin_name), null, $this->sources_option_name);
-        add_settings_field ('richie_source_name',      __('Name', $this->plugin_name),             array($this, 'source_name_render'),     $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_source_set',       __('Article set', $this->plugin_name),      array($this, 'article_set_render'),     $this->sources_option_name, $sources_section_name, array('namespace' => $this->sources_option_name));
-        add_settings_field ('richie_source_amount',    __('Number of posts', $this->plugin_name),  array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
+        add_settings_section ($sources_section_name, __('Add new feed source', 'richie'), null, $this->sources_option_name);
+        add_settings_field ('richie_source_name',      __('Name', 'richie'),             array($this, 'source_name_render'),     $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_source_set',       __('Article set', 'richie'),      array($this, 'article_set_render'),     $this->sources_option_name, $sources_section_name, array('namespace' => $this->sources_option_name));
+        add_settings_field ('richie_source_amount',    __('Number of posts', 'richie'),  array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
         if ( defined('HERALD_THEME_VERSION') ) {
             $front_page = (int)get_option( 'page_on_front' );
             $description = 'Fetch posts from first featured module for given page id. Rest of filters will be ignored.';
             if ( $front_page > 0) {
                 $description = $description . ' Current front page id is ' . $front_page;
             }
-            add_settings_field ('richie_source_herald_featured', __('Herald featured module', $this->plugin_name), array($this, 'input_field_render'), $this->sources_option_name, $sources_section_name, array('id' => 'herald_featured_post_id', 'namespace' => $this->sources_option_name, 'description' => $description, 'class' => ''));
+            add_settings_field ('richie_source_herald_featured', __('Herald featured module', 'richie'), array($this, 'input_field_render'), $this->sources_option_name, $sources_section_name, array('id' => 'herald_featured_post_id', 'namespace' => $this->sources_option_name, 'description' => $description, 'class' => ''));
         }
-        add_settings_field ('richie_source_category',  __('Categories', $this->plugin_name),       array($this, 'category_list_render'),   $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_source_order_by',  __('Order by', $this->plugin_name),         array($this, 'order_by_render'),        $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_source_order_dir', __('Order direction', $this->plugin_name),  array($this, 'order_direction_render'), $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_source_max_age',   __('Post max age', $this->plugin_name),     array($this, 'max_age_render'),         $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_list_layout_style', __('List layout', $this->plugin_name),      array($this, 'list_layout_style_render'),       $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_list_group_title',  __('List group title', $this->plugin_name), array($this, 'list_group_title_render'),        $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_disable_summary',    __('Disable article summary', $this->plugin_name), array($this, 'checkbox_render'),        $this->sources_option_name, $sources_section_name, array('id' => 'disable_summary', 'description' => 'Do not show summary text in news list', 'namespace' => $this->sources_option_name));
+        add_settings_field ('richie_source_category',  __('Categories', 'richie'),       array($this, 'category_list_render'),   $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_source_order_by',  __('Order by', 'richie'),         array($this, 'order_by_render'),        $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_source_order_dir', __('Order direction', 'richie'),  array($this, 'order_direction_render'), $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_source_max_age',   __('Post max age', 'richie'),     array($this, 'max_age_render'),         $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_list_layout_style', __('List layout', 'richie'),      array($this, 'list_layout_style_render'),       $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_list_group_title',  __('List group title', 'richie'), array($this, 'list_group_title_render'),        $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_disable_summary',    __('Disable article summary', 'richie'), array($this, 'checkbox_render'),        $this->sources_option_name, $sources_section_name, array('id' => 'disable_summary', 'description' => 'Do not show summary text in news list', 'namespace' => $this->sources_option_name));
 
 
         // create adslots section
@@ -498,8 +498,8 @@ class Richie_Admin {
 
 
         // create assets section
-        add_settings_section ($assets_section_name, __('Asset feed', $this->plugin_name), null, $this->assets_option_name);
-        add_settings_field ('richie_news_assets', __('Assets', $this->plugin_name), array($this, 'asset_editor_render'), $this->assets_option_name, $assets_section_name);
+        add_settings_section ($assets_section_name, __('Asset feed', 'richie'), null, $this->assets_option_name);
+        add_settings_field ('richie_news_assets', __('Assets', 'richie'), array($this, 'asset_editor_render'), $this->assets_option_name, $assets_section_name);
 
     }
 
