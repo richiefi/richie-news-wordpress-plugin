@@ -73,6 +73,7 @@ class Richie_Admin {
         add_action('wp_ajax_publish_source_changes', array($this, 'publish_source_changes'));
         add_action('wp_ajax_revert_source_changes', array($this, 'revert_source_changes'));
         add_action('wp_ajax_remove_ad_slot', array($this, 'remove_ad_slot'));
+        add_action('wp_ajax_get_adslot_data', array($this, 'get_adslot_data'));
 
         add_action('admin_notices', array($this, 'add_admin_notices'));
 
@@ -488,7 +489,7 @@ class Richie_Admin {
 
 
         // create adslots section
-        $slot_index_description = __('Specify an index number for the ad slot placement in the article set feed. 1-based index, so 1 means the first item on the feed.');
+        $slot_index_description = __('Specify an index number for the ad slot placement in the article set feed. 1-based index, so 1 means the first item on the feed. Existing index for the article set is overwritten.');
         add_settings_section ($adslots_section_name, __('Add new ad slot', 'richie'), null, $this->adslots_option_name);
         add_settings_field ('richie_article_set',       __('Article set', 'richie'),    array($this, 'article_set_render'),     $this->adslots_option_name, $adslots_section_name, array('namespace' => $this->adslots_option_name));
         add_settings_field ('richie_adslot_position',   __('Slot position', 'richie'),  array($this, 'input_field_render'),     $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_position_index', 'namespace' => $this->adslots_option_name, 'class' => '', 'description' => $slot_index_description));
@@ -896,6 +897,23 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
         } else {
             wp_send_json_error('Failed to remove slot', 500);
         }
+    }
+
+    public function get_adslot_data() {
+        if ( !isset($_POST['index']) || !isset($_POST['article_set_id'])) {
+            wp_send_json_error('Missing arguments', 400);
+        }
+        $option = get_option($this->adslots_option_name);
+        $article_set = intval($_POST['article_set_id']);
+        $index = intval($_POST['index']);
+        if ( isset($option['slots']) && isset($option['slots'][$article_set]) ) {
+            $slots = $option['slots'][$article_set];
+            if ( isset($slots[$index]) ) {
+                wp_send_json(json_encode($slots[$index]));
+            }
+        }
+
+        wp_send_json_error('Not found', 404);
     }
 
 
