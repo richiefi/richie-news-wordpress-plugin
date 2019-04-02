@@ -313,7 +313,7 @@ class Richie_Admin {
 
         $slot = array();
         $error = null;
-        $alternatives = [];
+        $ad_data = null;
 
         if ( empty($input['article_set']) ) {
             $error = 'Invalid article_set';
@@ -327,15 +327,10 @@ class Richie_Admin {
             $error = 'Invalid input provider';
         }
 
-        if ( empty($input['adslot_ad_page_id']) || !is_numeric($input['adslot_ad_page_id']) || intval($input['adslot_ad_page_id']) < 0 ) {
-            $error = 'Invalid ad page id';
-        }
-
-
-        if ( !empty($input['alternatives']) ) {
-            $alternatives = json_decode($input['alternatives']);
+        if ( !empty($input['ad_data']) ) {
+            $ad_data = json_decode($input['ad_data']);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                $error = sprintf('JSON parsing failed for alternatives: %s', json_last_error_msg());
+                $error = sprintf('JSON parsing failed for ad data: %s', json_last_error_msg());
             }
         }
 
@@ -361,10 +356,7 @@ class Richie_Admin {
                 'id' => wp_generate_uuid4(),
                 'list_layout_style' => 'ad',
                 'ad_provider' => sanitize_text_field($input['adslot_provider']),
-                'ad_data' => array(
-                    'page_id' => intval($input['adslot_ad_page_id']),
-                    'alternatives' => $alternatives
-                )
+                'ad_data' => $ad_data
             )
         );
 
@@ -501,8 +493,7 @@ class Richie_Admin {
         add_settings_field ('richie_article_set',       __('Article set', 'richie'),    array($this, 'article_set_render'),     $this->adslots_option_name, $adslots_section_name, array('namespace' => $this->adslots_option_name));
         add_settings_field ('richie_adslot_position',   __('Slot position', 'richie'),  array($this, 'input_field_render'),     $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_position_index', 'namespace' => $this->adslots_option_name, 'class' => '', 'description' => $slot_index_description));
         add_settings_field ('richie_adslot_provider',   __('Ad provider', 'richie'),    array($this, 'adprovider_render'),      $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_provider', 'namespace' => $this->adslots_option_name));
-        add_settings_field ('richie_adslot_page_id',    __('Ad page id', 'richie'),     array($this, 'input_field_render'),     $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_ad_page_id', 'namespace' => $this->adslots_option_name, 'class' => ''));
-        add_settings_field ('richie_adslot_alternatives', __('Alternatives', 'richie'), array($this, 'adslot_alternative_editor_render'), $this->adslots_option_name, $adslots_section_name);
+        add_settings_field ('richie_adslot_ad_data', __('Ad data', 'richie'), array($this, 'adslot_ad_data_editor_render'), $this->adslots_option_name, $adslots_section_name);
 
 
         // create assets section
@@ -540,25 +531,30 @@ class Richie_Admin {
         <?php
     }
 
-    public function adslot_alternative_editor_render() {
+    public function adslot_ad_data_editor_render() {
         ?>
+        <textarea id="code_editor_page_js" rows="10" name="<?php echo $this->adslots_option_name; ?>[ad_data]" class="textarea"><?php echo wp_unslash( wp_json_encode(array('alternatives' => array('page_id' => '', 'format_id' => '', 'min_width' => '')), JSON_PRETTY_PRINT) ); ?></textarea>
+        <div style="font-size: 11px">
         <p>
             Accepts valid json array. Example:
         </p>
         <pre>
-    [
-        {
-            "format_id": 62863,
-            "min_width": 451
-        },
-        {
-            "format_id": 63025,
-            "max_width": 450
-        }
-    ]
+    {
+        "alternatives": [
+            {
+                "page_id": 898073,
+                "format_id": 62863,
+                "min_width": 451
+            },
+            {
+                "page_id": 898075,
+                "format_id": 62863,
+                "max_width": 450
+            }
+        ]
+    }
         </pre>
-
-        <textarea id="code_editor_page_js" rows="10" name="<?php echo $this->adslots_option_name; ?>[alternatives]" class="textarea"><?php echo wp_unslash( wp_json_encode(array(array('format_id' => '', 'min_width' => '')), JSON_PRETTY_PRINT) ); ?></textarea>
+        </div>
         <?php
     }
 
