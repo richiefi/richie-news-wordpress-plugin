@@ -43,7 +43,6 @@
           <property name="tabIndent" value="false"/>
       </properties>
   </rule>
-  <rule ref="Generic.WhiteSpace.DisallowTabIndent" />
 
 	<!-- Let's also check that everything is properly documented. -->
 	<rule ref="WordPress-Docs"/>
