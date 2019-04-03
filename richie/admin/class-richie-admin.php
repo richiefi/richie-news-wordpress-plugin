@@ -76,9 +76,6 @@ class Richie_Admin {
         add_action('wp_ajax_get_adslot_data', array($this, 'get_adslot_data'));
 
         add_action('admin_notices', array($this, 'add_admin_notices'));
-
-        $this->register_taxonomy_article_set();
-
     }
 
     /**
@@ -170,30 +167,6 @@ class Richie_Admin {
     // Load the plugin admin page partial.
     public function load_admin_page_content() {
         require_once plugin_dir_path( __FILE__ ). 'partials/richie-admin-display.php';
-    }
-
-    public function register_taxonomy_article_set() {
-        $labels = [
-            'name'              => _x('Richie Article Sets', 'taxonomy general name', 'richie'),
-            'singular_name'     => _x('Richie Article Set', 'taxonomy singular name', 'richie'),
-            'search_items'      => __('Search Richie Article Sets', 'richie'),
-            'all_items'         => __('All Richie Article Sets', 'richie'),
-            'parent_item'       => __('Parent Richie Article Set', 'richie'),
-            'parent_item_colon' => __('Parent Richie Article Set:', 'richie'),
-            'edit_item'         => __('Edit Richie Article Set', 'richie'),
-            'update_item'       => __('Update Richie Article Set', 'richie'),
-            'add_new_item'      => __('Add New Richie Article Set', 'richie'),
-            'new_item_name'     => __('New Richie Article Set Name', 'richie'),
-            'menu_name'         => __('Richie Article Set', 'richie'),
-        ];
-        $args = [
-            'hierarchical'      => false,
-            'labels'            => $labels,
-            'public'            => false,
-            'rewrite'           => false,
-            'show_ui'           => true
-        ];
-        register_taxonomy('richie_article_set', null, $args);
     }
 
     public function validate_settings($input) {
@@ -387,7 +360,6 @@ class Richie_Admin {
 
     public function options_update() {
         // run on admin_init
-
 
         $this->debug_sources = false;
 
