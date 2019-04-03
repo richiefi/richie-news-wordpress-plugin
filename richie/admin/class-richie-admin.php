@@ -601,7 +601,7 @@ class Richie_Admin {
         ) );
         ?>
         <p>
-            <a href="edit-tags.php?taxonomy=richie_article_set">Edit Richie Article Sets</a>
+            <a href="edit-tags.php?taxonomy=richie_article_set"><?php esc_html_e('Edit Article sets', 'richie') ?></a>
         </p>
         <?php
     }

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2019-04-02T14:49:56+00:00\n"
+"POT-Creation-Date: 2019-04-03T07:48:09+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.1.0\n"
 "X-Domain: richie\n"
@@ -49,77 +49,71 @@ msgstr ""
 
 #: admin/class-richie-admin.php:177
 msgctxt "taxonomy general name"
-msgid "Article Sets"
+msgid "Article sets"
 msgstr ""
 
 #: admin/class-richie-admin.php:178
 msgctxt "taxonomy singular name"
-msgid "Article Set"
+msgid "Article set"
 msgstr ""
 
 #: admin/class-richie-admin.php:179
-msgid "Search Article Sets"
+msgid "Search Article sets"
 msgstr ""
 
 #: admin/class-richie-admin.php:180
-msgid "All Article Sets"
+msgid "All Article sets"
 msgstr ""
 
 #: admin/class-richie-admin.php:181
-msgid "Parent Article Set"
+msgid "Edit Article set"
 msgstr ""
 
 #: admin/class-richie-admin.php:182
-msgid "Parent Article Set:"
+msgid "Update Article set"
 msgstr ""
 
 #: admin/class-richie-admin.php:183
-msgid "Edit Article Set"
+msgid "Add New Article set"
 msgstr ""
 
 #: admin/class-richie-admin.php:184
-msgid "Update Article Set"
+msgid "New Article set Name"
 msgstr ""
 
 #: admin/class-richie-admin.php:185
-msgid "Add New Article Set"
+#: admin/class-richie-admin.php:474
+#: admin/class-richie-admin.php:496
+msgid "Article set"
 msgstr ""
 
-#: admin/class-richie-admin.php:186
-msgid "New Article Set Name"
-msgstr ""
-
-#: admin/class-richie-admin.php:187
-msgid "Article Set"
-msgstr ""
-
-#: admin/class-richie-admin.php:273
+#: admin/class-richie-admin.php:272
 msgid "Name and number of posts are required"
 msgstr ""
 
-#: admin/class-richie-admin.php:288
+#: admin/class-richie-admin.php:287
 msgid "No data found"
 msgstr ""
 
 #. translators: %s is replaced with the error
-#: admin/class-richie-admin.php:302
+#: admin/class-richie-admin.php:301
 msgid "Failed to parse json, unable to save: %s"
 msgstr ""
 
 #. translators: %s is replaced with the error
-#: admin/class-richie-admin.php:344
+#: admin/class-richie-admin.php:343
 msgid "Failed to save adslot, validation failed: %s"
 msgstr ""
 
-#: admin/class-richie-admin.php:377
+#: admin/class-richie-admin.php:376
 msgid "News sources have unpublished changes."
 msgstr ""
 
-#: admin/class-richie-admin.php:379
+#: admin/class-richie-admin.php:378
 msgid "Publish now"
 msgstr ""
 
-#: admin/class-richie-admin.php:380
+#: admin/class-richie-admin.php:379
 msgid "Revert changes"
 msgstr ""
 
@@ -169,11 +163,6 @@ msgstr ""
 
 #: admin/class-richie-admin.php:473
 msgid "Name"
-msgstr ""
-
-#: admin/class-richie-admin.php:474
-#: admin/class-richie-admin.php:496
-msgid "Article set"
 msgstr ""
 
 #: admin/class-richie-admin.php:475
@@ -250,6 +239,10 @@ msgstr ""
 
 #: admin/class-richie-admin.php:504
 msgid "Assets"
+msgstr ""
+
+#: admin/class-richie-admin.php:632
+msgid "Edit Article sets"
 msgstr ""
 
 #: admin/class-richie-admin.php:669
