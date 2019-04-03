@@ -62,6 +62,7 @@ class Richie_Admin {
         $this->settings_option_name = $plugin_name;
         $this->sources_option_name = $plugin_name . 'news_sources';
         $this->assets_option_name = $plugin_name . '_assets';
+        $this->adslots_option_name = $plugin_name . '_adslots';
         $this->available_layout_names = array(
             'big', 'small', 'small_group_item', 'featured', 'none'
         );
@@ -71,6 +72,8 @@ class Richie_Admin {
         add_action('wp_ajax_set_disable_summary', array($this, 'set_disable_summary'));
         add_action('wp_ajax_publish_source_changes', array($this, 'publish_source_changes'));
         add_action('wp_ajax_revert_source_changes', array($this, 'revert_source_changes'));
+        add_action('wp_ajax_remove_ad_slot', array($this, 'remove_ad_slot'));
+        add_action('wp_ajax_get_adslot_data', array($this, 'get_adslot_data'));
 
         add_action('admin_notices', array($this, 'add_admin_notices'));
 
@@ -122,6 +125,7 @@ class Richie_Admin {
 
         wp_enqueue_script( 'jquery-ui-core' );
         wp_enqueue_script( 'jquery-ui-sortable' );
+        add_thickbox();
         wp_enqueue_script('suggest');
         wp_enqueue_code_editor( array( 'type' => 'application/json' ) );
         wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery' ), $this->version, false );
@@ -303,6 +307,66 @@ class Richie_Admin {
         }
     }
 
+    public function validate_adslot($input) {
+        $current_option = get_option($this->adslots_option_name);
+
+        $adslots = isset($current_option['slots']) ? $current_option['slots'] : array();
+
+        $slot = array();
+        $error = null;
+        $ad_data = null;
+
+        if ( empty($input['article_set']) ) {
+            $error = 'Invalid article_set';
+        }
+
+        if ( empty($input['adslot_position_index']) || !is_numeric($input['adslot_position_index']) || intval($input['adslot_position_index']) < 1 ) {
+            $error = 'Invalid slot position index, it must be 1 or bigger integer';
+        }
+
+        if ( empty($input['adslot_provider']) ) {
+            $error = 'Invalid input provider';
+        }
+
+        if ( !empty($input['ad_data']) ) {
+            $ad_data = json_decode($input['ad_data']);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $error = sprintf('JSON parsing failed for ad data: %s', json_last_error_msg());
+            }
+        }
+
+        if ( $error !== null) {
+            add_settings_error(
+                $this->assets_option_name,
+                esc_attr( 'adslot_error' ),
+                sprintf(__('Failed to save adslot, validation failed: %s', 'richie'), $error),
+                'error'
+            );
+            return $current_option;
+        }
+        $index = intval($input['adslot_position_index']);
+        $article_set = intval($input['article_set']);
+
+        $current_set_slots = isset( $adslots[$article_set] ) ? $adslots[$article_set] : array();
+
+        $current_set_slots[$index] = array(
+            'index' => $index,
+            'article_set' => intval($input['article_set']),
+            'updated' => time(),
+            'attributes' => array(
+                'id' => wp_generate_uuid4(),
+                'list_layout_style' => 'ad',
+                'ad_provider' => sanitize_text_field($input['adslot_provider']),
+                'ad_data' => $ad_data
+            )
+        );
+
+        $adslots[$article_set]  = $current_set_slots;
+        $current_option['slots'] = $adslots;
+
+        return $current_option;
+    }
+
     public function add_admin_notices() {
         if ( $this->has_unpublished_changes()) {
             ?>
@@ -331,6 +395,10 @@ class Richie_Admin {
 
         if ( get_option( $this->sources_option_name ) === false ) {
             add_option($this->sources_option_name, array('sources' => array(), 'version' => 2, 'updated' => time()));
+        }
+
+        if ( get_option( $this->adslots_option_name ) === false ) {
+            add_option($this->adslots_option_name, array('slots' => array(), 'updated' => time()));
         }
 
         $sources = get_option( $this->sources_option_name );
@@ -364,6 +432,10 @@ class Richie_Admin {
             'sanitize_callback' => array($this, 'validate_assets')
         ));
 
+        register_setting($this->adslots_option_name, $this->adslots_option_name, array(
+            'sanitize_callback' => array($this, 'validate_adslot')
+        ));
+
         $options = get_option( $this->settings_option_name );
         if ( ! isset($options['access_token'])) {
             $options['access_token'] = bin2hex(random_bytes(16));
@@ -375,6 +447,7 @@ class Richie_Admin {
         $sources_section_name = 'richie_news_source';
         $assets_section_name = 'richie_feed_assets';
         $maggio_section_name = 'richie_maggio';
+        $adslots_section_name = 'richie_ad_slot';
 
         // create general section
         add_settings_section ($general_section_name, __('General settings', $this->plugin_name), null, $this->settings_option_name);
@@ -396,7 +469,7 @@ class Richie_Admin {
         // create source section
         add_settings_section ($sources_section_name, __('Add new feed source', $this->plugin_name), null, $this->sources_option_name);
         add_settings_field ('richie_source_name',      __('Name', $this->plugin_name),             array($this, 'source_name_render'),     $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_source_set',       __('Article set', $this->plugin_name),      array($this, 'article_set_render'),     $this->sources_option_name, $sources_section_name);
+        add_settings_field ('richie_source_set',       __('Article set', $this->plugin_name),      array($this, 'article_set_render'),     $this->sources_option_name, $sources_section_name, array('namespace' => $this->sources_option_name));
         add_settings_field ('richie_source_amount',    __('Number of posts', $this->plugin_name),  array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
         if ( defined('HERALD_THEME_VERSION') ) {
             $front_page = (int)get_option( 'page_on_front' );
@@ -413,6 +486,16 @@ class Richie_Admin {
         add_settings_field ('richie_list_layout_style', __('List layout', $this->plugin_name),      array($this, 'list_layout_style_render'),       $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_list_group_title',  __('List group title', $this->plugin_name), array($this, 'list_group_title_render'),        $this->sources_option_name, $sources_section_name);
         add_settings_field ('richie_disable_summary',    __('Disable article summary', $this->plugin_name), array($this, 'checkbox_render'),        $this->sources_option_name, $sources_section_name, array('id' => 'disable_summary', 'description' => 'Do not show summary text in news list', 'namespace' => $this->sources_option_name));
+
+
+        // create adslots section
+        $slot_index_description = __('Specify an index number for the ad slot placement in the article set feed. 1-based index, so 1 means the first item on the feed. Existing index for the article set is overwritten.');
+        add_settings_section ($adslots_section_name, __('Add new ad slot', 'richie'), null, $this->adslots_option_name);
+        add_settings_field ('richie_article_set',       __('Article set', 'richie'),    array($this, 'article_set_render'),     $this->adslots_option_name, $adslots_section_name, array('namespace' => $this->adslots_option_name));
+        add_settings_field ('richie_adslot_position',   __('Slot position', 'richie'),  array($this, 'input_field_render'),     $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_position_index', 'namespace' => $this->adslots_option_name, 'class' => '', 'description' => $slot_index_description));
+        add_settings_field ('richie_adslot_provider',   __('Ad provider', 'richie'),    array($this, 'adprovider_render'),      $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_provider', 'namespace' => $this->adslots_option_name));
+        add_settings_field ('richie_adslot_ad_data', __('Ad data', 'richie'), array($this, 'adslot_ad_data_editor_render'), $this->adslots_option_name, $adslots_section_name);
+
 
         // create assets section
         add_settings_section ($assets_section_name, __('Asset feed', $this->plugin_name), null, $this->assets_option_name);
@@ -446,6 +529,33 @@ class Richie_Admin {
         </script>
         <button id="generate-assets" type="button">Generate base list (overrides current content)</button>
         <textarea id="code_editor_page_js" rows="10" name="<?php echo $this->assets_option_name; ?>[data]" class="widefat textarea"><?php echo wp_unslash( wp_json_encode($assets, JSON_PRETTY_PRINT) ); ?></textarea>
+        <?php
+    }
+
+    public function adslot_ad_data_editor_render() {
+        ?>
+        <textarea id="code_editor_page_js" rows="10" name="<?php echo $this->adslots_option_name; ?>[ad_data]" class="textarea"><?php echo wp_unslash( wp_json_encode(array('alternatives' => array(array('page_id' => '', 'format_id' => '', 'min_width' => ''))), JSON_PRETTY_PRINT) ); ?></textarea>
+        <div style="font-size: 11px">
+        <p>
+            Accepts valid json array. Example:
+        </p>
+        <pre>
+    {
+        "alternatives": [
+            {
+                "page_id": 898073,
+                "format_id": 62863,
+                "min_width": 451
+            },
+            {
+                "page_id": 898075,
+                "format_id": 62863,
+                "max_width": 450
+            }
+        ]
+    }
+        </pre>
+        </div>
         <?php
     }
 
@@ -505,18 +615,39 @@ class Richie_Admin {
         <?php
     }
 
-    public function article_set_render() {
+    public function article_set_render( array $args ) {
+
+        $namespace = isset($args['namespace']) ? $args['namespace'] : $this->plugin_name;
+
         wp_dropdown_categories( array (
             'taxonomy' => 'richie_article_set',
             'hide_empty' => false,
-            'id' => $this->sources_option_name . '-article_set',
-            'name' => $this->sources_option_name . '[article_set]',
+            'id' => $namespace . '-article_set',
+            'name' => $namespace . '[article_set]',
         ) );
         ?>
         <p>
             <a href="edit-tags.php?taxonomy=richie_article_set">Edit Richie Article Sets</a>
         </p>
         <?php
+    }
+
+    public function adprovider_render( array $args ) {
+        $id = $args['id'];
+        $namespace = isset($args['namespace']) ? $args['namespace'] : $this->plugin_name;
+        $name = $namespace . '[' . $args['id'] . ']';
+
+        $ad_providers = array('smart');
+        ?>
+            <select name="<?php esc_attr_e($name) ?>">
+                <?php foreach( $ad_providers as $provider ): ?>
+                    <option value="<?php esc_attr_e($provider) ?>"><?php esc_attr_e($provider) ?></option>
+                <?php endforeach; ?>
+            </select>
+        <?php
+        if ( isset( $args['description'] ) ) {
+            printf('<br><span class="description">%s</span>', esc_html__( $args['description'], $this->plugin_name ));
+        }
     }
 
     public function category_list_render() {
@@ -746,6 +877,49 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
         return false;
     }
 
+    public function remove_ad_slot() {
+        if ( !isset($_POST['index']) || !isset($_POST['article_set_id'])) {
+            wp_send_json_error('Missing arguments', 400);
+        }
+        $option = get_option($this->adslots_option_name);
+        $article_set = intval($_POST['article_set_id']);
+        $index = intval($_POST['index']);
+        if ( isset($option['slots']) && isset($option['slots'][$article_set]) ) {
+            $slots = $option['slots'][$article_set];
+            if ( isset($slots[$index]) ) {
+                unset($slots[$index]);
+                remove_filter( 'sanitize_option_' . $this->adslots_option_name, array($this, 'validate_adslot'));
+                if ( !empty($slots) ) {
+                    $option['slots'][$article_set] = $slots;
+                } else {
+                    unset( $option['slots'][$article_set] );
+                }
+                $updated = update_option($this->adslots_option_name, $option);
+                add_filter( 'sanitize_option_' . $this->adslots_option_name, array($this, 'validate_adlot'));
+                wp_send_json(array('deleted' => $updated));
+            }
+        } else {
+            wp_send_json_error('Failed to remove slot', 500);
+        }
+    }
+
+    public function get_adslot_data() {
+        if ( !isset($_POST['index']) || !isset($_POST['article_set_id'])) {
+            wp_send_json_error('Missing arguments', 400);
+        }
+        $option = get_option($this->adslots_option_name);
+        $article_set = intval($_POST['article_set_id']);
+        $index = intval($_POST['index']);
+        if ( isset($option['slots']) && isset($option['slots'][$article_set]) ) {
+            $slots = $option['slots'][$article_set];
+            if ( isset($slots[$index]) ) {
+                wp_send_json(json_encode($slots[$index]));
+            }
+        }
+
+        wp_send_json_error('Not found', 404);
+    }
+
 
     public function source_list() {
         $options = get_option($this->sources_option_name);
@@ -816,8 +990,59 @@ small_group_item of a group', $this->plugin_name ); ?>></span>
             </table>
         <?php
         else:
-            echo _e('<em>No sources configured. Add news feed sources with the form bellow.</em>');
+            echo _e('<em>No sources configured. Add news feed sources with the form below.</em>');
         endif;
     }
 
+    function adslot_list() {
+        $options = get_option($this->adslots_option_name);
+
+        if ( isset($options['slots']) && ! empty( $options['slots'] ) ): ?>
+            <table class="widefat slot-list">
+                <thead>
+                    <th>Article set</th>
+                    <th>Index</th>
+                    <th>ID</th>
+                    <th>Ad provider</th>
+                    <th>Ad data</th>
+                    <th>Actions</th>
+                </thead>
+                <tbody>
+                <?php
+                foreach( $options['slots'] as $article_set_id => $slots ) {
+                    $article_set = get_term($article_set_id);
+                    foreach ( $slots as $slot ) {
+                        $attributes = $slot['attributes'];
+                        $id = $article_set->slug . '-slot-' . $slot['index'];
+                        ?>
+                        <tr id="<?php echo $id; ?>" data-slot-article-set="<?php echo $article_set_id ?>" data-slot-id="<?php echo $slot['index'] ?>" class="slot-item">
+                            <td><?php echo $article_set->name ?></td>
+                            <td><?php echo $slot['index'] ?></td>
+                            <td><?php echo $attributes['id'] ?></td>
+                            <td><?php echo $attributes['ad_provider'] ?></td>
+                            <td>
+                                <div id="<?php echo $id ?>-data" style="display:none;">
+                                    <div>
+                                        <pre><?php echo json_encode($attributes['ad_data'], JSON_PRETTY_PRINT) ?></pre>
+                                    </div>
+                                </div>
+
+                                <a href="#TB_inline?width=600&height=350&inlineId=<?php echo $id ?>-data" title="Ad slot data" class="thickbox">View details</a>
+                            </td>
+                            <td>
+                                <a href="#" class="copy-slot-value">Copy to form</a> |
+                                <a href="#" class="remove-slot-item">Remove</a>
+                            </td>
+                        </tr>
+                        <?php
+                    }
+                }
+                ?>
+                </tbody>
+            </table>
+        <?php
+        else:
+            echo _e('<em>No slots configured. Add ad slots with the form below.</em>');
+        endif;
+    }
 }

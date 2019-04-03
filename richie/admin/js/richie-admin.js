@@ -131,5 +131,49 @@
         });
         return false;
       });
+
+      $('.slot-list').on('click', '.remove-slot-item', function() {
+        var result = confirm('Are you sure?');
+        if (!result) {
+          return;
+        }
+        var row = $(this).parents('tr');
+        var data = {
+          action: 'remove_ad_slot',
+          index: row.data('slot-id'),
+          article_set_id: row.data('slot-article-set')
+        };
+        $.post(ajaxurl, data, function(response) {
+          console.log(response);
+          if (response.deleted) {
+            row.remove();
+          }
+        });
+      });
+
+      $('.slot-list').on('click', '.copy-slot-value', function() {
+        var row = $(this).parents('tr');
+        var data = {
+          action: 'get_adslot_data',
+          index: row.data('slot-id'),
+          article_set_id: row.data('slot-article-set')
+        };
+        $.post(ajaxurl, data, function(response) {
+          var slot = JSON.parse(response);
+          console.log(slot);
+          var $form = $('form[name=richie-adslots-form]');
+
+          $form.find('#richie_adslots-article_set').val(slot.article_set);
+          $form.find('[name*=adslot_position_index]').val(slot.index);
+          $form.find('[name*=adslot_provider]').val(slot.attributes.ad_provider);
+          var editor = document.querySelector('.CodeMirror').CodeMirror;
+          console.log(editor);
+          editor.setValue(JSON.stringify(slot.attributes.ad_data, null, 2));
+          // setTimeout(function() {
+          //   editor.refresh();
+          // }, 1);
+
+        });
+      });
     });
 })( jQuery );

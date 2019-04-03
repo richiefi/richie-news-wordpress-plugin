@@ -175,7 +175,7 @@ function richie_make_link_absolute($url) {
     if ( substr( $url, 0, 4 ) === 'http' ) {
         return $url;
     } elseif (substr( $url, 0, 2 ) === '//') {
-        return 'https://' . $url;
+        return 'https:' . $url;
     } else {
         return get_site_url(null, $url);
     }
