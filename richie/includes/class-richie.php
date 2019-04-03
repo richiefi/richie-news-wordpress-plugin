@@ -100,10 +100,11 @@ class Richie {
     private function load_dependencies() {
 
         /**
-         * Helper functions
+         * Richie dependencies
          */
 
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/helpers.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-custom-taxonomies.php';
 
         /**
         * The class responsible for orchestrating the actions and filters of the
@@ -158,18 +159,22 @@ class Richie {
     */
     private function define_admin_hooks() {
 
-        $plugin_admin = new Richie_Admin( $this->get_plugin_name(), $this->get_version() );
+        $plugin_admin      = new Richie_Admin( $this->get_plugin_name(), $this->get_version() );
 
         $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
         $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
         $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_plugin_admin_menu' );
 
-        // Add Settings link to the plugin
+        // Add Settings link to the plugin.
         $plugin_basename = plugin_basename( plugin_dir_path( __DIR__ ) . $this->plugin_name . '.php' );
         $this->loader->add_filter( 'plugin_action_links_' . $plugin_basename, $plugin_admin, 'add_action_links' );
 
-        // options
-        $this->loader->add_action('admin_init', $plugin_admin, 'options_update');
+        // Custom taxonomies.
+        $custom_taxonomies = new Richie_Custom_Taxonomies();
+        $this->loader->add_action( 'admin_init', $custom_taxonomies, 'register_taxonomies', 5 );
+
+        // Options.
+        $this->loader->add_action( 'admin_init', $plugin_admin, 'options_update' );
     }
 
     /**
@@ -182,13 +187,19 @@ class Richie {
     private function define_public_hooks() {
 
         $plugin_public = new Richie_Public( $this->get_plugin_name(), $this->get_version() );
+        // Custom taxonomies.
+        $custom_taxonomies = new Richie_Custom_Taxonomies();
+        $this->loader->add_action( 'init', $custom_taxonomies, 'register_taxonomies', 5 );
 
-        $this->loader->add_action( 'init', $plugin_public, 'register_shortcodes');
-        $this->loader->add_action( 'init', $plugin_public, 'register_redirect_route');
-        $this->loader->add_action( 'rest_api_init', $plugin_public, 'register_richie_rest_api');
+        // Routes.
+        $this->loader->add_action( 'init', $plugin_public, 'register_shortcodes' );
+        $this->loader->add_action( 'init', $plugin_public, 'register_redirect_route' );
+        $this->loader->add_action( 'rest_api_init', $plugin_public, 'register_richie_rest_api' );
+
+        // Other.
         $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
         $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
-        $this->loader->add_filter( 'template_include', $plugin_public, 'richie_template');
+        $this->loader->add_filter( 'template_include', $plugin_public, 'richie_template' );
 
     }
 

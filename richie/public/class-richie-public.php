@@ -489,7 +489,7 @@ class Richie_Public {
      */
     public function load_maggio_index_content($attributes) {
         if ( !isset( $this->richie_options['maggio_hostname'] ) || empty( $this->richie_options['maggio_hostname'] ) ) {
-            return sprintf('<div>%s</div>', __('Invalid configuration, missing hostname in settings', $this->plugin_name));
+            return sprintf('<div>%s</div>', __('Invalid configuration, missing hostname in settings', 'richie'));
         }
 
         $atts = shortcode_atts(
@@ -500,11 +500,11 @@ class Richie_Public {
             ), $attributes, 'maggio' );
 
         if( empty( $atts['product'] ) ) {
-            return sprintf('<div>%s</div>', __('"product" attribute is required', $this->plugin_name));
+            return sprintf('<div>%s</div>', __('"product" attribute is required', 'richie'));
         }
 
         if( empty( $atts['organization'] ) ) {
-            return sprintf('<div>%s</div>', __('Invalid organization', $this->plugin_name));
+            return sprintf('<div>%s</div>', __('Invalid organization', 'richie'));
         }
 
         $host_name = $this->richie_options['maggio_hostname'];
@@ -514,7 +514,7 @@ class Richie_Public {
         try {
             $maggio_service = new Richie_Maggio_Service($host_name);
         } catch ( Exception $e ) {
-            return sprintf('<div>%s</div>', __('Failed to fetch issues'));
+            return sprintf('<div>%s</div>', __('Failed to fetch issues', 'richie'));
         }
 
         $issues = $maggio_service->get_issues($organization, $product, intval($atts['number_of_issues']));
@@ -522,7 +522,7 @@ class Richie_Public {
         $user_has_access = richie_has_maggio_access( $required_pmpro_level );
 
         if( $issues === false ) {
-            return sprintf('<div>%s</div>', __('Failed to fetch issues', $this->plugin_name));
+            return sprintf('<div>%s</div>', __('Failed to fetch issues', 'richie'));
         }
 
         $richie_template_loader = new Richie_Template_Loader();
@@ -574,7 +574,7 @@ class Richie_Public {
             try {
                 $maggio_service = new Richie_Maggio_Service($hostname);
             } catch ( Exception $e ) {
-                return sprintf('<div>%s</div>', __('Failed to fetch issues'));
+                return sprintf('<div>%s</div>', __('Failed to fetch issues', 'richie'));
             }
 
             $is_free_issue = $maggio_service->is_issue_free( $uuid );
