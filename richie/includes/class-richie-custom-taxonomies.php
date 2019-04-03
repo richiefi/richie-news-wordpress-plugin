@@ -1,10 +1,41 @@
 <?php
+/**
+ * Register custom WordPress taxonomies
+ *
+ * @link       https://www.richie.fi
+ * @since 1.0.3
+ * @package    Richie
+ * @subpackage Richie/includes
+ */
+
+/**
+ * Register custom WordPress taxonomies
+ *
+ * @since 1.0.3
+ * @package    Richie
+ * @subpackage Richie/includes
+ * @author     Markku Uusitupa <markku@richie.fi>
+ */
 class Richie_Custom_Taxonomies {
 
+    /**
+     * Register custom taxonomies.
+     * This is called in init and admin_init hooks
+     *
+     * @since 1.0.3
+     * @access public
+     * @return void
+     */
     public function register_taxonomies() {
         $this->register_taxonomy_article_set();
     }
 
+    /**
+     * Register Article set taxonomy
+     *
+     * @access private
+     * @return void
+     */
     private function register_taxonomy_article_set() {
         $labels = [
             'name'              => _x( 'Article sets', 'taxonomy general name', 'richie' ),
