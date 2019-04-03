@@ -151,7 +151,7 @@ class Richie_Article {
             $rendered_content = $local_rendered_content;
         }
         // $wp_scripts and $wp_styles globals should now been set
-        $article_assets = get_article_assets();
+        $article_assets = richie_get_article_assets();
 
         // find local article assets (shortcodes etc)
         $local_assets = array_udiff($article_assets, $this->assets, function($a, $b) {
