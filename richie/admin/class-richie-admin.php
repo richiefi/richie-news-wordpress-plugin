@@ -638,7 +638,7 @@ class Richie_Admin {
     public function number_of_posts_render() {
         ?>
             <input class="small-text" type='text' name='<?php echo $this->sources_option_name ; ?>[number_of_posts]'>
-            <span class="description"><?php esc_attr_e( 'Amount of posts included in the feed', 'richie' ); ?></span>
+            <span class="description"><?php esc_attr_e( 'Number of posts included in the feed', 'richie' ); ?></span>
         <?php
     }
 
