@@ -462,19 +462,18 @@ class Richie_Admin {
         add_settings_field ('richie_disable_summary',    __('Disable article summary', 'richie'), array($this, 'checkbox_render'),        $this->sources_option_name, $sources_section_name, array('id' => 'disable_summary', 'description' => __('Do not show summary text in news list', 'richie'), 'namespace' => $this->sources_option_name));
 
 
-        // create adslots section
-        $slot_index_description = __('Specify an index number for the ad slot placement in the article set feed. 1-based index, so 1 means the first item on the feed. Existing index for the article set is overwritten.', 'richie');
-        add_settings_section ($adslots_section_name, __('Add new ad slot', 'richie'), null, $this->adslots_option_name);
-        add_settings_field ('richie_article_set',       __('Article set', 'richie'),    array($this, 'article_set_render'),     $this->adslots_option_name, $adslots_section_name, array('namespace' => $this->adslots_option_name));
-        add_settings_field ('richie_adslot_position',   __('Slot position', 'richie'),  array($this, 'input_field_render'),     $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_position_index', 'namespace' => $this->adslots_option_name, 'class' => '', 'description' => $slot_index_description));
-        add_settings_field ('richie_adslot_provider',   __('Ad provider', 'richie'),    array($this, 'adprovider_render'),      $this->adslots_option_name, $adslots_section_name, array('id' => 'adslot_provider', 'namespace' => $this->adslots_option_name));
-        add_settings_field ('richie_adslot_ad_data', __('Ad data', 'richie'), array($this, 'adslot_ad_data_editor_render'), $this->adslots_option_name, $adslots_section_name);
+        // Create adslots section.
+        $slot_index_description = __( 'Specify an index number for the ad slot placement in the article set feed. 1-based index, so 1 means the first item on the feed. Existing index for the article set is overwritten.', 'richie' );
 
+        $section = new Richie_Settings_Section( $adslots_section_name, __( 'Add new ad slot', 'richie' ), $this->adslots_option_name );
+        $section->add_field( 'richie_article_set', __( 'Article set', 'richie' ), 'article_set' );
+        $section->add_field( 'adslot_position_index', __( 'Slot position', 'richie' ), 'input_field', array( 'description' => $slot_index_description, 'class' => '' ) );
+        $section->add_field( 'adslot_provider', __( 'Ad provider', 'richie' ), 'adprovider' );
+        $section->add_field( 'adslot_ad_data', __( 'Ad data', 'richie' ), 'adslot_ad_data_editor' );
 
-        // create assets section
-        add_settings_section ($assets_section_name, __('Asset feed', 'richie'), null, $this->assets_option_name);
-        add_settings_field ('richie_news_assets', __('Assets', 'richie'), array($this, 'asset_editor_render'), $this->assets_option_name, $assets_section_name);
-
+        // Create assets section.
+        $section = new Richie_Settings_Section( $assets_section_name, __( 'Asset feed', 'richie' ), $this->assets_option_name );
+        $section->add_field( 'richie_news_assets', __( 'Assets', 'richie' ), 'asset_editor' );
     }
 
     public function asset_editor_render() {
