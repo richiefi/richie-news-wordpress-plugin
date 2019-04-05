@@ -1,6 +1,20 @@
 <?php
 /**
- * Render form fields
+ * HTML Components for Richie settings
+ *
+ * @link       https://www.richie.fi
+ * @since 1.1.0
+ * @package    Richie
+ * @subpackage Richie/includes
+ */
+
+/**
+ * HTML Components for Richie settings
+ *
+ * @since 1.1.0
+ * @package    Richie
+ * @subpackage Richie/includes
+ * @author     Markku Uusitupa <markku@richie.fi>
  */
 class Richie_Admin_Components {
     /**
@@ -103,7 +117,7 @@ class Richie_Admin_Components {
      *
      * @return void
      */
-    public function input_field( array $args  ) {
+    public function input_field( array $args ) {
         $option_name = $args['option_name'];
         $id          = $args['id'];
         $type        = isset( $args['type'] ) ? $args['type'] : 'text';
@@ -133,7 +147,7 @@ class Richie_Admin_Components {
         $id          = $args['id'];
         $option_name = $args['option_name'];
         $name        = $option_name . '[' . $id . ']';
-        $checked     = isset( $args['checked'] ) && $args['checked'] === true ? 'checked' : '';
+        $checked     = isset( $args['checked'] ) && true === $args['checked'] ? 'checked' : '';
         $value       = isset( $args['value'] ) ? $args['value'] : '1';
 
         printf( '<input type="checkbox" name="%s" value="%s" %s>', esc_attr( $name ), esc_attr( $value ), esc_attr( $checked ) );
@@ -240,13 +254,13 @@ class Richie_Admin_Components {
             $metakeys[]       = array(
                 'key'     => ev_get_meta_key(),
                 'orderby' => 'meta_value_num',
-                'title'   => __( 'Post views', 'richie' )
+                'title'   => __( 'Post views', 'richie' ),
             );
         }
 
         ?>
             <select name='<?php echo esc_attr( $option_name ); ?>[order_by]' id='<?php echo esc_attr( $option_name ); ?>-order-by'>
-                <option selected="selected" value="date"><?php _e( 'Post date', 'richie' ); ?></option>
+                <option selected="selected" value="date"><?php esc_html_e( 'Post date', 'richie' ); ?></option>
                 <option value="modified"><?php esc_html_e( 'Post modified time', 'richie' ); ?></option>
                 <option value="title"><?php esc_html_e( 'Post title', 'richie' ); ?></option>
                 <option value="author"><?php esc_html_e( 'Post author', 'richie' ); ?></option>
@@ -278,7 +292,7 @@ class Richie_Admin_Components {
         $name        = $option_name . '[' . $id . ']';
 
         ?>
-            <select name='<?php echo esc_attr( $option_name ) ; ?>[order_direction]' id='<?php echo esc_attr( $option_name ); ?>-order-direction'>
+            <select name='<?php echo esc_attr( $option_name ); ?>[order_direction]' id='<?php echo esc_attr( $option_name ); ?>-order-direction'>
                 <option selected="selected" value="DESC"><?php esc_html_e( 'DESC', 'richie' ); ?></option>
                 <option value="ASC"><?php esc_html_e( 'ASC', 'richie' ); ?></option>
             </select>
@@ -297,7 +311,7 @@ class Richie_Admin_Components {
         $option_name = $args['option_name'];
         $name        = $option_name . '[' . $id . ']';
         $options     = $args['options'];
-        $required    = isset( $args['required'] ) && $args['required'] === true ? 'required' : '';
+        $required    = isset( $args['required'] ) && true === $args['required'] ? 'required' : '';
 
         ?>
         <select name='<?php echo esc_attr( $name ); ?>' id='<?php echo esc_attr( $id ); ?>' <?php echo esc_attr( $required ); ?>>
@@ -321,15 +335,15 @@ class Richie_Admin_Components {
         $name        = $option_name . '[' . $id . ']';
 
         $available_options = array(
-            array('value' => '1 day',     'title' => sprintf( '%d %s', 1, _n( 'day', 'days', 1, 'richie' ) ) ),
-            array('value' => '3 days',    'title' => sprintf( '%d %s', 3, _n( 'day', 'days', 3, 'richie' ) ) ),
-            array('value' => '1 week',    'title' => sprintf( '%d %s', 1, _n( 'week', 'weeks', 1, 'richie' ) ) ),
-            array('value' => '2 weeks',   'title' => sprintf( '%d %s', 2, _n( 'week', 'weeks', 2, 'richie' ) ) ),
-            array('value' => '1 month',   'title' => sprintf( '%d %s', 1, _n( 'month', 'months', 1, 'richie' ) ) ),
-            array('value' => '3 months',  'title' => sprintf( '%d %s', 3, _n( 'month', 'months', 3, 'richie' ) ) ),
-            array('value' => '6 months',  'title' => sprintf( '%d %s', 6, _n( 'month', 'months', 6, 'richie' ) ) ),
-            array('value' => '1 year',    'title' => __( '1 year', 'richie' ) ),
-            array('value' => 'All time',  'title' => __( 'All time', 'richie' ) ),
+            array( 'value' => '1 day', 'title' => sprintf( '%d %s', 1, _n( 'day', 'days', 1, 'richie' ) ) ),
+            array( 'value' => '3 days', 'title' => sprintf( '%d %s', 3, _n( 'day', 'days', 3, 'richie' ) ) ),
+            array( 'value' => '1 week', 'title' => sprintf( '%d %s', 1, _n( 'week', 'weeks', 1, 'richie' ) ) ),
+            array( 'value' => '2 weeks', 'title' => sprintf( '%d %s', 2, _n( 'week', 'weeks', 2, 'richie' ) ) ),
+            array( 'value' => '1 month', 'title' => sprintf( '%d %s', 1, _n( 'month', 'months', 1, 'richie' ) ) ),
+            array( 'value' => '3 months', 'title' => sprintf( '%d %s', 3, _n( 'month', 'months', 3, 'richie' ) ) ),
+            array( 'value' => '6 months', 'title' => sprintf( '%d %s', 6, _n( 'month', 'months', 6, 'richie' ) ) ),
+            array( 'value' => '1 year', 'title' => __( '1 year', 'richie' ) ),
+            array( 'value' => 'All time', 'title' => __( 'All time', 'richie' ) ),
         )
         ?>
         <fieldset>
