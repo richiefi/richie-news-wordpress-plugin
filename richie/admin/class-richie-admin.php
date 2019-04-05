@@ -358,9 +358,15 @@ class Richie_Admin {
         }
     }
 
+    /**
+     * Setup and register options using settings api
+     *
+     * @return void
+     */
     public function options_update() {
-        // run on admin_init
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-settings-section.php';
 
+        // Run on admin_init.
         $this->debug_sources = false;
 
         if ( isset($_GET['richie_debug_sources'] ) && $_GET['richie_debug_sources'] === '1') {
@@ -423,44 +429,42 @@ class Richie_Admin {
         $maggio_section_name = 'richie_maggio';
         $adslots_section_name = 'richie_ad_slot';
 
-        // create general section
-        add_settings_section ($general_section_name, __('General settings', 'richie'), null, $this->settings_option_name);
-        add_settings_field('richie_access_token', __('Access token', 'richie'), array($this, 'input_field_render'), $this->settings_option_name, $general_section_name, array('id' => 'access_token'));
+        // Create general section.
+        $section = new Richie_Settings_Section( $general_section_name, __( 'General settings', 'richie' ), $this->settings_option_name );
+        $section->add_field( 'access_token', __( 'Access token', 'richie' ), 'input_field', array( 'value' => $options['access_token'] ) );
 
-        // create paywall section
-        add_settings_section ($paywall_section_name, __('Paywall', 'richie'), null, $this->settings_option_name);
-        add_settings_field('richie_metered_pmpro_level', __('Metered level', 'richie'), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'metered_pmpro_level'));
-        add_settings_field('richie_member_only_pmpro_level', __('Member only level', 'richie'), array($this, 'pmpro_level_render'), $this->settings_option_name, $paywall_section_name, array('id' => 'member_only_pmpro_level'));
+        // Create paywall section.
+        $section = new Richie_Settings_Section( $paywall_section_name, __( 'Paywall', 'richie' ), $this->settings_option_name );
+        $section->add_field( 'metered_pmpro_level', __( 'Metered level', 'richie' ), 'pmpro_level', array( 'value' => $options['metered_pmpro_level'] ) );
+        $section->add_field( 'member_only_pmpro_level', __( 'Member only level', 'richie' ), 'pmpro_level', array( 'value' => $options['member_only_pmpro_level'] ) );
 
-        // create maggio section
+        // Create maggio section.
+        $section = new Richie_Settings_Section( $maggio_section_name, __( 'Maggio settings', 'richie' ), $this->settings_option_name );
+        $section->add_field( 'maggio_organization', __( 'Maggio organization', 'richie' ), 'input_field', array( 'value' => $options['maggio_organization'] ) );
+        $section->add_field( 'maggio_hostname', __( 'Maggio hostname', 'richie' ), 'input_field', array( 'value' => $options['maggio_hostname'] ) );
+        $section->add_field( 'maggio_secret', __( 'Maggio secret', 'richie' ), 'input_field', array( 'value' => $options['maggio_secret'] ) );
+        $section->add_field( 'maggio_required_pmpro_level', __( 'Required membership level', 'richie' ), 'pmpro_level', array( 'value' => $options['maggio_required_pmpro_level'] ) );
 
-        add_settings_section ($maggio_section_name, __('Maggio settings', 'richie'), null, $this->settings_option_name);
-        add_settings_field('richie_maggio_organization',   __('Maggio organization', 'richie'),  array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_organization'));
-        add_settings_field('richie_maggio_hostname',       __('Maggio hostname', 'richie'),      array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_hostname'));
-        add_settings_field('richie_maggio_secret',         __('Maggio secret', 'richie'),        array($this, 'input_field_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_secret'));
-        add_settings_field('richie_maggio_required_pmpro_level', __('Required membership level', 'richie'), array($this, 'pmpro_level_render'), $this->settings_option_name, $maggio_section_name, array('id' => 'maggio_required_pmpro_level'));
-
-        // create source section
-        add_settings_section ($sources_section_name, __('Add new feed source', 'richie'), null, $this->sources_option_name);
-        add_settings_field ('richie_source_name',      __('Name', 'richie'),             array($this, 'source_name_render'),     $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_source_set',       __('Article set', 'richie'),      array($this, 'article_set_render'),     $this->sources_option_name, $sources_section_name, array('namespace' => $this->sources_option_name));
-        add_settings_field ('richie_source_amount',    __('Number of posts', 'richie'),  array($this, 'number_of_posts_render'), $this->sources_option_name, $sources_section_name);
-        if ( defined('HERALD_THEME_VERSION') ) {
-            $front_page = (int)get_option( 'page_on_front' );
-            $description = __('Fetch posts from first featured module for given page id. Rest of filters will be ignored.', 'richie');
-            if ( $front_page > 0) {
-                $description = sprintf('%s %s %u.', $description, __('Current front page id is', 'richie'), $front_page);
+        // Create source section.
+        $section = new Richie_Settings_Section( $sources_section_name, __( 'Add new feed source', 'richie' ), $this->sources_option_name );
+        $section->add_field( 'source_name', __( 'Name', 'richie' ), 'input_field' );
+        $section->add_field( 'richie_article_set', __( 'Article set', 'richie' ), 'article_set' );
+        $section->add_field( 'number_of_posts', __( 'Number of posts', 'richie' ), 'input_field', array( 'type' => 'number', 'class' => 'small-text', 'description' => __( 'Number of posts included in the feed', 'richie' ) ) );
+        if ( defined( 'HERALD_THEME_VERSION' ) ) {
+            $front_page  = (int) get_option( 'page_on_front' );
+            $description = __( 'Fetch posts from first featured module for given page id. Rest of filters will be ignored.', 'richie' );
+            if ( $front_page > 0 ) {
+                $description = sprintf( '%s %s %u.', $description, __( 'Current front page id is', 'richie' ), $front_page );
             }
-            add_settings_field ('richie_source_herald_featured', __('Herald featured module', 'richie'), array($this, 'input_field_render'), $this->sources_option_name, $sources_section_name, array('id' => 'herald_featured_post_id', 'namespace' => $this->sources_option_name, 'description' => $description, 'class' => ''));
+            $section->add_field( 'herald_featured_post_id', __( 'Herald featured module', 'richie' ), 'input_field', array( 'description' => $description, 'class' => '' ) );
         }
-        add_settings_field ('richie_source_category',  __('Categories', 'richie'),       array($this, 'category_list_render'),   $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_source_order_by',  __('Order by', 'richie'),         array($this, 'order_by_render'),        $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_source_order_dir', __('Order direction', 'richie'),  array($this, 'order_direction_render'), $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_source_max_age',   __('Post max age', 'richie'),     array($this, 'max_age_render'),         $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_list_layout_style', __('List layout', 'richie'),      array($this, 'list_layout_style_render'),       $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_list_group_title',  __('List group title', 'richie'), array($this, 'list_group_title_render'),        $this->sources_option_name, $sources_section_name);
-        add_settings_field ('richie_disable_summary',    __('Disable article summary', 'richie'), array($this, 'checkbox_render'),        $this->sources_option_name, $sources_section_name, array('id' => 'disable_summary', 'description' => __('Do not show summary text in news list', 'richie'), 'namespace' => $this->sources_option_name));
-
+        $section->add_field( 'source_categories', __( 'Categories', 'richie' ), 'category_list' );
+        $section->add_field( 'order_by', __( 'Order by', 'richie' ), 'order_by' );
+        $section->add_field( 'order_dir', __( 'Order direction', 'richie' ), 'order_direction' );
+        $section->add_field( 'max_age', __( 'Post max age', 'richie' ), 'max_age' );
+        $section->add_field( 'list_layout_style', __( 'List layout', 'richie' ), 'select_field', array( 'options' => $this->available_layout_names, 'required' => true ) );
+        $section->add_field( 'list_group_title', __( 'List group title', 'richie' ), 'input_field', array( 'description' => __( 'Header to display before the story, useful on the first small_group_item of a group', 'richie' ) ) );
+        $section->add_field( 'disable_summary', __( 'Disable article summary', 'richie' ), 'checkbox', array( 'description' => __( 'Do not show summary text in news list', 'richie' ) ) );
 
         // Create adslots section.
         $slot_index_description = __( 'Specify an index number for the ad slot placement in the article set feed. 1-based index, so 1 means the first item on the feed. Existing index for the article set is overwritten.', 'richie' );
@@ -468,266 +472,14 @@ class Richie_Admin {
         $section = new Richie_Settings_Section( $adslots_section_name, __( 'Add new ad slot', 'richie' ), $this->adslots_option_name );
         $section->add_field( 'richie_article_set', __( 'Article set', 'richie' ), 'article_set' );
         $section->add_field( 'adslot_position_index', __( 'Slot position', 'richie' ), 'input_field', array( 'description' => $slot_index_description, 'class' => '' ) );
-        $section->add_field( 'adslot_provider', __( 'Ad provider', 'richie' ), 'adprovider' );
+
+        $ad_providers = array( 'smart' );
+        $section->add_field( 'adslot_provider', __( 'Ad provider', 'richie' ), 'select_field', array( 'options' => $ad_providers ) );
         $section->add_field( 'adslot_ad_data', __( 'Ad data', 'richie' ), 'adslot_ad_data_editor' );
 
         // Create assets section.
         $section = new Richie_Settings_Section( $assets_section_name, __( 'Asset feed', 'richie' ), $this->assets_option_name );
         $section->add_field( 'richie_news_assets', __( 'Assets', 'richie' ), 'asset_editor' );
-    }
-
-    public function asset_editor_render() {
-        $assets = get_option( $this->assets_option_name );
-        if ( empty($assets) ) {
-            // $response = wp_remote_get( str_replace('localhost:8000', 'skynet.local:8000', get_site_url( null, '/wp-json/richie/v1/assets' ) ) );
-            // if ( is_array( $response ) && ! is_wp_error( $response ) ) {
-            //     $assets = json_decode($response['body']);
-            // }
-            $assets = [];
-        }
-        ?>
-        <p>
-            Accepts valid json. Example:
-        </p>
-        <pre>
-    [
-        {
-            "remote_url": "https://example.com/path/to/asset.css",
-            "local_name": "app-assets/asset.css"
-        }
-    ]
-        </pre>
-        <script>
-            var assetUrl = "<?php echo get_rest_url(null, '/richie/v1/assets'); ?>";
-        </script>
-        <button id="generate-assets" type="button">Generate base list (overrides current content)</button>
-        <textarea id="code_editor_page_js" rows="10" name="<?php echo $this->assets_option_name; ?>[data]" class="widefat textarea"><?php echo wp_unslash( wp_json_encode($assets, JSON_PRETTY_PRINT) ); ?></textarea>
-        <?php
-    }
-
-    public function adslot_ad_data_editor_render() {
-        ?>
-        <textarea id="code_editor_page_js" rows="10" name="<?php echo $this->adslots_option_name; ?>[ad_data]" class="textarea"><?php echo wp_unslash( wp_json_encode(array('alternatives' => array(array('page_id' => '', 'format_id' => '', 'min_width' => ''))), JSON_PRETTY_PRINT) ); ?></textarea>
-        <div style="font-size: 11px">
-        <p>
-            Accepts valid json array. Example:
-        </p>
-        <pre>
-    {
-        "alternatives": [
-            {
-                "page_id": 898073,
-                "format_id": 62863,
-                "min_width": 451
-            },
-            {
-                "page_id": 898075,
-                "format_id": 62863,
-                "max_width": 450
-            }
-        ]
-    }
-        </pre>
-        </div>
-        <?php
-    }
-
-    public function input_field_render( array $args  ) {
-        $options = get_option( $this->plugin_name );
-        $id = $args['id'];
-        $type = isset($args['type']) ? $args['type'] : 'test';
-        $namespace = isset($args['namespace']) ? $args['namespace'] : $this->plugin_name;
-        $name = $namespace . '[' . $args['id'] . ']';
-        $value = isset($options{$id}) ? $options{$id} : '';
-        $class_name = isset($args['class']) ? $args['class'] : 'regular-text';
-
-        print "<input class='$class_name' type='$type' name='$name' value='$value'>";
-
-        if ( isset( $args['description'] ) ) {
-            printf('<br><span class="description">%s</span>', esc_html__( $args['description'], $this->plugin_name ));
-        }
-    }
-
-    public function checkbox_render( array $args ) {
-        $current = isset( $args['current'] ) ? $args['current'] : '';
-        $value = isset ( $args['value'] ) ? $args['value'] : '1';
-        $checked = checked( $current, $value, false );
-        $namespace = isset($args['namespace']) ? $args['namespace'] : $this->plugin_name;
-        $name = $namespace . '[' . $args['id'] . ']';
-        print "<input type='checkbox' name='$name' value='$value' $checked>";
-
-        if ( isset( $args['description'] ) ) {
-            printf('<span class="description">%s</span>', esc_html__( $args['description'], $this->plugin_name ));
-        }
-    }
-
-    public function pmpro_level_render( array $args ) {
-        $options = get_option( $this->plugin_name );
-        $id = $args['id'];
-        $current_level = isset($options{$id}) ? $options{$id} : '';
-        $pmpro_levels = pmpro_getAllLevels();
-        $name = $this->plugin_name . '[' . $args['id'] . ']';
-
-        ?>
-        <select name="<?php echo $name ?>" id="<?php echo $this->plugin_name; ?>-<?php echo $id; ?>">
-            <option value="0"><?php esc_attr_e('Not used', $this->plugin_name );?></option>
-            <?php
-                foreach ( $pmpro_levels as $level ) {
-                    $selected = selected( $current_level, $level->id, FALSE);
-                    echo "<option value='{$level->id}' {$selected}>{$level->name}</option>";
-                }
-            ?>
-        </select>
-        <?php
-    }
-
-
-    public function source_name_render() {
-        ?>
-        <input class="regular-text" type='text' name='<?php echo $this->sources_option_name; ?>[source_name]'>
-        <?php
-    }
-
-    public function article_set_render( array $args ) {
-
-        $namespace = isset($args['namespace']) ? $args['namespace'] : $this->plugin_name;
-
-        wp_dropdown_categories( array (
-            'taxonomy' => 'richie_article_set',
-            'hide_empty' => false,
-            'id' => $namespace . '-article_set',
-            'name' => $namespace . '[article_set]',
-        ) );
-        ?>
-        <p>
-            <a href="edit-tags.php?taxonomy=richie_article_set"><?php esc_html_e('Edit Article sets', 'richie') ?></a>
-        </p>
-        <?php
-    }
-
-    public function adprovider_render( array $args ) {
-        $id = $args['id'];
-        $namespace = isset($args['namespace']) ? $args['namespace'] : $this->plugin_name;
-        $name = $namespace . '[' . $args['id'] . ']';
-
-        $ad_providers = array('smart');
-        ?>
-            <select name="<?php esc_attr_e($name) ?>">
-                <?php foreach( $ad_providers as $provider ): ?>
-                    <option value="<?php esc_attr_e($provider) ?>"><?php esc_attr_e($provider) ?></option>
-                <?php endforeach; ?>
-            </select>
-        <?php
-        if ( isset( $args['description'] ) ) {
-            printf('<br><span class="description">%s</span>', esc_html__( $args['description'] ));
-        }
-    }
-
-    public function category_list_render() {
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-category-walker.php';
-
-        $custom_walker = new Richie_Walker_Category_Checklist(null, $this->sources_option_name.'[source_categories][]');
-        ?>
-        <ul>
-        <?php wp_category_checklist( 0, 0, false, false, $custom_walker ); ?>
-        </ul>
-        <?php
-    }
-
-    public function number_of_posts_render() {
-        ?>
-            <input class="small-text" type='text' name='<?php echo $this->sources_option_name ; ?>[number_of_posts]'>
-            <span class="description"><?php esc_attr_e( 'Number of posts included in the feed', 'richie' ); ?></span>
-        <?php
-    }
-
-    public function order_by_render() {
-        $metakeys = [];
-        // check support for event views plugin
-        if ( function_exists( 'ev_get_meta_key' ) ) {
-            $args['orderby'] = 'meta_value_num';
-            $args['meta_key'] = ev_get_meta_key();
-            $metakeys[] = array(
-                'key' => ev_get_meta_key(),
-                'orderby' => 'meta_value_num',
-                'title' => __('Post views', 'richie')
-            );
-        }
-
-        ?>
-            <select name='<?php echo $this->sources_option_name ; ?>[order_by]' id='<?php echo $this->sources_option_name ; ?>-order-by'>
-                <option selected="selected" value="date"><?php _e('Post date', 'richie') ?></option>
-                <option value="modified"><?php _e('Post modified time', 'richie') ?></option>
-                <option value="title"><?php _e('Post title', 'richie') ?></option>
-                <option value="author"><?php _e('Post author', 'richie') ?></option>
-                <option value="id"><?php _e('Post ID', 'richie') ?></option>
-                <?php foreach( $metakeys as $metakey ): ?>
-                    <option value="metakey:<?php esc_attr_e($metakey['key']) ?>:<?php esc_attr_e($metakey['orderby']) ?>"><?php esc_attr_e($metakey['title']) ?></option>
-                <?php endforeach; ?>
-                <?php
-                    if ( class_exists( 'WPP_query' ) ) {
-                        printf('<option value="popular:last24hours">%s</option>', __('Popular posts (24 hours)', 'richie'));
-                        printf('<option value="popular:last7days">%s</option>', __('Popular posts (week)', 'richie'));
-                        printf('<option value="popular:last30days">%s</option>', __('Popular posts (month)', 'richie'));
-                    }
-                ?>
-            </select>
-        <?php
-    }
-
-    public function order_direction_render() {
-        ?>
-            <select name='<?php echo $this->sources_option_name ; ?>[order_direction]' id='<?php echo $this->sources_option_name ; ?>-order-direction'>
-                <option selected="selected" value="DESC"><?php _e('DESC', 'richie') ?></option>
-                <option value="ASC"><?php _e('ASC', 'richie') ?></option>
-            </select>
-        <?php
-    }
-
-    public function list_layout_style_render() {
-        ?>
-        <select name='<?php echo $this->sources_option_name ; ?>[list_layout_style]' id='<?php echo $this->sources_option_name ; ?>-list_layout_style' required>
-            <?php foreach( $this->available_layout_names as $layout_name ): ?>
-                <option value='<?php echo $layout_name ?>'><?php echo $layout_name ?></option>
-            <?php endforeach; ?>
-        </select>
-        <?php
-    }
-
-
-    public function list_group_title_render() {
-        ?>
-        <input class="regular-text" type='text' name='<?php echo $this->sources_option_name; ?>[list_group_title]'>
-        <span class="description"><?php esc_attr_e( 'Header to display before the story, useful on the first
-small_group_item of a group', 'richie'); ?>></span>
-        <?php
-    }
-
-    public function max_age_render() {
-        $available_options = array(
-            array('value' => '1 day',     'title' => sprintf('%d %s', 1, _n('day', 'days', 1, 'richie'))),
-            array('value' => '3 days',    'title' => sprintf('%d %s', 3, _n('day', 'days', 3, 'richie'))),
-            array('value' => '1 week',    'title' => sprintf('%d %s', 1, _n('week', 'weeks', 1, 'richie'))),
-            array('value' => '2 weeks',   'title' => sprintf('%d %s', 2, _n('week', 'weeks', 2, 'richie'))),
-            array('value' => '1 month',   'title' => sprintf('%d %s', 1, _n('month', 'months', 1, 'richie'))),
-            array('value' => '3 months',  'title' => sprintf('%d %s', 3, _n('month', 'months', 3, 'richie'))),
-            array('value' => '6 months',  'title' => sprintf('%d %s', 6, _n('month', 'months', 6, 'richie'))),
-            array('value' => '1 year',    'title' => __('1 year', 'richie')),
-            array('value' => 'All time',  'title' => __('All time', 'richie')),
-        )
-        ?>
-        <fieldset>
-            <?php foreach( $available_options as $opt ): ?>
-            <div>
-                <label>
-                    <input type='radio' name='<?php echo $this->sources_option_name; ?>[max_age]' value='<?php echo $opt['value']; ?>' <?php checked('All time', $opt['value']) ?>>
-                    <span class="description"><?php esc_html_e($opt['title']) ?></span>
-                </label>
-            </div>
-            <?php endforeach; ?>
-            <span class="description"><?php esc_attr_e( 'Include posts that are not older than specific time range', 'richie' ); ?>></span>
-        </fieldset>
-        <?php
     }
 
     public function order_source_list() {

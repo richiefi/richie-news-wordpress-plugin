@@ -41,6 +41,13 @@ class Richie_Admin_Components {
         <?php
     }
 
+    /**
+     * Render json editor for ad slot data
+     *
+     * @param array $args  Rendering options.
+     *
+     * @return void
+     */
     public function adslot_ad_data_editor( array $args ) {
         if ( ! isset( $args['option_name'] ) ) {
             return;
@@ -83,6 +90,19 @@ class Richie_Admin_Components {
         <?php
     }
 
+    /**
+     * Render input field
+     *
+     * @param array $args  Rendering options.
+     *
+     * Rendering options (in args):
+     *  string type: Input type.
+     *  string value: Input value.
+     *  string class: Input class name.
+     *  string description: Description text after the element.
+     *
+     * @return void
+     */
     public function input_field( array $args  ) {
         $option_name = $args['option_name'];
         $id          = $args['id'];
@@ -97,46 +117,69 @@ class Richie_Admin_Components {
         }
     }
 
-    public function checkbox_render( array $args ) {
-        $current = isset( $args['current'] ) ? $args['current'] : '';
-        $value = isset ( $args['value'] ) ? $args['value'] : '1';
-        $checked = checked( $current, $value, false );
-        $namespace = isset($args['namespace']) ? $args['namespace'] : $this->plugin_name;
-        $name = $namespace . '[' . $args['id'] . ']';
-        print "<input type='checkbox' name='$name' value='$value' $checked>";
+    /**
+     * Render checkbox
+     *
+     * @param array $args  Rendering options.
+     *
+     * Rendering options (in args):
+     *  string value: Input value (defaults to 1).
+     *  boolean checked: If true, checkbox is checked initially.
+     *  string description: Description text after the element.
+     *
+     * @return void
+     */
+    public function checkbox( array $args ) {
+        $id          = $args['id'];
+        $option_name = $args['option_name'];
+        $name        = $option_name . '[' . $id . ']';
+        $checked     = isset( $args['checked'] ) && $args['checked'] === true ? 'checked' : '';
+        $value       = isset( $args['value'] ) ? $args['value'] : '1';
+
+        printf( '<input type="checkbox" name="%s" value="%s" %s>', esc_attr( $name ), esc_attr( $value ), esc_attr( $checked ) );
 
         if ( isset( $args['description'] ) ) {
-            printf('<span class="description">%s</span>', esc_html__( $args['description'], $this->plugin_name ));
+            printf( '<span class="description">%s</span>', esc_html( $args['description'] ) );
         }
     }
 
-    public function pmpro_level_render( array $args ) {
-        $options = get_option( $this->plugin_name );
-        $id = $args['id'];
-        $current_level = isset($options{$id}) ? $options{$id} : '';
-        $pmpro_levels = pmpro_getAllLevels();
-        $name = $this->plugin_name . '[' . $args['id'] . ']';
+    /**
+     * Render select box for pmpro levels
+     *
+     * @param array $args  Rendering options.
+     *
+     * Rendering options (in args):
+     *  string value: Current level.
+     *
+     * @return void
+     */
+    public function pmpro_level( array $args ) {
+        $option_name   = $args['option_name'];
+        $id            = $args['id'];
+        $name          = $option_name . '[' . $id . ']';
+        $current_level = isset( $args['value'] ) ? $args['value'] : '';
+        $pmpro_levels  = pmpro_getAllLevels();
 
         ?>
-        <select name="<?php echo $name ?>" id="<?php echo $this->plugin_name; ?>-<?php echo $id; ?>">
-            <option value="0"><?php esc_attr_e('Not used', $this->plugin_name );?></option>
+        <select name="<?php echo esc_attr( $name ); ?>" id="<?php echo esc_attr( $id ); ?>">
+            <option value="0"><?php esc_attr_e( 'Not used', 'richie' ); ?></option>
             <?php
-                foreach ( $pmpro_levels as $level ) {
-                    $selected = selected( $current_level, $level->id, FALSE);
-                    echo "<option value='{$level->id}' {$selected}>{$level->name}</option>";
-                }
+            foreach ( $pmpro_levels as $level ) {
+                $selected = selected( $current_level, $level->id, false );
+                printf( "<option value='%s' %s>%s</option>", esc_attr( $level->id ), esc_attr( $selected ), esc_attr( $level->name ) );
+            }
             ?>
         </select>
         <?php
     }
 
-
-    public function source_name_render() {
-        ?>
-        <input class="regular-text" type='text' name='<?php echo $this->sources_option_name; ?>[source_name]'>
-        <?php
-    }
-
+    /**
+     * Render select box for article sets
+     *
+     * @param array $args  Rendering options.
+     *
+     * @return void
+     */
     public function article_set( array $args ) {
 
         $option_name = $args['option_name'];
@@ -151,33 +194,25 @@ class Richie_Admin_Components {
         );
         ?>
         <p>
-            <a href="edit-tags.php?taxonomy=richie_article_set">Edit Richie Article Sets</a>
+            <a href="edit-tags.php?taxonomy=richie_article_set"><?php esc_html_e( 'Edit Article sets', 'richie' ); ?></a>
         </p>
         <?php
     }
 
-    public function adprovider( array $args ) {
+    /**
+     * Render checkbox list for available categories.
+     *
+     * @param array $args  Rendering options.
+     *
+     * @return void
+     */
+    public function category_list( array $args ) {
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-category-walker.php';
         $id          = $args['id'];
         $option_name = $args['option_name'];
-        $name        = $option_name . '[' . $id . ']';
+        $name        = $option_name . '[' . $id . '][]';
 
-        $ad_providers = array( 'smart' );
-        ?>
-            <select name="<?php echo esc_attr( $name ); ?>">
-                <?php foreach ( $ad_providers as $provider ) : ?>
-                    <option value="<?php echo esc_attr( $provider ); ?>"><?php echo esc_attr( $provider ); ?></option>
-                <?php endforeach; ?>
-            </select>
-        <?php
-        if ( isset( $args['description'] ) ) {
-            printf( '<br><span class="description">%s</span>', esc_html( $args['description'] ) );
-        }
-    }
-
-    public function category_list_render() {
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-category-walker.php';
-
-        $custom_walker = new Richie_Walker_Category_Checklist(null, $this->sources_option_name.'[source_categories][]');
+        $custom_walker = new Richie_Walker_Category_Checklist( null, $name );
         ?>
         <ul>
         <?php wp_category_checklist( 0, 0, false, false, $custom_walker ); ?>
@@ -185,101 +220,129 @@ class Richie_Admin_Components {
         <?php
     }
 
-    public function number_of_posts_render() {
-        ?>
-            <input class="small-text" type='text' name='<?php echo $this->sources_option_name ; ?>[number_of_posts]'>
-            <span class="description"><?php esc_attr_e( 'Amount of posts included in the feed', $this->plugin_name ); ?></span>
-        <?php
-    }
+    /**
+     * Render select box for supported article ordering
+     *
+     * @param array $args  Rendering options.
+     *
+     * @return void
+     */
+    public function order_by( array $args ) {
+        $metakeys    = [];
+        $id          = $args['id'];
+        $option_name = $args['option_name'];
+        $name        = $option_name . '[' . $id . ']';
 
-    public function order_by_render() {
-        $metakeys = [];
-        // check support for event views plugin
+        // Check support for event views plugin.
         if ( function_exists( 'ev_get_meta_key' ) ) {
-            $args['orderby'] = 'meta_value_num';
+            $args['orderby']  = 'meta_value_num';
             $args['meta_key'] = ev_get_meta_key();
-            $metakeys[] = array(
-                'key' => ev_get_meta_key(),
+            $metakeys[]       = array(
+                'key'     => ev_get_meta_key(),
                 'orderby' => 'meta_value_num',
-                'title' => 'Post views'
+                'title'   => __( 'Post views', 'richie' )
             );
         }
 
         ?>
-            <select name='<?php echo $this->sources_option_name ; ?>[order_by]' id='<?php echo $this->sources_option_name ; ?>-order-by'>
-                <option selected="selected" value="date">Post date</option>
-                <option value="modified">Post modified time</option>
-                <option value="title">Post title</option>
-                <option value="author">Post author</option>
-                <option value="id">Post ID</option>
-                <?php foreach( $metakeys as $metakey ): ?>
-                    <option value="metakey:<?php esc_attr_e($metakey['key']) ?>:<?php esc_attr_e($metakey['orderby']) ?>"><?php esc_attr_e($metakey['title']) ?></option>
+            <select name='<?php echo esc_attr( $option_name ); ?>[order_by]' id='<?php echo esc_attr( $option_name ); ?>-order-by'>
+                <option selected="selected" value="date"><?php _e( 'Post date', 'richie' ); ?></option>
+                <option value="modified"><?php esc_html_e( 'Post modified time', 'richie' ); ?></option>
+                <option value="title"><?php esc_html_e( 'Post title', 'richie' ); ?></option>
+                <option value="author"><?php esc_html_e( 'Post author', 'richie' ); ?></option>
+                <option value="id"><?php esc_html_e( 'Post ID', 'richie' ); ?></option>
+                <?php foreach ( $metakeys as $metakey ) : ?>
+                    <option value="metakey:<?php echo esc_attr( $metakey['key'] ); ?>:<?php echo esc_attr( $metakey['orderby'] ); ?>"><?php echo esc_html( $metakey['title'] ); ?></option>
                 <?php endforeach; ?>
                 <?php
-                    if ( class_exists( 'WPP_query' ) ) {
-                        echo '<option value="popular:last24hours">Popular posts (24 hours)</option>';
-                        echo '<option value="popular:last7days">Popular posts (week)</option>';
-                        echo '<option value="popular:last30days">Popular posts (month)</option>';
-                    }
+                if ( class_exists( 'WPP_query' ) ) {
+                    printf( '<option value="popular:last24hours">%s</option>', esc_html__( 'Popular posts (24 hours)', 'richie' ) );
+                    printf( '<option value="popular:last7days">%s</option>', esc_html__( 'Popular posts (week)', 'richie' ) );
+                    printf( '<option value="popular:last30days">%s</option>', esc_html__( 'Popular posts (month)', 'richie' ) );
+                }
                 ?>
             </select>
         <?php
     }
 
-    public function order_direction_render() {
+    /**
+     * Render select box for order direction
+     *
+     * @param array $args  Rendering options.
+     *
+     * @return void
+     */
+    public function order_direction( array $args ) {
+        $id          = $args['id'];
+        $option_name = $args['option_name'];
+        $name        = $option_name . '[' . $id . ']';
+
         ?>
-            <select name='<?php echo $this->sources_option_name ; ?>[order_direction]' id='<?php echo $this->sources_option_name ; ?>-order-direction'>
-                <option selected="selected" value="DESC">DESC</option>
-                <option value="ASC">ASC</option>
+            <select name='<?php echo esc_attr( $option_name ) ; ?>[order_direction]' id='<?php echo esc_attr( $option_name ); ?>-order-direction'>
+                <option selected="selected" value="DESC"><?php esc_html_e( 'DESC', 'richie' ); ?></option>
+                <option value="ASC"><?php esc_html_e( 'ASC', 'richie' ); ?></option>
             </select>
         <?php
     }
 
-    public function list_layout_style_render() {
+    /**
+     * Render select box for given options
+     *
+     * @param array $args  Rendering options.
+     *   string[] options Array of options.
+     * @return void
+     */
+    public function select_field( array $args ) {
+        $id          = $args['id'];
+        $option_name = $args['option_name'];
+        $name        = $option_name . '[' . $id . ']';
+        $options     = $args['options'];
+        $required    = isset( $args['required'] ) && $args['required'] === true ? 'required' : '';
+
         ?>
-        <select name='<?php echo $this->sources_option_name ; ?>[list_layout_style]' id='<?php echo $this->sources_option_name ; ?>-list_layout_style' required>
-            <?php foreach( $this->available_layout_names as $layout_name ): ?>
-                <option value='<?php echo $layout_name ?>'><?php echo $layout_name ?></option>
+        <select name='<?php echo esc_attr( $name ); ?>' id='<?php echo esc_attr( $id ); ?>' <?php echo esc_attr( $required ); ?>>
+            <?php foreach ( $options as $opt ) : ?>
+                <option value='<?php echo esc_attr( $opt ); ?>'><?php echo esc_attr( $opt ); ?></option>
             <?php endforeach; ?>
         </select>
         <?php
     }
 
+    /**
+     * Render radio button list for age options.
+     *
+     * @param array $args  Rendering options.
+     *
+     * @return void
+     */
+    public function max_age( array $args ) {
+        $id          = $args['id'];
+        $option_name = $args['option_name'];
+        $name        = $option_name . '[' . $id . ']';
 
-    public function list_group_title_render() {
-        ?>
-        <input class="regular-text" type='text' name='<?php echo $this->sources_option_name; ?>[list_group_title]'>
-        <span class="description"><?php esc_attr_e( 'Header to display before the story, useful on the first
-small_group_item of a group', $this->plugin_name ); ?>></span>
-        <?php
-    }
-
-    public function max_age_render() {
         $available_options = array(
-            '1 day',
-            '3 days',
-            '1 week',
-            '2 weeks',
-            '1 month',
-            '3 months',
-            '6 months',
-            '1 year',
-            'All time'
+            array('value' => '1 day',     'title' => sprintf( '%d %s', 1, _n( 'day', 'days', 1, 'richie' ) ) ),
+            array('value' => '3 days',    'title' => sprintf( '%d %s', 3, _n( 'day', 'days', 3, 'richie' ) ) ),
+            array('value' => '1 week',    'title' => sprintf( '%d %s', 1, _n( 'week', 'weeks', 1, 'richie' ) ) ),
+            array('value' => '2 weeks',   'title' => sprintf( '%d %s', 2, _n( 'week', 'weeks', 2, 'richie' ) ) ),
+            array('value' => '1 month',   'title' => sprintf( '%d %s', 1, _n( 'month', 'months', 1, 'richie' ) ) ),
+            array('value' => '3 months',  'title' => sprintf( '%d %s', 3, _n( 'month', 'months', 3, 'richie' ) ) ),
+            array('value' => '6 months',  'title' => sprintf( '%d %s', 6, _n( 'month', 'months', 6, 'richie' ) ) ),
+            array('value' => '1 year',    'title' => __( '1 year', 'richie' ) ),
+            array('value' => 'All time',  'title' => __( 'All time', 'richie' ) ),
         )
         ?>
         <fieldset>
-            <?php foreach( $available_options as $opt ): ?>
+            <?php foreach ( $available_options as $opt ) : ?>
             <div>
                 <label>
-                    <input type='radio' name='<?php echo $this->sources_option_name; ?>[max_age]' value='<?php echo $opt; ?>' <?php checked('All time', $opt) ?>>
-                    <span class="description"><?php _e($opt, $this->plugin_name) ?></span>
+                    <input type='radio' name='<?php echo esc_attr( $name ); ?>' value='<?php echo esc_attr( $opt['value'] ); ?>' <?php checked( 'All time', $opt['value'] ); ?>>
+                    <span class="description"><?php echo esc_html( $opt['title'] ); ?></span>
                 </label>
             </div>
             <?php endforeach; ?>
-            <span class="description"><?php esc_attr_e( 'Include posts that are not older than specific time range', $this->plugin_name ); ?>></span>
+            <span class="description"><?php esc_attr_e( 'Include posts that are not older than specific time range', 'richie' ); ?>></span>
         </fieldset>
         <?php
     }
-
-
 }
