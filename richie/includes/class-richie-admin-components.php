@@ -312,11 +312,21 @@ class Richie_Admin_Components {
         $name        = $option_name . '[' . $id . ']';
         $options     = $args['options'];
         $required    = isset( $args['required'] ) && true === $args['required'] ? 'required' : '';
+        $selected    = isset( $args['selected'] ) ? $args['selected'] : null;
 
         ?>
         <select name='<?php echo esc_attr( $name ); ?>' id='<?php echo esc_attr( $id ); ?>' <?php echo esc_attr( $required ); ?>>
             <?php foreach ( $options as $opt ) : ?>
-                <option value='<?php echo esc_attr( $opt ); ?>'><?php echo esc_attr( $opt ); ?></option>
+                <?php
+                if ( isset( $opt['value'] ) ) {
+                    $value = $opt['value'];
+                    $title = isset( $opt['title'] ) ? $opt['title'] : $opt['value'];
+                } else {
+                    $value = $opt;
+                    $title = $opt;
+                }
+                ?>
+                <option value='<?php echo esc_attr( $value ); ?>' <?php selected( $selected, $value, true ); ?>><?php echo esc_attr( $title ); ?></option>
             <?php endforeach; ?>
         </select>
         <?php
