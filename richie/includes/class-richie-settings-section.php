@@ -49,7 +49,7 @@ class Richie_Settings_Section {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-admin-components.php';
         $this->admin_components = new Richie_Admin_Components();
 
-        if ( empty( $section_slug ) || empty( $section_title ) || empty( $option_name )) {
+        if ( empty( $section_slug ) || empty( $section_title ) || empty( $option_name ) ) {
             throw new Exception( 'Invalid arguments' );
         }
 

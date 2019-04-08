@@ -1,5 +1,12 @@
 <?php
 /**
+ * Richie helper functions
+ *
+ * @package richie
+ * @subpackage richie/includes
+ */
+
+/**
  * Create rewrite rule for maggio redirects
  *
  * Optionally flush rewrite rules (NOTE: that is an expensive operation, only do when absolute required)
@@ -146,8 +153,8 @@ function richie_attachment_url_to_postid( $url ) {
     $dir  = wp_get_upload_dir();
     $path = $url;
 
-    $site_url   = parse_url( $dir['url'] );
-    $image_path = parse_url( $path );
+    $site_url   = wp_parse_url( $dir['url'] );
+    $image_path = wp_parse_url( $path );
 
     //force the protocols to match if needed
     if ( isset( $image_path['scheme'] ) && ( $image_path['scheme'] !== $site_url['scheme'] ) ) {
@@ -201,7 +208,7 @@ function richie_make_link_absolute( $url ) {
  */
 function richie_get_image_id( $image_url ) {
 	global $wpdb;
-    $attachment = $wpdb->get_col( $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE guid='%s';", $image_url ));
+    $attachment = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE guid=%s;", $image_url ) );
     if ( ! empty( $attachment ) ) {
         return $attachment[0];
     }
