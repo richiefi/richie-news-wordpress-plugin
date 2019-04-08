@@ -38,6 +38,7 @@ Richie Platform plugin provides following features:
 * Feature: ad slots configuration
 * Localization fixes
 * Finnish localization
+* Code refactoring
 
 == Configuration ==
 

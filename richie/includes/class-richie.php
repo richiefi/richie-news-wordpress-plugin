@@ -103,7 +103,7 @@ class Richie {
          * Richie dependencies
          */
 
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/helpers.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/functions.php';
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-custom-taxonomies.php';
 
         /**

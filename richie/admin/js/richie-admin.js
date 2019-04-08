@@ -49,6 +49,7 @@
 
             var data = {
               action: 'list_update_order',
+              security: richie_ajax.security,
               source_items: $(this).sortable('toArray', {attribute: 'data-source-id'})
             }
             $.post(ajaxurl, data)
@@ -69,6 +70,7 @@
         var row = $(this).parents('tr');
         var data = {
           action: 'remove_source_item',
+          security: richie_ajax.security,
           source_id: $(this).parents('tr').data('source-id')
         }
         $.post(ajaxurl, data, function(response) {
@@ -81,10 +83,16 @@
       $('.feed-source-list').on('click', '.disable-summary', function() {
         var data = {
           action: 'set_disable_summary',
+          security: richie_ajax.security,
           source_id: $(this).parents('tr').data('source-id'),
           disable_summary: $(this)[0].checked
         }
-        $.post(ajaxurl, data, function(response) {
+        $.post(ajaxurl, data)
+        .done(function(response) {
+          console.log(response);
+        })
+        .fail(function(err) {
+          console.error(err);
         });
       });
 
@@ -114,6 +122,7 @@
       $('a#publish-sources').on('click', function() {
         var data = {
           action: 'publish_source_changes',
+          security: richie_ajax.security
         }
         $.post(ajaxurl, data, function(response) {
           console.log(response);
@@ -124,6 +133,7 @@
       $('a#revert-source-changes').on('click', function() {
         var data = {
           action: 'revert_source_changes',
+          security: richie_ajax.security
         }
         $.post(ajaxurl, data, function(response) {
           console.log(response);
@@ -140,6 +150,7 @@
         var row = $(this).parents('tr');
         var data = {
           action: 'remove_ad_slot',
+          security: richie_ajax.security,
           index: row.data('slot-id'),
           article_set_id: row.data('slot-article-set')
         };
@@ -155,6 +166,7 @@
         var row = $(this).parents('tr');
         var data = {
           action: 'get_adslot_data',
+          security: richie_ajax.security,
           index: row.data('slot-id'),
           article_set_id: row.data('slot-article-set')
         };
