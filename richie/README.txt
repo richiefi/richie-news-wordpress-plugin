@@ -24,21 +24,21 @@ Richie Platform plugin provides following features:
 
 == Changelog ==
 
-= 1.0 =
-* Initial version
-
-= 1.0.1 =
-* Bug fixes
-
-= 1.0.2 (29.03.2019) =
-* Fix issue with updated_date in news feed
-
-= WIP =
+= 1.1.0 (08.04.2019) =
 * Fix an issue with non existing gallery images
 * Feature: ad slots configuration
 * Localization fixes
 * Finnish localization
 * Code refactoring
+
+= 1.0.2 (29.03.2019) =
+* Fix issue with updated_date in news feed
+
+= 1.0.1 =
+* Bug fixes
+
+= 1.0 =
+* Initial version
 
 == Configuration ==
 
