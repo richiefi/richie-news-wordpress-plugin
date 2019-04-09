@@ -316,7 +316,7 @@ class Richie_Maggio_Service {
      * @param integer $number_of_issues Number of wanted issues.
      * @return Richie_Maggio_Issue[]
      */
-    public function get_issues( $organization, $product, $number_of_issues = -1 ) {
+    public function get_issues( $organization, $product, $number_of_issues = 0 ) {
         if ( empty( $organization ) || empty( $product ) ) {
             return false;
         }
@@ -349,7 +349,7 @@ class Richie_Maggio_Service {
             }
         );
 
-        if ( $number_of_issues >= 0 ) {
+        if ( $number_of_issues > 0 ) {
             return array_slice( $issues, 0, $number_of_issues );
         }
 
