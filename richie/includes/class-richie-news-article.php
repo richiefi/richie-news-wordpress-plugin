@@ -260,7 +260,7 @@ class Richie_Article {
                 } else {
                     $thumbnail_url = wp_get_attachment_image_url( $thumbnail_id, $size );
                 }
-                if ( false === strpos( $rendered_content, $thumbnail_url ) ) {
+                if ( false !== strpos( $rendered_content, $thumbnail_url ) ) {
                     $local_name       = wp_make_link_relative( $thumbnail );
                     $local_name       = ltrim( $local_name, '/' );
                     $rendered_content = str_replace( $thumbnail_url, $local_name, $rendered_content );
@@ -271,7 +271,7 @@ class Richie_Article {
                     );
                     // Remove from general image array, since we have already handled this url.
                     $index = array_search( $thumbnail_url, $image_urls );
-                    if ( false === $index ) {
+                    if ( false !== $index ) {
                         unset( $image_urls[ $index ] );
                     }
                 }
@@ -281,7 +281,7 @@ class Richie_Article {
         if ( ! $disable_url_handling ) {
             // Find first gallery and append it to photos array.
             $gallery = get_post_gallery( $my_post, false );
-            if ( false === $gallery ) {
+            if ( false !== $gallery ) {
                 $ids = explode( ',', $gallery['ids'] );
                 foreach ( $ids as $attachment_id ) {
                     $attachment = get_post( $attachment_id );
