@@ -23,6 +23,8 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= 1.1.1 (09.04.2019) =
+* Fix issue with images
 
 = 1.1.0 (08.04.2019) =
 * Fix an issue with non existing gallery images
