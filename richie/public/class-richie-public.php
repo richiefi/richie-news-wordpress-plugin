@@ -502,12 +502,13 @@ class Richie_Public {
             return sprintf( '<div>%s</div>', esc_html__( 'Invalid organization', 'richie' ) );
         }
 
-        $host_name    = $this->richie_options['maggio_hostname'];
-        $organization = $atts['organization'];
-        $product      = $atts['product'];
+        $host_name      = $this->richie_options['maggio_hostname'];
+        $selected_index = $this->richie_options['maggio_index_range'];
+        $organization   = $atts['organization'];
+        $product        = $atts['product'];
 
         try {
-            $maggio_service = new Richie_Maggio_Service( $host_name );
+            $maggio_service = new Richie_Maggio_Service( $host_name, $selected_index );
         } catch ( Exception $e ) {
             return sprintf( '<div>%s</div>', esc_html__( 'Failed to fetch issues', 'richie' ) );
         }

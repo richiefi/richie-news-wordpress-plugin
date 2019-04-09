@@ -249,10 +249,10 @@ class Richie_Maggio_Service {
      *
      * @param string $host_name Maggio hostname.
      */
-    public function __construct( $host_name ) {
+    public function __construct( $host_name, $index_path = '/_data/index.json' ) {
         $minimum_cache_time   = MINUTE_IN_SECONDS;
         $maximum_cache_time   = 0; // No cache.
-        $index_url            = $host_name . '/_data/index.json';
+        $index_url            = $host_name . $index_path;
         $this->cached_request = new Richie_Cached_Request( $index_url, $minimum_cache_time, $maximum_cache_time );
     }
 
