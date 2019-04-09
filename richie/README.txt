@@ -25,6 +25,7 @@ Richie Platform plugin provides following features:
 == Changelog ==
 = 1.1.1 (09.04.2019) =
 * Fix issue with images
+* Fix issue with template rendering context
 
 = 1.1.0 (08.04.2019) =
 * Fix an issue with non existing gallery images
