@@ -330,6 +330,9 @@ class Richie_Admin_Components {
             <?php endforeach; ?>
         </select>
         <?php
+        if ( isset( $args['description'] ) ) {
+            printf( '<div><span class="description">%s</span></div>', esc_html( $args['description'] ) );
+        }
     }
 
     /**
