@@ -48,16 +48,20 @@ class Richie_Article {
         $this->assets       = $assets;
     }
 
-    private function render_template( $slug, $name, $post_id ) {
+    private function render_template( $slug, $name, $post_obj ) {
         global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $user_ID, $wp_styles, $wp_scripts, $wp_filter;
         require_once plugin_dir_path( __FILE__ ) . 'class-richie-template-loader.php';
         $richie_template_loader = new Richie_Template_Loader();
 
         $wp_query = new WP_Query( //phpcs:ignore
             array(
-                'p' => $post_id,
+                'p' => $post_obj->ID,
             )
         );
+
+        // Override global '$post'. This is required for rendering to work, templates may use global '$post'.
+        $post = $post_obj; //phpcs:ignore
+        $wp_query->setup_postdata( $post_obj );
 
         // Add pmpro filter which overrides access and always returns true.
         // This way it won't filter the content and always returns full content.
@@ -68,8 +72,7 @@ class Richie_Article {
             ->get_template_part( $slug, $name );
 
         $rendered_content = ob_get_clean();
-        wp_reset_query();
-        wp_reset_postdata();
+        wp_reset_query(); // Reset wp query to original and resets post data also.
 
         return $rendered_content;
     }
@@ -83,7 +86,12 @@ class Richie_Article {
     }
 
     public function generate_article( $my_post ) {
-        global $wpdb, $post;
+        global $wpdb;
+
+        if ( empty( $my_post ) ) {
+            return new stdClass(); // Return empty object.
+        }
+
         $hash          = md5( wp_json_encode( $my_post ) );
         $article       = new stdClass();
         $article->hash = $hash;
@@ -179,7 +187,7 @@ class Richie_Article {
         }
 
         // Render locally to get assets.
-        $local_rendered_content = $this->render_template( 'richie-news', 'article', $post_id );
+        $local_rendered_content = $this->render_template( 'richie-news', 'article', $my_post );
 
         if ( $use_local_render ) {
             $rendered_content = $local_rendered_content;
