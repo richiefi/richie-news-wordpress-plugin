@@ -212,6 +212,7 @@ class Richie_Admin {
         $valid['maggio_hostname']             = isset( $input['maggio_hostname'] ) ? esc_url_raw( $input['maggio_hostname'] ) : '';
         $valid['maggio_organization']         = isset( $input['maggio_organization'] ) ? sanitize_text_field( $input['maggio_organization'] ) : '';
         $valid['maggio_required_pmpro_level'] = isset( $input['maggio_required_pmpro_level'] ) ? intval( $input['maggio_required_pmpro_level'] ) : '';
+        $valid['maggio_index_range']          = isset( $input['maggio_index_range'] ) ? sanitize_text_field( $input['maggio_index_range'] ) : '';
 
         return $valid;
     }
@@ -524,18 +525,10 @@ class Richie_Admin {
         $section->add_field( 'maggio_secret', __( 'Maggio secret', 'richie' ), 'input_field', array( 'value' => $options['maggio_secret'] ) );
         $section->add_field( 'maggio_required_pmpro_level', __( 'Required membership level', 'richie' ), 'pmpro_level', array( 'value' => $options['maggio_required_pmpro_level'] ) );
 
-        $available_indexes = array(
-            array(
-                'title' => '30 days',
-                'value' => '_data/index_30.json',
-            ),
-            array(
-                'title' => 'all',
-                'value' => '_data/index.json',
-            ),
-        );
+        // 'all' and 'latest' are available as default, other options can be updated.
+        $available_indexes = $this->get_available_indexes();
 
-        $section->add_field( 'maggio_index_range', __( 'Maggio index range', 'richie' ), 'select_field', array( 'options' => $available_indexes, 'selected' => '_data/index.json', 'description' => 'Select index to uses. "All" contains all issues, and 30 days contains issues newer than 30 days, etc.' ) );
+        $section->add_field( 'maggio_index_range', __( 'Maggio index range', 'richie' ), 'select_field', array( 'options' => $available_indexes, 'selected' => $options['maggio_index_range'], 'description' => 'Select index to use. "All" contains all issues, other options contain issues from specific range. To get available options, save Maggio Hostname setting first.' ) );
 
         // Create source section.
         $section = new Richie_Settings_Section( $sources_section_name, __( 'Add new feed source', 'richie' ), $this->sources_option_name );
@@ -575,6 +568,48 @@ class Richie_Admin {
         $section->add_field( 'richie_news_assets', __( 'Assets', 'richie' ), 'asset_editor' );
     }
 
+    public function get_available_indexes() {
+        $options = get_option( $this->settings_option_name );
+
+        $available_indexes = array();
+
+        if ( isset( $options['maggio_hostname'] ) ) {
+            // We have hostname set, fetch available from the server.
+            $url      = $options['maggio_hostname'] . '/_data/server_config.json';
+            $response = wp_remote_get( $url );
+            $body     = wp_remote_retrieve_body( $response );
+
+            if ( ! empty( $body ) ) {
+                $config = json_decode( $body, true );
+                if ( JSON_ERROR_NONE === json_last_error() ) {
+                    $indexes = $config['indexes'];
+
+                    $available_indexes = array_map(
+                        function( $index ) {
+                            return array(
+                                'title' => $index['range'],
+                                'value' => $index['path'],
+                            );
+                        },
+                        $indexes
+                    );
+                }
+            }
+        } else {
+            // 'all' and 'latest' are available as default, other options can be updated.
+            $available_indexes = array(
+                array(
+                    'title' => 'all',
+                    'value' => '_data/index.json',
+                ),
+                array(
+                    'title' => 'latest',
+                    'value' => '_data/latest.json',
+                ),
+            );
+        }
+        return $available_indexes;
+    }
     /**
      * Ajax hook for ordering news source list.
      * Sends json response
