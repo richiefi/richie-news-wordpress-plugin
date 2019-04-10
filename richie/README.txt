@@ -23,6 +23,10 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+
+= WIP =
+* Support time limited maggio index files
+
 = 1.1.1 (09.04.2019) =
 * Fix issue with images
 * Fix issue with template rendering context
