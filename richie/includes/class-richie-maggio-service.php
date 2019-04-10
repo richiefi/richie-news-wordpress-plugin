@@ -336,6 +336,12 @@ class Richie_Maggio_Service {
         $product_issues = $data->issues->{$product_id};
 
         if ( ! empty( $product_issues ) ) {
+
+            if ( is_object( $product_issues ) ) {
+                $issue = new Richie_Maggio_Issue( $product, $product_issues );
+                return array( $issue );
+            }
+
             foreach ( $product_issues as $issue_data ) {
                 $issue = new Richie_Maggio_Issue( $product, $issue_data );
                 array_push( $issues, $issue );
