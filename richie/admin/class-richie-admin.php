@@ -527,8 +527,8 @@ class Richie_Admin {
 
         // 'all' and 'latest' are available as default, other options can be updated.
         $available_indexes = $this->get_available_indexes();
-
-        $section->add_field( 'maggio_index_range', __( 'Maggio index range', 'richie' ), 'select_field', array( 'options' => $available_indexes, 'selected' => $options['maggio_index_range'], 'description' => 'Select index to use. "All" contains all issues, other options contain issues from specific range. To get available options, save Maggio Hostname setting first.' ) );
+        $selected = isset( $options['maggio_index_range'] ) ? $options['maggio_index_range'] : '/_data/index.json';
+        $section->add_field( 'maggio_index_range', __( 'Maggio index range', 'richie' ), 'select_field', array( 'options' => $available_indexes, 'selected' => $selected, 'description' => 'Select index to use. "All" contains all issues, other options contain issues from specific range. To get available options, save Maggio Hostname setting first.' ) );
 
         // Create source section.
         $section = new Richie_Settings_Section( $sources_section_name, __( 'Add new feed source', 'richie' ), $this->sources_option_name );
