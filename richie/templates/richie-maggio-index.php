@@ -25,7 +25,7 @@
 
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
 
-<?php if ( !$user_has_access ): ?>
+<?php if ( ! $user_has_access && ( ! empty( $issues[0] && true !== $issues[0]->is_free ) ) ) : ?>
     <div style="text-align: center;">
         <strong>
             <?php esc_html_e( 'You need to be logged in and have an active subscription to access these issues', 'richie' ); ?>

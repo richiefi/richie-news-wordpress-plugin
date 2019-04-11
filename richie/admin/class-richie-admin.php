@@ -212,6 +212,7 @@ class Richie_Admin {
         $valid['maggio_hostname']             = isset( $input['maggio_hostname'] ) ? esc_url_raw( $input['maggio_hostname'] ) : '';
         $valid['maggio_organization']         = isset( $input['maggio_organization'] ) ? sanitize_text_field( $input['maggio_organization'] ) : '';
         $valid['maggio_required_pmpro_level'] = isset( $input['maggio_required_pmpro_level'] ) ? intval( $input['maggio_required_pmpro_level'] ) : '';
+        $valid['maggio_index_range']          = isset( $input['maggio_index_range'] ) ? sanitize_text_field( $input['maggio_index_range'] ) : '';
 
         return $valid;
     }
@@ -524,11 +525,17 @@ class Richie_Admin {
         $section->add_field( 'maggio_secret', __( 'Maggio secret', 'richie' ), 'input_field', array( 'value' => $options['maggio_secret'] ) );
         $section->add_field( 'maggio_required_pmpro_level', __( 'Required membership level', 'richie' ), 'pmpro_level', array( 'value' => $options['maggio_required_pmpro_level'] ) );
 
+        // 'all' and 'latest' are available as default, other options can be updated.
+        $available_indexes = $this->get_available_indexes();
+
+        $section->add_field( 'maggio_index_range', __( 'Maggio index range', 'richie' ), 'select_field', array( 'options' => $available_indexes, 'selected' => $options['maggio_index_range'], 'description' => 'Select index to use. "All" contains all issues, other options contain issues from specific range. To get available options, save Maggio Hostname setting first.' ) );
+
         // Create source section.
         $section = new Richie_Settings_Section( $sources_section_name, __( 'Add new feed source', 'richie' ), $this->sources_option_name );
         $section->add_field( 'source_name', __( 'Name', 'richie' ), 'input_field' );
         $section->add_field( 'richie_article_set', __( 'Article set', 'richie' ), 'article_set' );
         $section->add_field( 'number_of_posts', __( 'Number of posts', 'richie' ), 'input_field', array( 'type' => 'number', 'class' => 'small-text', 'description' => __( 'Number of posts included in the feed', 'richie' ) ) );
+
         if ( defined( 'HERALD_THEME_VERSION' ) ) {
             $front_page  = (int) get_option( 'page_on_front' );
             $description = __( 'Fetch posts from first featured module for given page id. Rest of filters will be ignored.', 'richie' );
@@ -561,6 +568,48 @@ class Richie_Admin {
         $section->add_field( 'richie_news_assets', __( 'Assets', 'richie' ), 'asset_editor' );
     }
 
+    public function get_available_indexes() {
+        $options = get_option( $this->settings_option_name );
+
+        $available_indexes = array();
+
+        if ( isset( $options['maggio_hostname'] ) ) {
+            // We have hostname set, fetch available from the server.
+            $url      = $options['maggio_hostname'] . '/_data/server_config.json';
+            $response = wp_remote_get( $url );
+            $body     = wp_remote_retrieve_body( $response );
+
+            if ( ! empty( $body ) ) {
+                $config = json_decode( $body, true );
+                if ( JSON_ERROR_NONE === json_last_error() ) {
+                    $indexes = $config['indexes'];
+
+                    $available_indexes = array_map(
+                        function( $index ) {
+                            return array(
+                                'title' => $index['range'],
+                                'value' => $index['path'],
+                            );
+                        },
+                        $indexes
+                    );
+                }
+            }
+        } else {
+            // 'all' and 'latest' are available as default, other options can be updated.
+            $available_indexes = array(
+                array(
+                    'title' => 'all',
+                    'value' => '_data/index.json',
+                ),
+                array(
+                    'title' => 'latest',
+                    'value' => '_data/latest.json',
+                ),
+            );
+        }
+        return $available_indexes;
+    }
     /**
      * Ajax hook for ordering news source list.
      * Sends json response

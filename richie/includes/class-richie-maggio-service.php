@@ -249,10 +249,10 @@ class Richie_Maggio_Service {
      *
      * @param string $host_name Maggio hostname.
      */
-    public function __construct( $host_name ) {
+    public function __construct( $host_name, $index_path = '/_data/index.json' ) {
         $minimum_cache_time   = MINUTE_IN_SECONDS;
         $maximum_cache_time   = 0; // No cache.
-        $index_url            = $host_name . '/_data/index.json';
+        $index_url            = $host_name . $index_path;
         $this->cached_request = new Richie_Cached_Request( $index_url, $minimum_cache_time, $maximum_cache_time );
     }
 
@@ -316,7 +316,7 @@ class Richie_Maggio_Service {
      * @param integer $number_of_issues Number of wanted issues.
      * @return Richie_Maggio_Issue[]
      */
-    public function get_issues( $organization, $product, $number_of_issues = -1 ) {
+    public function get_issues( $organization, $product, $number_of_issues = 0 ) {
         if ( empty( $organization ) || empty( $product ) ) {
             return false;
         }
@@ -336,6 +336,12 @@ class Richie_Maggio_Service {
         $product_issues = $data->issues->{$product_id};
 
         if ( ! empty( $product_issues ) ) {
+
+            if ( is_object( $product_issues ) ) {
+                $issue = new Richie_Maggio_Issue( $product, $product_issues );
+                return array( $issue );
+            }
+
             foreach ( $product_issues as $issue_data ) {
                 $issue = new Richie_Maggio_Issue( $product, $issue_data );
                 array_push( $issues, $issue );
@@ -349,7 +355,7 @@ class Richie_Maggio_Service {
             }
         );
 
-        if ( $number_of_issues >= 0 ) {
+        if ( $number_of_issues > 0 ) {
             return array_slice( $issues, 0, $number_of_issues );
         }
 
