@@ -26,6 +26,7 @@ Richie Platform plugin provides following features:
 
 = WIP =
 * Support time limited maggio index files
+* Include list group title only to the first item
 
 = 1.1.1 (09.04.2019) =
 * Fix issue with images

@@ -238,6 +238,11 @@ class Richie_Public {
                         )
                     );
                     array_push( $found_ids, $p->ID );
+
+                    // Include list group title to the first item only.
+                    if ( isset( $article_attributes['list_group_title'] ) ) {
+                        unset( $article_attributes['list_group_title'] );
+                    }
                 }
             }
         }
