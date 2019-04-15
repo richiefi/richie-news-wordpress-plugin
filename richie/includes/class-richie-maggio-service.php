@@ -89,23 +89,32 @@ class Richie_Cached_Request {
      *
      * @since 1.0.0
      * @access public
+     *
+     * @param boolean $force_refresh Force cache update from the server.
      * @return WP_Error|array The response or WP_Error on failure.
      */
-    public function get_response() {
-        $cache = get_transient( $this->cache_key );
-
-        if ( $this->should_return_cache( $cache ) ) {
-            // We have cached request and minimum_cache_time has not passed, return it.
-            return $cache['response'];
+    public function get_response( $force_refresh = false ) {
+        if ( true === $force_refresh ) {
+            // If requesting forced refresh, remove cached response.
+            delete_transient( $this->cache_key );
         }
 
-        $headers = [];
+        $cache = get_transient( $this->cache_key );
 
-        $etag = $this->get_etag( $cache );
-        if ( $etag ) {
-            $headers['If-None-Match'] = $etag;
-        } else {
-            $headers['If-Modified-Since'] = date( 'D, d M Y H:i:s', $cache['timestamp'] );
+        if ( false !== $cache ) {
+            if ( $this->should_return_cache( $cache ) ) {
+                // We have cached request and minimum_cache_time has not passed, return it.
+                return $cache['response'];
+            }
+
+            $headers = [];
+
+            $etag = $this->get_etag( $cache );
+            if ( $etag ) {
+                $headers['If-None-Match'] = $etag;
+            } else {
+                $headers['If-Modified-Since'] = date( 'D, d M Y H:i:s', $cache['timestamp'] );
+            }
         }
 
         $response = wp_remote_get(
@@ -146,6 +155,10 @@ class Richie_Cached_Request {
      * @return boolean
      */
     private function should_return_cache( $cache ) {
+        if ( empty( $cache ) ) {
+            return false;
+        }
+
         $max_age = $this->get_max_age( $cache );
 
         if ( false === $max_age ) {
@@ -225,6 +238,11 @@ class Richie_Cached_Request {
 
         set_transient( $this->cache_key, $cache, $cache_time );
     }
+
+    public function get_cache() {
+        return get_transient( $this->cache_key );
+
+    }
 }
 /**
  * Fetch issues by using cached request
@@ -248,12 +266,26 @@ class Richie_Maggio_Service {
      * Fetches issue data from the maggio host and manages cache.
      *
      * @param string $host_name Maggio hostname.
+     * @param string $index_path Path to the index json file, defaults to "all" version.
      */
     public function __construct( $host_name, $index_path = '/_data/index.json' ) {
         $minimum_cache_time   = MINUTE_IN_SECONDS;
         $maximum_cache_time   = 0; // No cache.
         $index_url            = $host_name . $index_path;
         $this->cached_request = new Richie_Cached_Request( $index_url, $minimum_cache_time, $maximum_cache_time );
+    }
+
+    /**
+     * Refresh request cache using the force!
+     *
+     * @return void
+     */
+    public function refresh_cached_response( $force = false ) {
+        $this->cached_request->get_response( $force );
+    }
+
+    public function get_cache() {
+        return $this->cached_request->get_cache();
     }
 
     /**
