@@ -9,6 +9,8 @@
  * @subpackage Richie/admin
  */
 
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
+
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -213,6 +215,15 @@ class Richie_Admin {
         $valid['maggio_organization']         = isset( $input['maggio_organization'] ) ? sanitize_text_field( $input['maggio_organization'] ) : '';
         $valid['maggio_required_pmpro_level'] = isset( $input['maggio_required_pmpro_level'] ) ? intval( $input['maggio_required_pmpro_level'] ) : '';
         $valid['maggio_index_range']          = isset( $input['maggio_index_range'] ) ? sanitize_text_field( $input['maggio_index_range'] ) : '';
+
+        $options          = get_option( $this->settings_option_name );
+        $current_hostname = isset( $options['maggio_hostname'] ) ? $options['maggio_hostname'] : '';
+
+        if ( ! empty( $valid['maggio_hostname'] ) && $current_hostname !== $valid['maggio_hostname'] ) {
+            // Force cache refresh if hostname changes.
+            $maggio_service = new Richie_Maggio_Service( $valid['maggio_hostname'], $valid['maggio_index_range'] );
+            $maggio_service->refresh_cached_response( true );
+        }
 
         return $valid;
     }
