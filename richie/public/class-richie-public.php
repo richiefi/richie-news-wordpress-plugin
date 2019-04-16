@@ -612,6 +612,22 @@ class Richie_Public {
         }
     }
 
+    /**
+     * Refresh maggio cache.
+     *
+     * @return void
+     */
+    public function refresh_maggio_cache() {
+        $options        = $this->richie_options;
+        $host_name      = isset( $options['maggio_hostname'] ) ? $options['maggio_hostname'] : '';
+        $selected_index = isset( $options['maggio_index_range'] ) ? $options['maggio_index_range'] : '';
+
+        if ( ! empty( $host_name ) ) {
+            $maggio_service = new Richie_Maggio_Service( $host_name, $selected_index );
+            $maggio_service->refresh_cached_response();
+        }
+    }
+
 }
 
 

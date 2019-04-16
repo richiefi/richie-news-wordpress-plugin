@@ -31,6 +31,8 @@ class Richie_Deactivator {
 	 */
 	public static function deactivate() {
         flush_rewrite_rules();
+        $timestamp = wp_next_scheduled( 'richie_cron_hook' );
+        wp_unschedule_event( $timestamp, 'richie_cron_hook' );
 	}
 
 }

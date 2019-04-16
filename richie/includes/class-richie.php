@@ -201,6 +201,11 @@ class Richie {
         $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
         $this->loader->add_filter( 'template_include', $plugin_public, 'richie_template' );
 
+        $this->loader->add_action( 'richie_cron_hook', $plugin_public, 'refresh_maggio_cache' );
+
+        if ( ! wp_next_scheduled( 'richie_cron_hook' ) ) {
+            wp_schedule_event( time(), 'hourly', 'richie_cron_hook' );
+        }
     }
 
     /**

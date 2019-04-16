@@ -9,6 +9,8 @@
  * @subpackage Richie/admin
  */
 
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
+
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -214,6 +216,16 @@ class Richie_Admin {
         $valid['maggio_required_pmpro_level'] = isset( $input['maggio_required_pmpro_level'] ) ? intval( $input['maggio_required_pmpro_level'] ) : '';
         $valid['maggio_index_range']          = isset( $input['maggio_index_range'] ) ? sanitize_text_field( $input['maggio_index_range'] ) : '';
 
+        $options          = get_option( $this->settings_option_name );
+        $current_hostname = isset( $options['maggio_hostname'] ) ? $options['maggio_hostname'] : '';
+        $current_index    = isset( $options['maggio_index_range'] ) ? $options['maggio_index_range'] : '';
+
+        if ( ! empty( $valid['maggio_hostname'] ) && ( $current_hostname !== $valid['maggio_hostname'] || $current_index !== $valid['maggio_index_range'] ) ) {
+            // Force cache refresh if hostname or index range changes.
+            $maggio_service = new Richie_Maggio_Service( $valid['maggio_hostname'], $valid['maggio_index_range'] );
+            $maggio_service->refresh_cached_response( true );
+        }
+
         return $valid;
     }
 
@@ -398,7 +410,7 @@ class Richie_Admin {
             ?>
             <div class="notice notice-warning">
             <p>
-                <strong><?php esc_html_e( 'News sources have unpublished changes.', 'richie' ); ?></strong>
+                <strong>Richie: <?php esc_html_e( 'News sources have unpublished changes.', 'richie' ); ?></strong>
                 <span>
                 <a class="button-link" href="#" id="publish-sources"><?php esc_html_e( 'Publish now', 'richie' ); ?></a> |
                 <a class="button-link" href="#" id="revert-source-changes"><?php esc_html_e( 'Revert changes', 'richie' ); ?></a>
@@ -407,6 +419,44 @@ class Richie_Admin {
             </div>
             <?php
         }
+
+        if ( $this->maggio_cache_updated() ) {
+            ?>
+            <div class="notice notice-success is-dismissible">
+            <p>
+                <strong>Richie: <?php esc_html_e( 'Maggio index cache updated.', 'richie' ); ?></strong>
+            </p>
+            </div>
+            <?php
+        }
+    }
+
+    /**
+     * Check if maggio cache was updated recently.
+     *
+     * @param  int $threshold Optional. Compare age against threshold. Defaults to 5 seconds.
+     *
+     * @return boolean
+     */
+    public function maggio_cache_updated( $threshold = 5 ) {
+        $options         = get_option( $this->settings_option_name );
+        $maggio_hostname = isset( $options['maggio_hostname'] ) ? $options['maggio_hostname'] : '';
+        $maggio_index    = isset( $options['maggio_index_range'] ) ? $options['maggio_index_range'] : '';
+
+        if ( ! empty( $maggio_hostname ) ) {
+            // Check if cache was updated recently.
+            $maggio_service = new Richie_Maggio_Service( $maggio_hostname, $maggio_index );
+            $cache          = $maggio_service->get_cache();
+            if ( false !== $cache ) {
+                $timestamp = isset( $cache['timestamp'] ) ? intval( $cache['timestamp'] ) : 0;
+                $age       = time() - $timestamp;
+                if ( $age < $threshold ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
