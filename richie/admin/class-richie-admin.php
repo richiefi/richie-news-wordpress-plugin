@@ -410,7 +410,7 @@ class Richie_Admin {
             ?>
             <div class="notice notice-warning">
             <p>
-                <strong><?php esc_html_e( 'News sources have unpublished changes.', 'richie' ); ?></strong>
+                <strong>Richie: <?php esc_html_e( 'News sources have unpublished changes.', 'richie' ); ?></strong>
                 <span>
                 <a class="button-link" href="#" id="publish-sources"><?php esc_html_e( 'Publish now', 'richie' ); ?></a> |
                 <a class="button-link" href="#" id="revert-source-changes"><?php esc_html_e( 'Revert changes', 'richie' ); ?></a>
@@ -419,6 +419,44 @@ class Richie_Admin {
             </div>
             <?php
         }
+
+        if ( $this->maggio_cache_updated() ) {
+            ?>
+            <div class="notice notice-success">
+            <p>
+                <strong>Richie: <?php esc_html_e( 'Maggio index cache updated.', 'richie' ); ?></strong>
+            </p>
+            </div>
+            <?php
+        }
+    }
+
+    /**
+     * Check if maggio cache was updated recently.
+     *
+     * @param  int $threshold Optional. Compare age against threshold. Defaults to 5 seconds.
+     *
+     * @return boolean
+     */
+    public function maggio_cache_updated( $threshold = 5 ) {
+        $options         = get_option( $this->settings_option_name );
+        $maggio_hostname = isset( $options['maggio_hostname'] ) ? $options['maggio_hostname'] : '';
+        $maggio_index    = isset( $options['maggio_index_range'] ) ? $options['maggio_index_range'] : '';
+
+        if ( ! empty( $maggio_hostname ) ) {
+            // Check if cache was updated recently.
+            $maggio_service = new Richie_Maggio_Service( $maggio_hostname, $maggio_index );
+            $cache          = $maggio_service->get_cache();
+            if ( false !== $cache ) {
+                $timestamp = isset( $cache['timestamp'] ) ? intval( $cache['timestamp'] ) : 0;
+                $age       = time() - $timestamp;
+                if ( $age < $threshold ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
