@@ -422,7 +422,7 @@ class Richie_Admin {
 
         if ( $this->maggio_cache_updated() ) {
             ?>
-            <div class="notice notice-success">
+            <div class="notice notice-success is-dismissible">
             <p>
                 <strong>Richie: <?php esc_html_e( 'Maggio index cache updated.', 'richie' ); ?></strong>
             </p>
