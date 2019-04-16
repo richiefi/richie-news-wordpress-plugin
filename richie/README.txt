@@ -23,6 +23,8 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= WIP =
+* Schedule maggio index update in cronjob (hourly)
 
 = 1.1.2 (11.04.2019) =
 * Support time limited maggio index files
