@@ -218,9 +218,10 @@ class Richie_Admin {
 
         $options          = get_option( $this->settings_option_name );
         $current_hostname = isset( $options['maggio_hostname'] ) ? $options['maggio_hostname'] : '';
+        $current_index    = isset( $options['maggio_index_range'] ) ? $options['maggio_index_range'] : '';
 
-        if ( ! empty( $valid['maggio_hostname'] ) && $current_hostname !== $valid['maggio_hostname'] ) {
-            // Force cache refresh if hostname changes.
+        if ( ! empty( $valid['maggio_hostname'] ) && ( $current_hostname !== $valid['maggio_hostname'] || $current_index !== $valid['maggio_index_range'] ) ) {
+            // Force cache refresh if hostname or index range changes.
             $maggio_service = new Richie_Maggio_Service( $valid['maggio_hostname'], $valid['maggio_index_range'] );
             $maggio_service->refresh_cached_response( true );
         }
