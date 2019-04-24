@@ -60,6 +60,18 @@ services:
     volumes:
       - "/var/run/docker.sock:/tmp/docker.sock:ro"
 
+  composer:
+    depends_on:
+      - wordpress
+    image: composer/composer
+    working_dir: /var/www/html/wp-content/plugins/richie
+    restart: 'no'
+    volumes:
+      - wp:/var/www/html
+      - ./richie:/var/www/html/wp-content/plugins/richie
+    networks:
+      - "back"
+
 networks:
   front: {}
   back: {}
