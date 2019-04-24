@@ -30,7 +30,7 @@ class SignatureTest extends WP_UnitTestCase {
 
     public function test_returns_error_with_invalid_timestamp() {
         $hash = richie_generate_signature_hash($this->secret, 'de27f9d8-b020-43d7-99a6-15184d5d986f', 'invalid_timestamp');
-        $this->assertTrue(is_wp_error($hash));
+        $this->assertWPError($hash);
         $this->assertEquals($hash->errors['timestamp'][0], 'Invalid timestamp, it must be an integer');
     }
     /**
