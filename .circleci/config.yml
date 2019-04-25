@@ -57,8 +57,8 @@ job-references:
             # phpcs
             rm -rf $WP_TESTS_DIR $WP_CORE_DIR
             bash bin/install-wp-tests.sh wordpress_test root '' 127.0.0.1 latest
-            phpunit
-            WP_MULTISITE=1 phpunit
+            ../vendor/bin/phpunit
+            WP_MULTISITE=1 ../vendor/bin/phpunit
 
 jobs:
   php56-build:
