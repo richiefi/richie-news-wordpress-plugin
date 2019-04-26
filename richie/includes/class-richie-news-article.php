@@ -48,7 +48,7 @@ class Richie_Article {
         $this->assets       = $assets;
     }
 
-    private function render_template( $slug, $name, $post_obj ) {
+    public function render_template( $slug, $name, $post_obj ) {
         global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $user_ID, $wp_styles, $wp_scripts, $wp_filter;
         require_once plugin_dir_path( __FILE__ ) . 'class-richie-template-loader.php';
         $richie_template_loader = new Richie_Template_Loader();
@@ -85,9 +85,20 @@ class Richie_Article {
         }
     }
 
-    public function generate_article( $my_post ) {
+    public function get_pmpro_levels() {
         global $wpdb;
+        $post_membership_levels = $wpdb->get_results( $wpdb->prepare( "SELECT mp.membership_id as id FROM $wpdb->pmpro_memberships_pages mp WHERE mp.page_id = %d", $my_post->ID ) );
+        $levels                 = array_column( $post_membership_levels, 'id' );
 
+        return $levels;
+    }
+
+    public function get_article_assets() {
+        // Expects global $wp_scripts and $wp_styles.
+        return richie_get_article_assets();
+    }
+
+    public function generate_article( $my_post ) {
         if ( empty( $my_post ) ) {
             return new stdClass(); // Return empty object.
         }
@@ -121,8 +132,7 @@ class Richie_Article {
         $member_only_id = $this->news_options['member_only_pmpro_level'];
 
         // Get paywall type.
-        $post_membership_levels = $wpdb->get_results( $wpdb->prepare( "SELECT mp.membership_id as id FROM $wpdb->pmpro_memberships_pages mp WHERE mp.page_id = %d", $my_post->ID ) );
-        $levels                 = array_column( $post_membership_levels, 'id' );
+        $levels = $this->get_pmpro_levels();
 
         $is_premium = in_array( $member_only_id, $levels );
         $is_metered = in_array( $metered_id, $levels );
@@ -193,7 +203,7 @@ class Richie_Article {
             $rendered_content = $local_rendered_content;
         }
         // $wp_scripts and $wp_styles globals should now been set
-        $article_assets = richie_get_article_assets();
+        $article_assets = $this->get_article_assets();
 
         // Find local article assets (shortcodes etc).
         $local_assets = array_udiff(
