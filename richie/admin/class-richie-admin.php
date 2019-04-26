@@ -998,6 +998,7 @@ class Richie_Admin {
                 <?php
                 foreach ( $options['slots'] as $article_set_id => $slots ) {
                     $article_set = get_term( $article_set_id );
+                    ksort( $slots ); // Sort by array key, so ui shows ad slots ordered by index.
                     foreach ( $slots as $slot ) {
                         $attributes = $slot['attributes'];
                         $id         = $article_set->slug . '-slot-' . $slot['index'];
