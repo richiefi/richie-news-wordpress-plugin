@@ -122,7 +122,11 @@ class Richie_Article {
         $date          = new DateTime( $my_post->post_date_gmt );
         $updated_date  = new DateTime( $my_post->post_modified_gmt );
         $article->date = $date->format( 'c' );
-        if ( $updated_date > $date ) {
+
+        $diff = $updated_date->getTimestamp() - $date->getTimestamp();
+
+        // Include updated_date if its at least 5 minutes after creation date.
+        if ( $diff >= 5 * MINUTE_IN_SECONDS ) {
             $article->updated_date = $updated_date->format( 'c' );
         }
 
