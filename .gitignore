@@ -4,5 +4,4 @@ tmp
 vendor
 
 package-lock.json
-composer.lock
 *.zip

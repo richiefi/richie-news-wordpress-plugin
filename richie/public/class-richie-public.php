@@ -295,16 +295,18 @@ class Richie_Public {
             }
         }
 
-        $etag = 'W/"' . md5( wp_json_encode( $articles ) ) . '"';
-        // if_none_match may contain slashes before ", so strip those.
-        $etag_header = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) : false;
+        if ( ! headers_sent() ) {
+            $etag = 'W/"' . md5( wp_json_encode( $articles ) ) . '"';
+            // if_none_match may contain slashes before ", so strip those.
+            $etag_header = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) : false;
 
-        header( "Etag: {$etag}" );
-        header( 'Cache-Control: private, no-cache' );
+            header( "Etag: {$etag}" );
+            header( 'Cache-Control: private, no-cache' );
 
-        if ( $etag_header === $etag ) {
-            header( $_SERVER['SERVER_PROTOCOL'] . ' 304 Not Modified' );
-            wp_send_json(); // send response and exit.
+            if ( $etag_header === $etag ) {
+                header( $_SERVER['SERVER_PROTOCOL'] . ' 304 Not Modified' );
+                wp_send_json(); // send response and exit.
+            }
         }
 
         return array( 'article_ids' => $articles );
@@ -329,8 +331,10 @@ class Richie_Public {
         }
     }
 
-    public function check_permission() {
-        if ( isset( $_GET['token'] ) && $this->richie_options['access_token'] === $_GET['token'] ) {
+    public function check_permission( $request ) {
+        $options = get_option( $this->plugin_name );
+        $params  = $request->get_query_params();
+        if ( isset( $params['token'] ) && ! empty( $options['access_token'] ) && $options['access_token'] === $params['token'] ) {
             return true;
         }
         return false;
