@@ -36,7 +36,7 @@
     <?php foreach( $issues as $issue ): ?>
         <div class="maggio-issue">
             <?php if( $user_has_access || $issue->is_free ): ?>
-            <a href="<?php echo $issue->get_redirect_url(); ?>" target="_blank" rel="noopener noreferrer" >
+            <a href="<?php echo $issue->get_redirect_url(); ?>" target="_blank" rel="noopener" >
             <?php endif; ?>
                 <figure class="maggio-issue-cover">
                         <img src="<?php echo $issue->get_cover(200,300); ?>">
