@@ -582,11 +582,20 @@ class Richie_Public {
     }
 
     /**
-     * Redirects to the referer (or home if referer not found)
+     * Redirects to the referer (or home if referer not found).
+     * Only internal referers allowed.
      * Exits after redirection, to prevent code execution after that.
      */
-    private function redirect_to_referer() {
+    public function redirect_to_referer() {
+        $allow_referer = false;
+
         if ( wp_get_referer() ) {
+            $wp_host = wp_parse_url( get_home_url(), PHP_URL_HOST );
+            $referer_host = wp_parse_url( wp_get_referer(), PHP_URL_HOST );
+            $allow_referer = $wp_host === $referer_host;
+        }
+
+        if ( $allow_referer ) {
             $this->do_redirect( wp_get_referer() );
         } else {
             $this->do_redirect( get_home_url() );
