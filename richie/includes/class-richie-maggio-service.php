@@ -272,13 +272,6 @@ class Richie_Maggio_Service {
         $maximum_cache_time   = 0; // No cache.
         $index_url            = $host_name . $index_path;
         $this->cached_request = new Richie_Cached_Request( $index_url, $minimum_cache_time, $maximum_cache_time );
-        add_filter(
-            'allowed_redirect_hosts',
-            function ( $content ) use ( &$host_name ) {
-                $content[] = wp_parse_url( $host_name, PHP_URL_HOST );
-                return $content;
-            }
-        );
     }
 
     /**

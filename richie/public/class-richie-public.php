@@ -567,6 +567,18 @@ class Richie_Public {
     public function register_redirect_route() {
         richie_create_maggio_rewrite_rules();
         add_action( 'parse_request', array( $this, 'maggio_redirect_request' ) );
+
+        $host_name = isset( $this->richie_options['maggio_hostname'] ) ? $this->richie_options['maggio_hostname'] : false;
+
+        if ( ! empty( $host_name ) ) {
+            add_filter(
+                'allowed_redirect_hosts',
+                function ( $content ) use ( &$host_name ) {
+                    $content[] = wp_parse_url( $host_name, PHP_URL_HOST );
+                    return $content;
+                }
+            );
+        }
     }
 
     /**
