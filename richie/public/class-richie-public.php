@@ -569,7 +569,25 @@ class Richie_Public {
         add_action( 'parse_request', array( $this, 'maggio_redirect_request' ) );
     }
 
-    public function maggio_redirect_request ( $wp ) {
+    /**
+     * Redirects to the referer (or home if referer not found)
+     * Exits after redirection, to prevent code execution after that.
+     */
+    private function redirect_to_referer() {
+        if ( wp_get_referer() ) {
+            $this->do_redirect( wp_get_referer() );
+        } else {
+            $this->do_redirect( get_home_url() );
+        }
+    }
+
+    /**
+     * Create redirection to maggio signin service.
+     * Exits process after redirection.
+     *
+     * @param WP $wp WordPress instance variable.
+     */
+    public function maggio_redirect_request( $wp ) {
         if (
             ! empty( $wp->query_vars['maggio_redirect'] ) &&
             wp_is_uuid( $wp->query_vars['maggio_redirect'] )
@@ -579,12 +597,7 @@ class Richie_Public {
                 ! isset( $this->richie_options['maggio_hostname'] )
             ) {
                 // invalid configuration.
-                if ( wp_get_referer() ) {
-                    wp_safe_redirect( wp_get_referer() );
-                } else {
-                    wp_safe_redirect( get_home_url() );
-                }
-                exit();
+                $this->redirect_to_referer();
             }
 
             $maggio_service = $this->get_maggio_service();
@@ -600,12 +613,7 @@ class Richie_Public {
             $required_pmpro_level = isset( $this->richie_options['maggio_required_pmpro_level'] ) ? $this->richie_options['maggio_required_pmpro_level'] : 0;
 
             if ( ! $is_free_issue && ! richie_has_maggio_access( $required_pmpro_level ) ) {
-                if ( wp_get_referer() ) {
-                    wp_safe_redirect( wp_get_referer() );
-                } else {
-                    wp_safe_redirect( get_home_url() );
-                }
-                exit();
+                $this->redirect_to_referer();
             }
 
             // has access, continue redirect.
@@ -624,10 +632,21 @@ class Richie_Public {
             $hash = richie_generate_signature_hash( $secret, $uuid, $timestamp, $query_string );
 
             $url = "{$hostname}/_signin/${uuid}/${timestamp}/${hash}" . '?' . $query_string;
-
-            wp_redirect( esc_url( $url ) );
-            exit();
+            $this->do_redirect( esc_url( $url ) );
         }
+    }
+
+    /**
+     * Make safe direct to the url. Exit process after redirection.
+     *
+     * @param string $url Redirection target. Must be in allowed urls.
+     */
+    protected function do_redirect( $url ) {
+        if ( ! empty( $url ) ) {
+            wp_safe_redirect( esc_url( $url ) );
+        }
+
+        exit();
     }
 
     /**
