@@ -26,6 +26,7 @@ Richie Platform plugin provides following features:
 = WIP =
 * Schedule maggio index update in cronjob (hourly)
 * Unit test support
+* Support extra query params for maggio redirection
 
 = 1.1.2 (11.04.2019) =
 * Support time limited maggio index files

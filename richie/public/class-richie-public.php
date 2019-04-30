@@ -484,6 +484,23 @@ class Richie_Public {
     }
 
     /**
+     * Return maggio service instance or false if error
+     *
+     * @return Richie_Maggio_Service | boolean
+     */
+    public function get_maggio_service() {
+        $host_name      = $this->richie_options['maggio_hostname'];
+        $selected_index = isset( $this->richie_options['maggio_index_range'] ) ? $this->richie_options['maggio_index_range'] : null;
+
+        try {
+            $maggio_service = new Richie_Maggio_Service( $host_name, $selected_index );
+            return $maggio_service;
+        } catch ( Exception $e ) {
+            return false;
+        }
+    }
+
+    /**
      * Load maggio display content
      *
      * @param array $attributes Shortcode attributes.
@@ -511,14 +528,12 @@ class Richie_Public {
             return sprintf( '<div>%s</div>', esc_html__( 'Invalid organization', 'richie' ) );
         }
 
-        $host_name      = $this->richie_options['maggio_hostname'];
-        $selected_index = $this->richie_options['maggio_index_range'];
         $organization   = $atts['organization'];
         $product        = $atts['product'];
 
-        try {
-            $maggio_service = new Richie_Maggio_Service( $host_name, $selected_index );
-        } catch ( Exception $e ) {
+        $maggio_service = $this->get_maggio_service();
+
+        if ( false === $maggio_service ) {
             return sprintf( '<div>%s</div>', esc_html__( 'Failed to fetch issues', 'richie' ) );
         }
 
@@ -552,9 +567,48 @@ class Richie_Public {
     public function register_redirect_route() {
         richie_create_maggio_rewrite_rules();
         add_action( 'parse_request', array( $this, 'maggio_redirect_request' ) );
+
+        $host_name = isset( $this->richie_options['maggio_hostname'] ) ? $this->richie_options['maggio_hostname'] : false;
+
+        if ( ! empty( $host_name ) ) {
+            add_filter(
+                'allowed_redirect_hosts',
+                function ( $content ) use ( &$host_name ) {
+                    $content[] = wp_parse_url( $host_name, PHP_URL_HOST );
+                    return $content;
+                }
+            );
+        }
     }
 
-    public function maggio_redirect_request ( $wp ) {
+    /**
+     * Redirects to the referer (or home if referer not found).
+     * Only internal referers allowed.
+     * Exits after redirection, to prevent code execution after that.
+     */
+    public function redirect_to_referer() {
+        $allow_referer = false;
+
+        if ( wp_get_referer() ) {
+            $wp_host = wp_parse_url( get_home_url(), PHP_URL_HOST );
+            $referer_host = wp_parse_url( wp_get_referer(), PHP_URL_HOST );
+            $allow_referer = $wp_host === $referer_host;
+        }
+
+        if ( $allow_referer ) {
+            $this->do_redirect( wp_get_referer() );
+        } else {
+            $this->do_redirect( get_home_url() );
+        }
+    }
+
+    /**
+     * Create redirection to maggio signin service.
+     * Exits process after redirection.
+     *
+     * @param WP $wp WordPress instance variable.
+     */
+    public function maggio_redirect_request( $wp ) {
         if (
             ! empty( $wp->query_vars['maggio_redirect'] ) &&
             wp_is_uuid( $wp->query_vars['maggio_redirect'] )
@@ -564,34 +618,23 @@ class Richie_Public {
                 ! isset( $this->richie_options['maggio_hostname'] )
             ) {
                 // invalid configuration.
-                if ( wp_get_referer() ) {
-                    wp_safe_redirect( wp_get_referer() );
-                } else {
-                    wp_safe_redirect( get_home_url() );
-                }
-                exit();
+                $this->redirect_to_referer();
             }
 
-            $hostname = $this->richie_options['maggio_hostname'];
-            $uuid     = $wp->query_vars['maggio_redirect'];
+            $maggio_service = $this->get_maggio_service();
 
-            try {
-                $maggio_service = new Richie_Maggio_Service( $hostname );
-            } catch ( Exception $e ) {
+            if ( false === $maggio_service ) {
                 return sprintf( '<div>%s</div>', esc_html__( 'Failed to fetch issues', 'richie' ) );
             }
 
+            $hostname      = $this->richie_options['maggio_hostname'];
+            $uuid          = $wp->query_vars['maggio_redirect'];
             $is_free_issue = $maggio_service->is_issue_free( $uuid );
 
             $required_pmpro_level = isset( $this->richie_options['maggio_required_pmpro_level'] ) ? $this->richie_options['maggio_required_pmpro_level'] : 0;
 
             if ( ! $is_free_issue && ! richie_has_maggio_access( $required_pmpro_level ) ) {
-                if ( wp_get_referer() ) {
-                    wp_safe_redirect( wp_get_referer() );
-                } else {
-                    wp_safe_redirect( get_home_url() );
-                }
-                exit();
+                $this->redirect_to_referer();
             }
 
             // has access, continue redirect.
@@ -609,11 +652,32 @@ class Richie_Public {
 
             $hash = richie_generate_signature_hash( $secret, $uuid, $timestamp, $query_string );
 
-            $url = "{$hostname}/_signin/${uuid}/${timestamp}/${hash}" . '?' . $query_string;
+            // Pass extra query params to signin route.
+            if ( ! empty( $wp->query_vars['page'] ) ) {
+                $query_string = $query_string . '&page=' . $wp->query_vars['page'];
+            }
 
-            wp_redirect( esc_url( $url ) );
-            exit();
+            if ( ! empty( $wp->query_vars['search'] ) ) {
+                // Support for search term, if needed in the future.
+                $query_string = $query_string . '&q=' . $wp->query_vars['search'];
+            }
+
+            $url = "{$hostname}/_signin/${uuid}/${timestamp}/${hash}" . '?' . $query_string;
+            $this->do_redirect( esc_url_raw( $url ) );
         }
+    }
+
+    /**
+     * Make safe direct to the url. Exit process after redirection.
+     *
+     * @param string $url Redirection target. Must be in allowed urls.
+     */
+    protected function do_redirect( $url ) {
+        if ( ! empty( $url ) ) {
+            wp_safe_redirect( esc_url( $url ) );
+        }
+
+        exit();
     }
 
     /**
@@ -622,13 +686,10 @@ class Richie_Public {
      * @return void
      */
     public function refresh_maggio_cache() {
-        $options        = $this->richie_options;
-        $host_name      = isset( $options['maggio_hostname'] ) ? $options['maggio_hostname'] : '';
-        $selected_index = isset( $options['maggio_index_range'] ) ? $options['maggio_index_range'] : '';
+        $maggio_service = $this->get_maggio_service();
 
-        if ( ! empty( $host_name ) ) {
-            $maggio_service = new Richie_Maggio_Service( $host_name, $selected_index );
-            $maggio_service->refresh_cached_response();
+        if ( false !== $maggio_service ) {
+            $this->maggio_service->refresh_cached_response();
         }
     }
 
