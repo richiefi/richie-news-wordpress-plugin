@@ -100,14 +100,13 @@ class Richie_Cached_Request {
         }
 
         $cache = get_transient( $this->cache_key );
+        $headers = [];
 
         if ( false !== $cache ) {
             if ( $this->should_return_cache( $cache ) ) {
                 // We have cached request and minimum_cache_time has not passed, return it.
                 return $cache['response'];
             }
-
-            $headers = [];
 
             $etag = $this->get_etag( $cache );
             if ( $etag ) {
