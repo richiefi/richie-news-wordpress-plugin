@@ -152,7 +152,7 @@ class MaggioRedirectTest extends WP_UnitTestCase {
         $wp_mock->query_vars = array(
             'maggio_redirect' => $uuid,
             'page'            => 1,
-            'search'          => 'search term',
+            'search'          => 'search%20term',
             'unknown'         => 'should_not_be_included',
         );
 
