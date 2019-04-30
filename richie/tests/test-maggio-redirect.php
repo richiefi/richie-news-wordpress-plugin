@@ -64,6 +64,58 @@ class MaggioRedirectTest extends WP_UnitTestCase {
 
     }
 
+    public function test_redirection_on_error_external_referer() {
+        $richie_public = $this->getMockBuilder( Richie_Public::class )
+        ->setConstructorArgs( array( 'richie', 'version' ) )
+        ->setMethods( [ 'do_redirect' ] )
+        ->getMock();
+
+        // fake referer.
+        $referer = 'https://test.hostname/test/referrer';
+        $_REQUEST['_wp_http_referer'] = $referer;
+
+        $richie_public->expects( $this->once() )
+            ->method( 'do_redirect' )
+            ->with( get_home_url() ); // Should redirect to home url.
+
+        add_filter(
+            'allowed_redirect_hosts',
+            function ( $content )  {
+                $content[] = 'test.hostname';
+                return $content;
+            }
+        );
+
+        $richie_public->redirect_to_referer();
+
+    }
+
+    public function test_redirection_on_error_internal_referer() {
+        $richie_public = $this->getMockBuilder( Richie_Public::class )
+        ->setConstructorArgs( array( 'richie', 'version' ) )
+        ->setMethods( [ 'do_redirect' ] )
+        ->getMock();
+
+        // fake referer.
+        $referer = get_home_url() . '/test/referer';
+        $_REQUEST['_wp_http_referer'] = $referer;
+
+        $richie_public->expects( $this->once() )
+            ->method( 'do_redirect' )
+            ->with( $referer ); // Should redirect to referer.
+
+        add_filter(
+            'allowed_redirect_hosts',
+            function ( $content )  {
+                $content[] = 'test.hostname';
+                return $content;
+            }
+        );
+
+        $richie_public->redirect_to_referer();
+
+    }
+
     public function test_redirection_with_params() {
 
         $maggio_service = $this->getMockBuilder( Richie_Maggio_Service::class )
