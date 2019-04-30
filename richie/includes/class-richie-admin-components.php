@@ -168,6 +168,10 @@ class Richie_Admin_Components {
      * @return void
      */
     public function pmpro_level( array $args ) {
+        if ( false === richie_is_pmpro_active() ) {
+            return;
+        }
+
         $option_name   = $args['option_name'];
         $id            = $args['id'];
         $name          = $option_name . '[' . $id . ']';

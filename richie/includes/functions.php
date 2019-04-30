@@ -266,3 +266,17 @@ function richie_get_article_assets() {
 
     return $article_assets;
 }
+
+/**
+ * Check if paid-memberships-pro plugin is active.
+ *
+ * @return boolean
+ */
+function richie_is_pmpro_active() {
+    $available_plugins = apply_filters( 'active_plugins', get_option( 'active_plugins' ) );
+    if ( in_array( 'paid-memberships-pro/paid-memberships-pro.php',  $available_plugins ) ) {
+        return true;
+    }
+
+    return false;
+}

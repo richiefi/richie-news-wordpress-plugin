@@ -63,9 +63,11 @@ class Richie_Article {
         $post = $post_obj; //phpcs:ignore
         $wp_query->setup_postdata( $post_obj );
 
-        // Add pmpro filter which overrides access and always returns true.
-        // This way it won't filter the content and always returns full content.
-        add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
+        if ( richie_is_pmpro_active() ) {
+            // Add pmpro filter which overrides access and always returns true.
+            // This way it won't filter the content and always returns full content.
+            add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
+        }
 
         ob_start();
         $richie_template_loader
@@ -86,11 +88,14 @@ class Richie_Article {
     }
 
     public function get_pmpro_levels() {
-        global $wpdb;
-        $post_membership_levels = $wpdb->get_results( $wpdb->prepare( "SELECT mp.membership_id as id FROM $wpdb->pmpro_memberships_pages mp WHERE mp.page_id = %d", $my_post->ID ) );
-        $levels                 = array_column( $post_membership_levels, 'id' );
+        if ( richie_is_pmpro_active() ) {
+            global $wpdb;
+            $post_membership_levels = $wpdb->get_results( $wpdb->prepare( "SELECT mp.membership_id as id FROM $wpdb->pmpro_memberships_pages mp WHERE mp.page_id = %d", $my_post->ID ) );
+            $levels                 = array_column( $post_membership_levels, 'id' );
 
-        return $levels;
+            return $levels;
+        }
+        return [];
     }
 
     public function get_article_assets() {
