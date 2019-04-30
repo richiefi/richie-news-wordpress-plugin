@@ -563,17 +563,22 @@ class Richie_Admin {
         $section = new Richie_Settings_Section( $general_section_name, __( 'General settings', 'richie' ), $this->settings_option_name );
         $section->add_field( 'access_token', __( 'Access token', 'richie' ), 'input_field', array( 'value' => $options['access_token'] ) );
 
-        // Create paywall section.
-        $section = new Richie_Settings_Section( $paywall_section_name, __( 'Paywall', 'richie' ), $this->settings_option_name );
-        $section->add_field( 'metered_pmpro_level', __( 'Metered level', 'richie' ), 'pmpro_level', array( 'value' => $options['metered_pmpro_level'] ) );
-        $section->add_field( 'member_only_pmpro_level', __( 'Member only level', 'richie' ), 'pmpro_level', array( 'value' => $options['member_only_pmpro_level'] ) );
+        if ( richie_is_pmpro_active() ) {
+            // Create paywall section.
+            $section = new Richie_Settings_Section( $paywall_section_name, __( 'Paywall', 'richie' ), $this->settings_option_name );
+            $section->add_field( 'metered_pmpro_level', __( 'Metered level', 'richie' ), 'pmpro_level', array( 'value' => $options['metered_pmpro_level'] ) );
+            $section->add_field( 'member_only_pmpro_level', __( 'Member only level', 'richie' ), 'pmpro_level', array( 'value' => $options['member_only_pmpro_level'] ) );
+        }
 
         // Create maggio section.
         $section = new Richie_Settings_Section( $maggio_section_name, __( 'Maggio settings', 'richie' ), $this->settings_option_name );
         $section->add_field( 'maggio_organization', __( 'Maggio organization', 'richie' ), 'input_field', array( 'value' => $options['maggio_organization'] ) );
         $section->add_field( 'maggio_hostname', __( 'Maggio hostname', 'richie' ), 'input_field', array( 'value' => $options['maggio_hostname'] ) );
         $section->add_field( 'maggio_secret', __( 'Maggio secret', 'richie' ), 'input_field', array( 'value' => $options['maggio_secret'] ) );
-        $section->add_field( 'maggio_required_pmpro_level', __( 'Required membership level', 'richie' ), 'pmpro_level', array( 'value' => $options['maggio_required_pmpro_level'] ) );
+
+        if ( richie_is_pmpro_active() ) {
+            $section->add_field( 'maggio_required_pmpro_level', __( 'Required membership level', 'richie' ), 'pmpro_level', array( 'value' => $options['maggio_required_pmpro_level'] ) );
+        }
 
         // 'all' and 'latest' are available as default, other options can be updated.
         $available_indexes = $this->get_available_indexes();

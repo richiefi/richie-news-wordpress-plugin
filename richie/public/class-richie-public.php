@@ -446,7 +446,9 @@ class Richie_Public {
     public function richie_template( $template ) {
         if ( isset( $_GET['token'] ) && $this->richie_options['access_token'] === $_GET['token'] ) {
             if ( isset( $_GET['richie_news'] ) ) {
-                add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
+                if ( richie_is_pmpro_active() ) {
+                    add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
+                }
 
                 $name = 'article';
 
