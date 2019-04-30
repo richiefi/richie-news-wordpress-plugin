@@ -631,6 +631,16 @@ class Richie_Public {
 
             $hash = richie_generate_signature_hash( $secret, $uuid, $timestamp, $query_string );
 
+            // Pass extra query params to signin route.
+            if ( ! empty( $wp->query_vars['page'] ) ) {
+                $query_string = $query_string . '&page=' . $wp->query_vars['page'];
+            }
+
+            if ( ! empty( $wp->query_vars['search'] ) ) {
+                // Support for search term, if needed in the future.
+                $query_string = $query_string . '&q=' . $wp->query_vars['search'];
+            }
+
             $url = "{$hostname}/_signin/${uuid}/${timestamp}/${hash}" . '?' . $query_string;
             $this->do_redirect( esc_url( $url ) );
         }
