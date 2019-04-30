@@ -663,7 +663,7 @@ class Richie_Public {
             }
 
             $url = "{$hostname}/_signin/${uuid}/${timestamp}/${hash}" . '?' . $query_string;
-            $this->do_redirect( esc_url_raw( $url ) );
+            $this->do_redirect( $url );
         }
     }
 
@@ -674,7 +674,7 @@ class Richie_Public {
      */
     protected function do_redirect( $url ) {
         if ( ! empty( $url ) ) {
-            wp_safe_redirect( esc_url( $url ) );
+            wp_safe_redirect( esc_url_raw( $url ) );
         }
 
         exit();
