@@ -484,6 +484,23 @@ class Richie_Public {
     }
 
     /**
+     * Return maggio service instance or false if error
+     *
+     * @return Richie_Maggio_Service | boolean
+     */
+    public function get_maggio_service() {
+        $host_name      = $this->richie_options['maggio_hostname'];
+        $selected_index = isset( $this->richie_options['maggio_index_range'] ) ? $this->richie_options['maggio_index_range'] : null;
+
+        try {
+            $maggio_service = new Richie_Maggio_Service( $host_name, $selected_index );
+            return $maggio_service;
+        } catch ( Exception $e ) {
+            return false;
+        }
+    }
+
+    /**
      * Load maggio display content
      *
      * @param array $attributes Shortcode attributes.
@@ -511,14 +528,12 @@ class Richie_Public {
             return sprintf( '<div>%s</div>', esc_html__( 'Invalid organization', 'richie' ) );
         }
 
-        $host_name      = $this->richie_options['maggio_hostname'];
-        $selected_index = $this->richie_options['maggio_index_range'];
         $organization   = $atts['organization'];
         $product        = $atts['product'];
 
-        try {
-            $maggio_service = new Richie_Maggio_Service( $host_name, $selected_index );
-        } catch ( Exception $e ) {
+        $maggio_service = $this->get_maggio_service();
+
+        if ( false === $maggio_service ) {
             return sprintf( '<div>%s</div>', esc_html__( 'Failed to fetch issues', 'richie' ) );
         }
 
@@ -572,15 +587,14 @@ class Richie_Public {
                 exit();
             }
 
-            $hostname = $this->richie_options['maggio_hostname'];
-            $uuid     = $wp->query_vars['maggio_redirect'];
+            $maggio_service = $this->get_maggio_service();
 
-            try {
-                $maggio_service = new Richie_Maggio_Service( $hostname );
-            } catch ( Exception $e ) {
+            if ( false === $maggio_service ) {
                 return sprintf( '<div>%s</div>', esc_html__( 'Failed to fetch issues', 'richie' ) );
             }
 
+            $hostname      = $this->richie_options['maggio_hostname'];
+            $uuid          = $wp->query_vars['maggio_redirect'];
             $is_free_issue = $maggio_service->is_issue_free( $uuid );
 
             $required_pmpro_level = isset( $this->richie_options['maggio_required_pmpro_level'] ) ? $this->richie_options['maggio_required_pmpro_level'] : 0;
@@ -622,13 +636,10 @@ class Richie_Public {
      * @return void
      */
     public function refresh_maggio_cache() {
-        $options        = $this->richie_options;
-        $host_name      = isset( $options['maggio_hostname'] ) ? $options['maggio_hostname'] : '';
-        $selected_index = isset( $options['maggio_index_range'] ) ? $options['maggio_index_range'] : '';
+        $maggio_service = $this->get_maggio_service();
 
-        if ( ! empty( $host_name ) ) {
-            $maggio_service = new Richie_Maggio_Service( $host_name, $selected_index );
-            $maggio_service->refresh_cached_response();
+        if ( false !== $maggio_service ) {
+            $this->maggio_service->refresh_cached_response();
         }
     }
 
