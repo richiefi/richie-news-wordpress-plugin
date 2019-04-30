@@ -642,7 +642,7 @@ class Richie_Public {
             }
 
             $url = "{$hostname}/_signin/${uuid}/${timestamp}/${hash}" . '?' . $query_string;
-            $this->do_redirect( esc_url( $url ) );
+            $this->do_redirect( esc_url_raw( $url ) );
         }
     }
 
