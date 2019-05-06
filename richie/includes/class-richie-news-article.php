@@ -87,7 +87,7 @@ class Richie_Article {
         }
     }
 
-    public function get_pmpro_levels() {
+    public function get_pmpro_levels( $my_post ) {
         if ( richie_is_pmpro_active() ) {
             global $wpdb;
             $post_membership_levels = $wpdb->get_results( $wpdb->prepare( "SELECT mp.membership_id as id FROM $wpdb->pmpro_memberships_pages mp WHERE mp.page_id = %d", $my_post->ID ) );
@@ -141,7 +141,7 @@ class Richie_Article {
         $member_only_id = $this->news_options['member_only_pmpro_level'];
 
         // Get paywall type.
-        $levels = $this->get_pmpro_levels();
+        $levels = $this->get_pmpro_levels( $my_post );
 
         $is_premium = in_array( $member_only_id, $levels );
         $is_metered = in_array( $metered_id, $levels );
