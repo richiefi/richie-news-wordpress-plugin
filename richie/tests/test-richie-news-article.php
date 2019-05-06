@@ -16,7 +16,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         parent::setUp();
         $this->options = array(
             'metered_pmpro_level' => null,
-            'member_only_pmpro_level' => null,
+            'member_only_pmpro_level' => 1,
             'access_token' => '1234',
         );
         $this->assets = array();
@@ -89,5 +89,44 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $this->assertEquals( $article->title, 'My Title' );
         $this->assertEquals( $article->date, ( new DateTime( $postdate ) )->format( 'c' ) );
         $this->assertFalse( property_exists( $article, 'updated_date' ) );
+    }
+
+    public function test_article_metered_paywall() {
+        global $wpdb;
+        $stub = $this->getMockBuilder( Richie_Article::class )
+        ->setConstructorArgs( array( $this->options, $this->assets ) )
+        ->setMethods( array( 'is_pmpro_active', 'render_template', 'get_article_assets' ) )
+        ->getMock();
+
+        // Configure the stub.
+        $stub->method( 'is_pmpro_active' )
+            ->willReturn( true );
+
+        $stub->method( 'get_article_assets' )
+            ->willReturn( array() );
+
+        $stub->method( 'render_template' )
+            ->willReturn( '<html><head></head><body>Test content</body></html>' );
+
+        $post = $this->factory->post->create_and_get(
+            array(
+                'post_type'     => 'article',
+                'post_title'    => 'My Title',
+            )
+        );
+
+        $wpdb->pmpro_memberships_pages = 'TEST_DB';
+
+        add_filter( 'query', function( $query ) {
+            if ( strpos( $query, 'TEST_DB' ) !== false ) {
+                return 'SELECT 1 as id'; // We have set member only level to 1 in options, return that.
+            }
+            return $query;
+        });
+
+        $article = $stub->generate_article( $post );
+        $this->assertEquals( $article->title, 'My Title' );
+        $this->assertEquals( $article->metered_paywall, 'no_access' );
+
     }
 }
