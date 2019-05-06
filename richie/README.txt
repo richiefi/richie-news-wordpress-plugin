@@ -23,6 +23,10 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= 1.2.1 (06.05.2019) =
+* Fix cronjob function call
+* Fix pmpro level check
+
 = 1.2.0 (30.04.2019) =
 * Schedule maggio index update in cronjob (hourly)
 * Unit test support
