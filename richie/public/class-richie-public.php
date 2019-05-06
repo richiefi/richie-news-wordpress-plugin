@@ -691,7 +691,7 @@ class Richie_Public {
         $maggio_service = $this->get_maggio_service();
 
         if ( false !== $maggio_service ) {
-            $this->maggio_service->refresh_cached_response();
+            $maggio_service->refresh_cached_response();
         }
     }
 
