@@ -52,13 +52,6 @@ class Richie_Public {
      */
     private $richie_options;
 
-    /**
-     * Richie news sources
-     *
-     * @var array
-     */
-    private $richie_news_sources;
-
 	/**
      * Initialize the class and set its properties.
      *
@@ -73,11 +66,13 @@ class Richie_Public {
 		$this->plugin_name         = $plugin_name;
         $this->version             = $version;
         $this->richie_options      = get_option( $plugin_name );
-        $sourcelist                = get_option( $plugin_name . 'news_sources' );
-        $this->richie_news_sources = isset( $sourcelist['published'] ) ? $sourcelist['published'] : array();
-    }
+     }
 
     public function feed_route_handler( $data ) {
+        // Get saved (and published) source list.
+        $sourcelist          = get_option( $this->plugin_name . 'news_sources' );
+        $richie_news_sources = isset( $sourcelist['published'] ) ? $sourcelist['published'] : array();
+
         $posts       = array();
         $found_ids   = array();
         $article_set = get_term_by( 'slug', $data['article_set'], 'richie_article_set' );
@@ -87,7 +82,7 @@ class Richie_Public {
         }
 
         $sources = array_filter(
-            $this->richie_news_sources,
+            $richie_news_sources,
             function( $source ) use ( $article_set ) {
                 return $article_set->term_id === $source['article_set'];
             }
