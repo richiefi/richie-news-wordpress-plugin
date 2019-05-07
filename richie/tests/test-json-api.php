@@ -24,6 +24,7 @@ class Test_JSON_API extends WP_UnitTestCase {
 
     public function tearDown() {
         delete_option('richie');
+        parent::tearDown();
     }
 
 	public function test_get_news_feed_without_token() {
