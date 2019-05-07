@@ -75,6 +75,7 @@ class Richie_Public {
 
         $posts       = array();
         $found_ids   = array();
+        $errors      = array();
         $article_set = get_term_by( 'slug', $data['article_set'], 'richie_article_set' );
 
         if ( empty( $article_set ) ) {
@@ -224,6 +225,15 @@ class Richie_Public {
 
             foreach ( $source_posts as $p ) {
                 if ( ! in_array( $p->ID, $found_ids, true ) ) {
+                    if ( empty( $p->guid ) ) {
+                        $errors[] = array(
+                            'description' => 'Missing guid',
+                            'post_id'     => $p->ID,
+                            'timestamp'   => time(),
+                        );
+
+                        continue;
+                    }
                     array_push(
                         $posts,
                         array(
@@ -304,7 +314,12 @@ class Richie_Public {
             }
         }
 
-        return array( 'article_ids' => $articles );
+        $output = array( 'article_ids' => $articles );
+        if ( ! empty( $errors ) ) {
+            $output['errors'] = $errors;
+        }
+
+        return $output;
     }
 
     public function article_route_handler( $data ) {
