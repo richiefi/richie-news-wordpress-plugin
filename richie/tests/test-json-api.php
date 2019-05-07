@@ -49,8 +49,50 @@ class Test_JSON_API extends WP_UnitTestCase {
         ]);
         $request  = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
-		$response = $this->server->dispatch( $request );
+        $response = $this->server->dispatch( $request );
         $this->assertEquals( 200, $response->get_status() );
+    }
+
+    public function test_get_news_feed_items_with_missing_guid() {
+        $term_id = $this->factory->term->create([
+            'name'     => 'Test set',
+            'taxonomy' => 'richie_article_set',
+            'slug'     => 'test-set',
+        ]);
+
+        $sources = [];
+
+        $sources[1] = array(
+            'id'                => 1,
+            'name'              => 'test source',
+            'number_of_posts'   => 5,
+            'order_by'          => 'date',
+            'order_direction'   => 'ASC',
+            'article_set'       => $term_id,
+            'list_layout_style' => 'small',
+        );
+
+        add_option( 'richienews_sources', array( 'published' => $sources ) );
+
+        $posts = $this->factory->post->create_many( 3 );
+        $first = $posts[0];
+
+        global $wpdb;
+        $wpdb->update( $wpdb->posts, array( 'guid' => '' ), array( 'ID' => $first ) );
+        clean_post_cache( $first );
+
+        $request  = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
+        $request->set_query_params( array( 'token' => 'testtoken' ) );
+        $response = $this->server->dispatch( $request );
+        $articles = $response->data['article_ids'];
+
+        $this->assertEquals( 200, $response->get_status() );
+        $this->assertEquals( count( $articles ), 2 ); // Should not include item with empty guid.
+        $id_list = array_column( $articles, 'fetch_id' );
+        $this->assertEquals( $id_list, [ 5, 6 ] );
+
+        $this->assertEquals( $response->data['errors'][0]['description'], 'Missing guid' );
+        $this->assertEquals( $response->data['errors'][0]['post_id'], $first );
     }
 
 }
