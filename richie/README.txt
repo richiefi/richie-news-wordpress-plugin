@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= 1.2.3 (24.06.2019) =
+* Fix invalid function call
+
 = 1.2.2 (24.06.2019) =
 * Filter articles without guid
 
