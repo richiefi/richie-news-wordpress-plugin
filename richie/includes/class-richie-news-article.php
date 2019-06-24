@@ -91,7 +91,7 @@ class Richie_Article {
      * Check if pmpro plugin is active.
      */
     public function is_pmpro_active() {
-        return richie_ispmpro_active();
+        return richie_is_pmpro_active();
     }
 
     /**
