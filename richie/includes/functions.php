@@ -280,3 +280,29 @@ function richie_is_pmpro_active() {
 
     return false;
 }
+
+
+/**
+ * Normalize path
+ */
+function richie_normalize_path( $path ) {
+    $normalized_path = wp_normalize_path( $path );
+    $path_segments = explode ('/', $normalized_path );
+    $stack = array();
+    foreach ( $path_segments as $seg ) {
+        if ( $seg === '..' ) {
+            // Ignore this and remove last one
+            array_pop($stack);
+            continue;
+        }
+
+        if ( $seg === '.' ) {
+            // Ignore this segment
+            continue;
+        }
+
+        $stack[] = $seg;
+    }
+
+    return implode('/', $stack);
+}
