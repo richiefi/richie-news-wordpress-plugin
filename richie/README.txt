@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= WIP =
+* Resolve relative asset pack urls (paths with .. or .)
+
 = 1.2.3 (24.06.2019) =
 * Fix invalid function call
 
