@@ -29,4 +29,29 @@ class FunctionTest extends WP_UnitTestCase {
         // should prefix with https
         $this->assertEquals($url, 'https://richie.fi//image.png');
     }
+
+    public function test_normalize_path_no_dots() {
+        $path = richie_normalize_path('/test/path/somewhere.jpg');
+        $this->assertEquals($path, '/test/path/somewhere.jpg');
+    }
+
+    public function test_normalize_path_single_dots() {
+        $path = richie_normalize_path('/test/path/./somewhere.jpg');
+        $this->assertEquals($path, '/test/path/somewhere.jpg');
+    }
+
+    public function test_normalize_path_double_dots() {
+        $path = richie_normalize_path('/test/path/../somewhere.jpg');
+        $this->assertEquals($path, '/test/somewhere.jpg');
+    }
+
+    public function test_normalize_path_no_leading_slash() {
+        $path = richie_normalize_path('test/path/./../somewhere.jpg');
+        $this->assertEquals($path, 'test/somewhere.jpg');
+    }
+
+    public function test_normalize_path_double_slashes() {
+        $path = richie_normalize_path('/test///path/.././somewhere.jpg');
+        $this->assertEquals($path, '/test/somewhere.jpg');
+    }
 }
