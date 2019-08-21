@@ -95,4 +95,28 @@ class Test_JSON_API extends WP_UnitTestCase {
         $this->assertEquals( $response->data['errors'][0]['post_id'], $first );
     }
 
+    public function test_get_assets_list_with_combined_custom() {
+        update_option( 'richie_assets', json_decode('[{"local_name": "app-assets/test/test2/script.js", "remote_url": "http://example.org/test/test2/script.js"}]') );
+        $request  = new WP_REST_Request( 'GET', '/richie/v1/assets' );
+        $response = $this->server->dispatch( $request );
+        $this->assertEquals( 200, $response->get_status() );
+
+        $assets = $response->data['app_assets'];
+        $last = array_pop($assets);
+        $this->assertEquals( $last->local_name, 'app-assets/test/test2/script.js' );
+        $this->assertEquals( $last->remote_url, 'http://example.org/test/test2/script.js' );
+    }
+
+    public function test_get_assets_list_with_combined_and_overriding_custom() {
+        update_option( 'richie_assets', json_decode('[{"local_name": "app-assets/wp-includes/js/jquery/jquery.js", "remote_url": "http://another.org/wp-includes/js/jquery/jquery2.js?ver=1.12.4-wp"}]') );
+        $request  = new WP_REST_Request( 'GET', '/richie/v1/assets' );
+        $response = $this->server->dispatch( $request );
+        $this->assertEquals( 200, $response->get_status() );
+
+        $assets = $response->data['app_assets'];
+        $first = array_shift($assets); // jquery is first in the array
+        $this->assertEquals( $first->local_name, 'app-assets/wp-includes/js/jquery/jquery.js' );
+        $this->assertEquals( $first->remote_url, 'http://another.org/wp-includes/js/jquery/jquery2.js?ver=1.12.4-wp' );
+    }
+
 }
