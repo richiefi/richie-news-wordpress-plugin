@@ -37,8 +37,9 @@ class Richie_Admin_Components {
         }
         ?>
         <p>
-            Accepts valid json. Example:
+            Custom assets to be merged with generated. Same local_name in custom list will override generated one.
         </p>
+        <p>Accepts valid json. Example:</p>
         <pre>
     [
         {
@@ -47,6 +48,8 @@ class Richie_Admin_Components {
         }
     ]
         </pre>
+        <p><strong>Required attributes for the asset: local_name, remote_url</strong></p>
+        <br>
         <script>
             var assetUrl = "<?php echo esc_url( get_rest_url( null, '/richie/v1/assets' ) ); ?>";
         </script>
