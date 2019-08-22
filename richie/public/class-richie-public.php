@@ -323,7 +323,7 @@ class Richie_Public {
     }
 
     public function article_route_handler( $data ) {
-        $assets = get_option( $this->plugin_name . '_assets' );
+        $assets = $this->get_assets();
 
         if ( false === $assets ) {
             $assets = [];
