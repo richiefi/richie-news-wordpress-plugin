@@ -23,7 +23,7 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
-= WIP =
+= 1.2.4 (22.07.2019) =
 * Resolve relative asset pack urls (paths with .. or .)
 * Return generated asset list from the api (merged with custom data)
 
