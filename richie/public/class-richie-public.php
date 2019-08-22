@@ -350,8 +350,22 @@ class Richie_Public {
         return false;
     }
 
-    public function asset_feed_handler() {
+    /**
+     * Generate assets list (scripts and styles). Caches it for one hour.
+     *
+     * @return array
+     */
+    public function get_assets() {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-app-asset.php';
+
+        $transient_key = 'richie_assets_cache';
+        $cached_assets = get_transient( $transient_key );
+
+        if ( !empty( $cached_assets ) ) {
+            // Cache exists, return it.
+            return $cached_assets;
+        }
+
         $general_assets = [];
 
         global $wp_scripts, $wp_styles;
@@ -395,16 +409,22 @@ class Richie_Public {
         }
 
         // Get just the values from the array.
-        $all_assets = array_values($all_assets);
+        $all_assets = array_values( $all_assets );
+        set_transient( $transient_key, $all_assets, HOUR_IN_SECONDS ); // Cache for one hour.
+        return $all_assets;
+    }
 
-        $etag = md5( wp_json_encode( $all_assets ) );
+    public function asset_feed_handler() {
+        $assets = $this->get_assets();
+
+        $etag = md5( wp_json_encode( $assets ) );
 
         if ( ! headers_sent() ) {
             header( "Etag: $etag" );
             header( 'Cache-Control: private, no-cache' );
         }
 
-        return array( 'app_assets' => $all_assets );
+        return array( 'app_assets' => $assets );
     }
 
     /**
