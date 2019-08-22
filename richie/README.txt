@@ -25,6 +25,7 @@ Richie Platform plugin provides following features:
 == Changelog ==
 = WIP =
 * Resolve relative asset pack urls (paths with .. or .)
+* Return generated asset list from the api (merged with custom data)
 
 = 1.2.3 (24.06.2019) =
 * Fix invalid function call

@@ -321,7 +321,7 @@ class Richie_Admin {
 
         $assets = json_decode( $input['data'] );
 
-        if ( json_last_error() !== JSON_ERROR_NONE || $assets === false || empty( $assets ) ) {
+        if ( json_last_error() !== JSON_ERROR_NONE || $assets === false ) {
             $error = json_last_error() !== JSON_ERROR_NONE ? json_last_error_msg() : 'Unknown error';
             add_settings_error(
                 $this->assets_option_name,
@@ -332,6 +332,7 @@ class Richie_Admin {
             );
             return get_option( $this->assets_option_name );
         } else {
+            delete_transient(RICHIE_ASSET_CACHE_KEY);
             return $assets;
         }
     }

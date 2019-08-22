@@ -323,7 +323,7 @@ class Richie_Public {
     }
 
     public function article_route_handler( $data ) {
-        $assets = get_option( $this->plugin_name . '_assets' );
+        $assets = $this->get_assets();
 
         if ( false === $assets ) {
             $assets = [];
@@ -350,44 +350,81 @@ class Richie_Public {
         return false;
     }
 
-    public function asset_feed_handler() {
+    /**
+     * Generate assets list (scripts and styles). Caches it for one hour.
+     *
+     * @return array
+     */
+    public function get_assets() {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-app-asset.php';
-        $result = [];
 
-        if ( isset( $_GET['generate'] ) && 'true' === $_GET['generate'] ) {
-            global $wp_scripts, $wp_styles;
+        $transient_key = RICHIE_ASSET_CACHE_KEY;
+        $cached_assets = get_transient( $transient_key );
 
-            ob_start();
-            // These will cause styles/scripts to be included in global variables.
-            wp_head();
-            wp_footer();
-            ob_end_clean();
+        if ( !empty( $cached_assets ) ) {
+            // Cache exists, return it.
+            return $cached_assets;
+        }
 
-            foreach ( $wp_scripts->do_items() as $script_name ) {
-                $script     = $wp_scripts->registered[ $script_name ];
-                $remote_url = $script->src;
-                if ( ( substr( $remote_url, -3 ) === '.js' ) && ! strpos( $remote_url, 'wp-admin' ) ) {
-                    $result[] = new Richie_App_Asset( $script );
-                }
+        $general_assets = [];
+
+        global $wp_scripts, $wp_styles;
+
+        ob_start();
+        // These will cause styles/scripts to be included in global variables.
+        wp_head();
+        wp_footer();
+        ob_end_clean();
+
+        foreach ( $wp_scripts->do_items() as $script_name ) {
+            $script     = $wp_scripts->registered[ $script_name ];
+            $remote_url = $script->src;
+            if ( ( substr( $remote_url, -3 ) === '.js' ) && ! strpos( $remote_url, 'wp-admin' ) ) {
+                $general_assets[] = new Richie_App_Asset( $script );
             }
-            // Print all loaded Styles (CSS).
-            foreach ( $wp_styles->do_items() as $style_name ) {
-                $style      = $wp_styles->registered[ $style_name ];
-                $remote_url = $style->src;
-                if ( ( substr( $remote_url, -4 ) === '.css' ) && ! strpos( $remote_url, 'wp-admin' ) ) {
-                    $result[] = new Richie_App_Asset( $style );
-                }
+        }
+        // Print all loaded Styles (CSS).
+        foreach ( $wp_styles->do_items() as $style_name ) {
+            $style      = $wp_styles->registered[ $style_name ];
+            $remote_url = $style->src;
+            if ( ( substr( $remote_url, -4 ) === '.css' ) && ! strpos( $remote_url, 'wp-admin' ) ) {
+                $general_assets[] = new Richie_App_Asset( $style );
             }
-        } else {
-            $result = get_option( $this->plugin_name . '_assets' );
-            if ( false === $result ) {
-                $result = [];
-            }
-            $etag = md5( wp_json_encode( $result ) );
+        }
+        $custom_assets = get_option( $this->plugin_name . '_assets' );
+
+        if ( false === $custom_assets ) {
+            $custom_assets = [];
+        }
+
+        $all_assets = [];
+
+        // Map assets by localname. Custom assets will override general assets with same local name.
+        foreach ( $general_assets as $asset ) {
+            $all_assets[$asset->local_name] = $asset;
+        }
+
+        foreach ( $custom_assets as $asset ) {
+            $all_assets[$asset->local_name] = $asset;
+        }
+
+        // Get just the values from the array.
+        $all_assets = array_values( $all_assets );
+        set_transient( $transient_key, $all_assets, HOUR_IN_SECONDS ); // Cache for one hour.
+        return $all_assets;
+    }
+
+    public function asset_feed_handler() {
+        $assets = $this->get_assets();
+
+        $etag = md5( wp_json_encode( $assets ) );
+
+        if ( ! headers_sent() ) {
             header( "Etag: $etag" );
             header( 'Cache-Control: private, no-cache' );
         }
-        return array( 'app_assets' => $result );
+
+        return array( 'app_assets' => $assets );
     }
 
     /**

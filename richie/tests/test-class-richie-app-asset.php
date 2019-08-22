@@ -49,7 +49,7 @@ class Test_Richie_App_Asset extends WP_UnitTestCase {
         $dependency->src = '/test/src/../scripts/./test.js';
         $dependency->ver = '1.0.0';
         $app_asset = new Richie_App_Asset( $dependency, 'prefix/' );
-        $this->assertEquals( $app_asset->remote_url, 'http://example.org/test/scripts/test.js?ver=1.0.0' );
+        $this->assertEquals( $app_asset->remote_url, 'http://example.org/test/src/../scripts/./test.js?ver=1.0.0' );
         $this->assertEquals( $app_asset->local_name, 'prefix/test/scripts/test.js' );
     }
 
