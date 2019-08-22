@@ -358,7 +358,7 @@ class Richie_Public {
     public function get_assets() {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-app-asset.php';
 
-        $transient_key = 'richie_assets_cache';
+        $transient_key = RICHIE_ASSET_CACHE_KEY;
         $cached_assets = get_transient( $transient_key );
 
         if ( !empty( $cached_assets ) ) {

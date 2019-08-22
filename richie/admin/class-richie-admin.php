@@ -332,6 +332,7 @@ class Richie_Admin {
             );
             return get_option( $this->assets_option_name );
         } else {
+            delete_transient(RICHIE_ASSET_CACHE_KEY);
             return $assets;
         }
     }

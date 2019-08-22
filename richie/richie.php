@@ -38,6 +38,13 @@ define( 'Richie_VERSION', '1.2.3' );
 define( 'Richie_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 
 /**
+ * Define plugin constants
+ */
+
+defined('RICHIE_ASSET_CACHE_KEY') or define('RICHIE_ASSET_CACHE_KEY', 'richie_assets_cache');
+
+
+/**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-richie-activator.php
  */
