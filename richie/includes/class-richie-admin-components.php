@@ -50,7 +50,6 @@ class Richie_Admin_Components {
         <script>
             var assetUrl = "<?php echo esc_url( get_rest_url( null, '/richie/v1/assets' ) ); ?>";
         </script>
-        <button id="generate-assets" type="button">Generate base list (overrides current content)</button>
         <textarea id="code_editor_page_js" rows="10" name="<?php echo esc_attr( $option_name ); ?>[data]" class="widefat textarea"><?php echo esc_html( wp_unslash( wp_json_encode( $assets, JSON_PRETTY_PRINT ) ) ); ?></textarea>
         <?php
     }
