@@ -116,6 +116,35 @@ class Richie_Article {
         return richie_get_article_assets();
     }
 
+    /**
+     * Parse html content and return all img tag source urls
+     *
+     * @param [string] $content
+     * @return array
+     */
+    public function get_article_images( $content ) {
+
+        $image_urls = [];
+        $dom = new DOMDocument();
+        libxml_use_internal_errors( true );
+        $dom->loadHTML( mb_convert_encoding( $content, 'HTML-ENTITIES', 'UTF-8' ) );
+        // Get all the images.
+        $images = $dom->getElementsByTagName( 'img' );
+        // Loop the images.
+        foreach ( $images as $image ) {
+            $image_urls[] = richie_make_link_absolute($image->getAttribute( 'src' ));
+            $image->removeAttribute( 'srcset' );
+        }
+
+        // Remove duplicate urls.
+        $image_urls = array_unique( $image_urls );
+
+        return array(
+            'images' => $image_urls,
+            'content' => $dom->saveHTML()
+        );
+    }
+
     public function generate_article( $my_post ) {
         if ( empty( $my_post ) ) {
             return new stdClass(); // Return empty object.
@@ -266,24 +295,8 @@ class Richie_Article {
         $main_gallery = [];
         $thumbnail_id = get_post_thumbnail_id( $my_post );
 
-        $image_urls = [];
-        $dom = new DOMDocument();
-        libxml_use_internal_errors( true );
-        $dom->loadHTML( mb_convert_encoding( $rendered_content, 'HTML-ENTITIES', 'UTF-8' ) );
-        // Get all the images.
-        $images = $dom->getElementsByTagName( 'img' );
 
-        // Loop the images.
-        foreach ( $images as $image ) {
-            $image_urls[] = $image->getAttribute( 'src' );
-            $image->removeAttribute( 'srcset' );
-        }
 
-        // Remove duplicate urls.
-        $image_urls = array_unique( $image_urls );
-
-        // Save the HTML.
-        $rendered_content = $dom->saveHTML();
 
         if ( $thumbnail_id ) {
             $thumbnail          = wp_get_attachment_image_url( $thumbnail_id, 'full' );
