@@ -217,6 +217,8 @@ class Richie_Article {
             $use_local_render = $_GET['use_local_render'] === '1';
         }
 
+        $post_content_images = $this->get_article_images($my_post->post_content);
+
         //$article->debug_content_url = $content_url;
 
         if ( ! $use_local_render ) {
@@ -294,9 +296,13 @@ class Richie_Article {
 
         $main_gallery = [];
         $thumbnail_id = get_post_thumbnail_id( $my_post );
+        $image_urls = $post_content_images['images'];
+
+        $rendered_article_images = $this->get_article_images( $rendered_content );
 
 
-
+        // Save the HTML with img srcset removed.
+        $rendered_content = $rendered_article_images['content'];
 
         if ( $thumbnail_id ) {
             $thumbnail          = wp_get_attachment_image_url( $thumbnail_id, 'full' );
