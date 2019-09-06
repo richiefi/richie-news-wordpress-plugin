@@ -145,6 +145,72 @@ class Richie_Article {
         );
     }
 
+    /**
+     * Create an asset array from image urls. Optionally tries to link them to an attachment.
+     * Finding attachment by url is really slow, so it is disabled as default.
+     * It also replaces urls found in passed content string with generated local_name.
+     *
+     * @param array $image_urls
+     * @param string $rendered_content Passed as reference, modifies content.
+     * @param boolean $resolve_attachment
+     * @return array
+     */
+    public function generate_photos_array( $image_urls, &$rendered_content, $resolve_attachment = false ) {
+        if ( empty( $image_urls ) ) {
+            return [];
+        }
+
+        $attachment_cache = [];
+        $results          = [];
+
+        foreach ( array_unique( $image_urls ) as $url ) {
+
+            $local_name = remove_query_arg( 'ver', wp_make_link_relative( $url ) );
+            if ( empty( $local_name ) ) {
+                continue;
+            }
+            $local_name = ltrim( $local_name, '/' );
+
+            $remote_url = richie_make_link_absolute( $url );
+
+            $attachment_id = false;
+
+            // Fetching asset data by url is very slow. So this is disabled as default.
+            // There is an open ticket in wp core, database indexes could resolve this.
+
+            if ( $resolve_attachment ) {
+                // Remove size from the url, expects '-1000x230' format.
+                $base_url = preg_replace( '/(.+)(-\d+x\d+)(.+)/', '$1$3', $url );
+
+                if( isset( $attachment_cache[$base_url] ) ) {
+                    $attachment_id = $attachment_cache[$base_url];
+                } else {
+                    $attachment_id = richie_get_image_id($base_url);
+                    $attachment_cache[$base_url] = $attachment_id;
+                }
+            }
+
+            if ( $attachment_id ) {
+                // Attachment found, use it.
+                $attachment       = get_post( $attachment_id );
+                $rendered_content = str_replace( $url, $local_name, $rendered_content );
+                $results[]   = array(
+                    'caption'    => $attachment->post_excerpt,
+                    'local_name' => $local_name,
+                    'remote_url' => $remote_url,
+                );
+            } else {
+                $rendered_content = str_replace( $url, $local_name, $rendered_content );
+                $results[]   = array(
+                    'local_name' => $local_name,
+                    'remote_url' => $this->append_wpp_shadow( $remote_url ),
+                );
+            }
+        }
+
+        return $results;
+    }
+
     public function generate_article( $my_post ) {
         if ( empty( $my_post ) ) {
             return new stdClass(); // Return empty object.
@@ -337,96 +403,66 @@ class Richie_Article {
             }
         }
 
+        if ( $image_urls ) {
+            $img_list = $this->generate_photos_array($image_urls, $rendered_content, false);
+            $main_gallery = array_merge( $main_gallery, $img_list );
+        }
+
+        // Remove possible duplicate entries from main gallery.
+        $unique = array();
+
+        foreach ( $main_gallery as $item ) {
+            // Duplicate items will replace the key in unique array.
+            $unique[ $item['local_name'] ] = $item;
+        }
+
+        $article_photos[]   = array_values( $unique );
+        $all_gallery_images = [];
+
         if ( ! $disable_url_handling ) {
-            // Find first gallery and append it to photos array.
-            $gallery = get_post_gallery( $my_post, false );
-            if ( false !== $gallery ) {
-                $ids = explode( ',', $gallery['ids'] );
-                foreach ( $ids as $attachment_id ) {
-                    $attachment = get_post( $attachment_id );
-                    if ( null === $attachment ) {
-                        continue;
-                    }
-                    $attachment_url = wp_get_attachment_url( $attachment->ID );
-                    $local_name     = remove_query_arg( 'ver', wp_make_link_relative( $attachment_url ) );
-                    $local_name     = ltrim( $local_name, '/' );
-                    if ( false !== strpos( $rendered_content, richie_make_link_absolute( $attachment_url ) ) ) {
-                        $rendered_content = str_replace( richie_make_link_absolute( $attachment_url ), $local_name, $rendered_content );
-                    } else {
-                        $rendered_content = str_replace( $attachment_url, $local_name, $rendered_content );
-                    }
-                    $main_gallery[] = array(
-                        'caption'    => $attachment->post_excerpt,
-                        'local_name' => $local_name,
-                        'remote_url' => $this->append_wpp_shadow( richie_make_link_absolute( $attachment_url ) ),
-                    );
+            // Find galleries in post and append it to photos array.
+            $galleries = get_post_galleries( $my_post, false );
 
-                    // Remove from general image array, since we have already handled this url.
-                    $index = array_search( $attachment_url, $image_urls );
-                    if ( false !== $index ) {
-                        unset( $image_urls[ $index ] );
-                    }
-                }
-            }
-
-            // Remove possible duplicate entries from main gallery.
-            $unique = array();
-
-            foreach ( $main_gallery as $item ) {
-                // Duplicate items will replace the key in unique array.
-                $unique[ $item['local_name'] ] = $item;
-            }
-
-            $article_photos[] = array_values( $unique );
-
-            if ( $image_urls ) {
-                $attachent_cache = [];
-                $photos_array = [];
-                foreach ( array_unique( $image_urls ) as $url ) {
-                    // Remove size from the url, expects '-1000x230' format.
-                    $base_url = preg_replace( '/(.+)(-\d+x\d+)(.+)/', '$1$3', $url );
-
-                    $local_name = remove_query_arg( 'ver', wp_make_link_relative( $url ) );
-                    if ( empty( $local_name ) ) {
-                        continue;
-                    }
-                    $local_name = ltrim( $local_name, '/' );
-
-                    if ( isset( $unique[ $local_name ] ) ) {
-                        continue; // Already have image in gallery array.
-                    }
-
-                    $remote_url = richie_make_link_absolute( $url );
-
-                    $attachment_id = false;
-                    // if( isset( $attachment_cache[$base_url] ) ) {
-                    //     $attachment_id = $attachment_cache[$base_url];
-                    // } else {
-                    //     $attachment_id = richie_get_image_id($base_url);
-                    //     $attachment_cache[$base_url] = $attachment_id;
-                    // }
-                    if ( $attachment_id ) {
-                        $attachment       = get_post( $attachment_id );
-                        $attachment_url   = wp_get_attachment_url( $attachment->ID );
-                        $rendered_content = str_replace( $url, $local_name, $rendered_content );
-                        $photos_array[]   = array(
+            foreach ( $galleries as $gallery ) {
+                $gallery_photos = [];
+                if ( false !== $gallery ) {
+                    $ids = explode( ',', $gallery['ids'] );
+                    foreach ( $ids as $attachment_id ) {
+                        $attachment = get_post( $attachment_id );
+                        if ( null === $attachment ) {
+                            continue;
+                        }
+                        $attachment_url = wp_get_attachment_url( $attachment->ID );
+                        $local_name     = remove_query_arg( 'ver', wp_make_link_relative( $attachment_url ) );
+                        $local_name     = ltrim( $local_name, '/' );
+                        if ( false !== strpos( $rendered_content, richie_make_link_absolute( $attachment_url ) ) ) {
+                            $rendered_content = str_replace( richie_make_link_absolute( $attachment_url ), $local_name, $rendered_content );
+                        } else {
+                            $rendered_content = str_replace( $attachment_url, $local_name, $rendered_content );
+                        }
+                        $gallery_photos [] = array(
                             'caption'    => $attachment->post_excerpt,
                             'local_name' => $local_name,
-                            'remote_url' => $remote_url,
+                            'remote_url' => $this->append_wpp_shadow( richie_make_link_absolute( $attachment_url ) ),
                         );
-                    } else {
-                        $rendered_content = str_replace( $url, $local_name, $rendered_content );
-                        $local_assets[]   = array(
-                            'local_name' => $local_name,
-                            'remote_url' => $this->append_wpp_shadow( $remote_url ),
-                        );
+                        $all_gallery_images[] = $attachment_url;
                     }
                 }
-                if ( ! empty( $photos_array ) ) {
-                    $article_photos[] = $photos_array;
+
+                if ( ! empty( $gallery_photos ) ) {
+                    $article_photos[] = $gallery_photos;
                 }
             }
         }
+
+        // Find images not in post content and add them to assets
+        $other_images = array_diff( array_diff( $rendered_article_images[ 'images' ], $image_urls ), array_unique( $all_gallery_images ) );
+
+        if ( !empty( $other_images ) ) {
+            $arr = $this->generate_photos_array( $other_images, $rendered_content, false);
+            $local_assets = array_merge( $local_assets, $arr );
+        }
+
 
         $article->content_html_document = $rendered_content;
         $article->assets                = array_values( $local_assets );
