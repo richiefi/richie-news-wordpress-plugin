@@ -119,7 +119,7 @@ class Richie_Article {
     /**
      * Parse html content and return all img tag source urls
      *
-     * @param [string] $content
+     * @param string $content
      * @return array
      */
     public function get_article_images( $content ) {
@@ -333,15 +333,6 @@ class Richie_Article {
             }
         );
 
-        $urls = array_unique( wp_extract_urls( $rendered_content ) );
-
-        $absolute_urls = array_map(
-            function( $url ) {
-                return richie_make_link_absolute( $url );
-            },
-            $urls
-        );
-
         // Replace asset urls with localname.
         foreach ( $this->assets as $asset ) {
             $local_name       = ltrim( $asset->local_name, '/' );
@@ -362,7 +353,7 @@ class Richie_Article {
 
         $main_gallery = [];
         $thumbnail_id = get_post_thumbnail_id( $my_post );
-        $image_urls = $post_content_images['images'];
+        $image_urls   = $post_content_images['images'];
 
         $rendered_article_images = $this->get_article_images( $rendered_content );
 
