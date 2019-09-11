@@ -23,7 +23,7 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
-= WIP
+= 1.2.5 (11.09.2019) =
 * Include img tags in body to photo gallery
 
 = 1.2.4 (22.07.2019) =
