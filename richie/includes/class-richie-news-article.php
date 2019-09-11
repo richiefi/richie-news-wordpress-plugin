@@ -196,7 +196,7 @@ class Richie_Article {
                 if( isset( $attachment_cache[$base_url] ) ) {
                     $attachment_id = $attachment_cache[$base_url];
                 } else {
-                    $attachment_id = richie_get_image_id($base_url);
+                    $attachment_id = richie_attachment_url_to_postid($base_url);
                     $attachment_cache[$base_url] = $attachment_id;
                 }
             }
