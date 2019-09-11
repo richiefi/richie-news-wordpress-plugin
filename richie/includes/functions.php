@@ -306,3 +306,12 @@ function richie_normalize_path( $path ) {
 
     return implode('/', $stack);
 }
+
+function richie_encode_url_path( $url ) {
+    $encoded = preg_replace_callback('#://([^/]+)/([^?]+)#', function ($match) {
+        return '://' . $match[1] . '/' . join('/', array_map('rawurlencode', explode('/', $match[2])));
+    }, $url);
+
+    return $encoded;
+}
+
