@@ -122,7 +122,7 @@ class Richie_Article {
      * @param string $content
      * @return array
      */
-    public function get_article_images( $content ) {
+    public function get_article_images( $content, $include_links = false ) {
 
         $image_urls = [];
         $dom = new DOMDocument();
@@ -134,6 +134,17 @@ class Richie_Article {
         foreach ( $images as $image ) {
             $image_urls[] = richie_make_link_absolute($image->getAttribute( 'src' ));
             $image->removeAttribute( 'srcset' );
+        }
+
+        if ( true === $include_links ) {
+            $links = $dom->getElementsByTagName( 'a' );
+
+            foreach ( $links as $link ) {
+                $href = $link->getAttribute( 'href' );
+                if( richie_is_image_url( $href ) ) {
+                    $image_urls[] = richie_make_link_absolute( $href );
+                }
+            }
         }
 
         // Remove duplicate urls.
