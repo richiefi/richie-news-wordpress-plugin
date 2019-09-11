@@ -201,22 +201,25 @@ class Richie_Article {
                 }
             }
 
+            $encoded_url = richie_encode_url_path( $url );
+
             if ( $attachment_id ) {
                 // Attachment found, use it.
                 $attachment       = get_post( $attachment_id );
-                $rendered_content = str_replace( $url, $local_name, $rendered_content );
                 $results[]   = array(
                     'caption'    => $attachment->post_excerpt,
                     'local_name' => $local_name,
                     'remote_url' => $remote_url,
                 );
             } else {
-                $rendered_content = str_replace( $url, $local_name, $rendered_content );
                 $results[]   = array(
                     'local_name' => $local_name,
                     'remote_url' => $this->append_wpp_shadow( $remote_url ),
                 );
             }
+
+            $rendered_content = str_replace( $url, $local_name, $rendered_content );
+            $rendered_content = str_replace( $encoded_url, $local_name, $rendered_content );
         }
 
         return $results;
