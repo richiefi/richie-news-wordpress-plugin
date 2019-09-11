@@ -297,7 +297,6 @@ class Richie_Article {
             $use_local_render = $_GET['use_local_render'] === '1';
         }
 
-        $post_content_images = $this->get_article_images($my_post->post_content);
 
         //$article->debug_content_url = $content_url;
 
@@ -367,9 +366,9 @@ class Richie_Article {
 
         $main_gallery = [];
         $thumbnail_id = get_post_thumbnail_id( $my_post );
-        $image_urls   = $post_content_images['images'];
 
         $rendered_article_images = $this->get_article_images( $rendered_content );
+        $image_urls   = $rendered_article_images['images'];
 
 
         // Save the HTML with img srcset removed.
@@ -408,20 +407,7 @@ class Richie_Article {
             }
         }
 
-        if ( $image_urls ) {
-            $img_list = $this->generate_photos_array($image_urls, $rendered_content, false);
-            $main_gallery = array_merge( $main_gallery, $img_list );
-        }
 
-        // Remove possible duplicate entries from main gallery.
-        $unique = array();
-
-        foreach ( $main_gallery as $item ) {
-            // Duplicate items will replace the key in unique array.
-            $unique[ $item['local_name'] ] = $item;
-        }
-
-        $article_photos[]   = array_values( $unique );
         $all_gallery_images = [];
 
         if ( ! $disable_url_handling ) {
@@ -445,12 +431,20 @@ class Richie_Article {
                         } else {
                             $rendered_content = str_replace( $attachment_url, $local_name, $rendered_content );
                         }
+
+                        $remote_url = richie_make_link_absolute( $attachment_url );
+
                         $gallery_photos [] = array(
                             'caption'    => $attachment->post_excerpt,
                             'local_name' => $local_name,
-                            'remote_url' => $this->append_wpp_shadow( richie_make_link_absolute( $attachment_url ) ),
+                            'remote_url' => $this->append_wpp_shadow( $remote_url ),
                         );
-                        $all_gallery_images[] = $attachment_url;
+                        $all_gallery_images[] = $remote_url;
+                        // Remove from general image array, since we have already handled this url.
+                        $index = array_search( $remote_url, $image_urls );
+                        if ( false !== $index ) {
+                            unset( $image_urls[ $index ] );
+                        }
                     }
                 }
 
@@ -459,6 +453,23 @@ class Richie_Article {
                 }
             }
         }
+
+
+        if ( $image_urls ) {
+            $img_list = $this->generate_photos_array($image_urls, $rendered_content, false);
+            $main_gallery = array_merge( $main_gallery, $img_list );
+        }
+
+        // Remove possible duplicate entries from main gallery.
+        $unique = array();
+
+        foreach ( $main_gallery as $item ) {
+            // Duplicate items will replace the key in unique array.
+            $unique[ $item['local_name'] ] = $item;
+        }
+
+        // prepend main gallery
+        array_unshift( $article_photos, array_values( $unique ) );
 
         // Find images not in post content and add them to assets
         $other_images = array_diff( array_diff( $rendered_article_images[ 'images' ], $image_urls ), array_unique( $all_gallery_images ) );
