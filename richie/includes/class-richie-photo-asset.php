@@ -34,7 +34,7 @@ class Richie_Photo_Asset implements JsonSerializable {
 
         }
 
-        $this->local_name = $local_name;
+        $this->local_name = iconv( 'UTF-8', 'ASCII//TRANSLIT//IGNORE', $local_name );
         $this->remote_url = $this->append_wpp_shadow( $remote_url );
 
     }
