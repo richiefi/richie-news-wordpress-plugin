@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= WIP =
+* Convert asset local name to ascii characters
+
 = 1.2.5 (11.09.2019) =
 * Include img tags in body to photo gallery
 
