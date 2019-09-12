@@ -8,6 +8,9 @@
  * @subpackage Richie/includes
  */
 
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-photo-asset.php';
+
+
 /**
  * Generates article for the Richie news feed.
  *
@@ -175,51 +178,12 @@ class Richie_Article {
         $results          = [];
 
         foreach ( array_unique( $image_urls ) as $url ) {
-
-            $local_name = remove_query_arg( 'ver', wp_make_link_relative( $url ) );
-            if ( empty( $local_name ) ) {
-                continue;
-            }
-            $local_name = ltrim( $local_name, '/' );
-
-            $remote_url = richie_make_link_absolute( $url );
-
-            $attachment_id = false;
-
-            // Fetching asset data by url is very slow. So this is disabled as default.
-            // There is an open ticket in wp core, database indexes could resolve this.
-
-            if ( $resolve_attachment ) {
-                // Remove size from the url, expects '-1000x230' format.
-                $base_url = preg_replace( '/(.+)(-\d+x\d+)(.+)/', '$1$3', $url );
-
-                if( isset( $attachment_cache[$base_url] ) ) {
-                    $attachment_id = $attachment_cache[$base_url];
-                } else {
-                    $attachment_id = richie_attachment_url_to_postid($base_url);
-                    $attachment_cache[$base_url] = $attachment_id;
-                }
-            }
+            $photo_asset = new Richie_Photo_Asset( $url, false);
+            $results[] = $photo_asset;
 
             $encoded_url = richie_encode_url_path( $url );
-
-            if ( $attachment_id ) {
-                // Attachment found, use it.
-                $attachment       = get_post( $attachment_id );
-                $results[]   = array(
-                    'caption'    => $attachment->post_excerpt,
-                    'local_name' => $local_name,
-                    'remote_url' => $remote_url,
-                );
-            } else {
-                $results[]   = array(
-                    'local_name' => $local_name,
-                    'remote_url' => $this->append_wpp_shadow( $remote_url ),
-                );
-            }
-
-            $rendered_content = str_replace( $url, $local_name, $rendered_content );
-            $rendered_content = str_replace( $encoded_url, $local_name, $rendered_content );
+            $rendered_content = str_replace( $url, $photo_asset->local_name, $rendered_content );
+            $rendered_content = str_replace( $encoded_url, $photo_asset->local_name, $rendered_content );
         }
 
         return $results;
@@ -390,14 +354,12 @@ class Richie_Article {
                     $thumbnail_url = wp_get_attachment_image_url( $thumbnail_id, $size );
                 }
                 if ( false !== strpos( $rendered_content, $thumbnail_url ) ) {
-                    $local_name       = wp_make_link_relative( $thumbnail );
-                    $local_name       = ltrim( $local_name, '/' );
-                    $rendered_content = str_replace( $thumbnail_url, $local_name, $rendered_content );
-                    $main_gallery[]   = array(
-                        'caption'    => get_the_post_thumbnail_caption( $my_post ),
-                        'local_name' => $local_name,
-                        'remote_url' => $this->append_wpp_shadow( $remote_url ),
-                    );
+                    $photo_asset = new Richie_Photo_Asset( $remote_url, false );
+                    $photo_asset->caption = get_the_post_thumbnail_caption( $my_post );
+
+                    $rendered_content = str_replace( $thumbnail_url, $photo_asset->local_name, $rendered_content );
+                    $main_gallery[]   = $photo_asset;
+
                     // Remove from general image array, since we have already handled this url.
                     $index = array_search( $thumbnail_url, $image_urls );
                     if ( false !== $index ) {
@@ -424,24 +386,25 @@ class Richie_Article {
                             continue;
                         }
                         $attachment_url = wp_get_attachment_url( $attachment->ID );
-                        $local_name     = remove_query_arg( 'ver', wp_make_link_relative( $attachment_url ) );
-                        $local_name     = ltrim( $local_name, '/' );
-                        if ( false !== strpos( $rendered_content, richie_make_link_absolute( $attachment_url ) ) ) {
-                            $rendered_content = str_replace( richie_make_link_absolute( $attachment_url ), $local_name, $rendered_content );
+
+                        $photo_asset = new Richie_Photo_Asset( $attachment_url );
+                        $photo_asset->caption = $attachment->post_excerpt;
+
+                        $local_name = $photo_asset->local_name;
+                        $absolute_url = richie_make_link_absolute( $attachment_url );
+
+                        if ( false !== strpos( $rendered_content, $absolute_url ) ) {
+                            $rendered_content = str_replace( $absolute_url, $local_name, $rendered_content );
                         } else {
                             $rendered_content = str_replace( $attachment_url, $local_name, $rendered_content );
                         }
 
-                        $remote_url = richie_make_link_absolute( $attachment_url );
 
-                        $gallery_photos [] = array(
-                            'caption'    => $attachment->post_excerpt,
-                            'local_name' => $local_name,
-                            'remote_url' => $this->append_wpp_shadow( $remote_url ),
-                        );
-                        $all_gallery_images[] = $remote_url;
+                        $gallery_photos [] = $photo_asset;
+
+                        $all_gallery_images[] = $attachment_url;
                         // Remove from general image array, since we have already handled this url.
-                        $index = array_search( $remote_url, $image_urls );
+                        $index = array_search( $attachment_url, $image_urls );
                         if ( false !== $index ) {
                             unset( $image_urls[ $index ] );
                         }
@@ -465,7 +428,7 @@ class Richie_Article {
 
         foreach ( $main_gallery as $item ) {
             // Duplicate items will replace the key in unique array.
-            $unique[ $item['local_name'] ] = $item;
+            $unique[ $item->local_name ] = $item;
         }
 
         // prepend main gallery
