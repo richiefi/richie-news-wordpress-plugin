@@ -23,7 +23,7 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
-= WIP =
+= 1.2.6 (12.09.2019) =
 * Convert asset local name to ascii characters
 
 = 1.2.5 (11.09.2019) =
