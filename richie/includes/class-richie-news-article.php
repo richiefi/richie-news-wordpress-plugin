@@ -378,6 +378,8 @@ class Richie_Article {
 
             foreach ( $galleries as $gallery ) {
                 $gallery_photos = [];
+                $sizes = get_intermediate_image_sizes();
+
                 if ( false !== $gallery ) {
                     $ids = explode( ',', $gallery['ids'] );
                     foreach ( $ids as $attachment_id ) {
@@ -403,10 +405,19 @@ class Richie_Article {
                         $gallery_photos [] = $photo_asset;
 
                         $all_gallery_images[] = $attachment_url;
-                        // Remove from general image array, since we have already handled this url.
-                        $index = array_search( $attachment_url, $image_urls );
-                        if ( false !== $index ) {
-                            unset( $image_urls[ $index ] );
+
+                        // get all variants and filter from main gallery
+                        foreach ( $sizes as $size ) {
+                            $img = wp_get_attachment_image_src($attachment_id, $size);
+
+                            if ( false !== $img ) {
+                                // Remove from general image array, since this is in wordpress gallery.
+                                $url = $img[0];
+                                $index = array_search( $url, $image_urls );
+                                if ( false !== $index ) {
+                                    unset( $image_urls[ $index ] );
+                                }
+                            }
                         }
                     }
                 }
@@ -432,7 +443,9 @@ class Richie_Article {
         }
 
         // prepend main gallery
-        array_unshift( $article_photos, array_values( $unique ) );
+        if ( !empty( $unique ) ) {
+            array_unshift( $article_photos, array_values( $unique ) );
+        }
 
         // Find images not in post content and add them to assets
         $other_images = array_diff( array_diff( $rendered_article_images[ 'images' ], $image_urls ), array_unique( $all_gallery_images ) );
