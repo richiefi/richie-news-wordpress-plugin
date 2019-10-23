@@ -338,13 +338,14 @@ class Richie_Article {
         // Save the HTML with img srcset removed.
         $rendered_content = $rendered_article_images['content'];
 
+        $all_sizes = get_intermediate_image_sizes();
+        $all_sizes[] = 'full'; // Append full size also.
+
         if ( $thumbnail_id ) {
             $thumbnail          = wp_get_attachment_image_url( $thumbnail_id, 'full' );
             $remote_url         = richie_make_link_absolute( $thumbnail );
             $article->image_url = $this->append_wpp_shadow( $remote_url );
 
-            $all_sizes = get_intermediate_image_sizes();
-            $all_sizes[] = 'full'; // Append full size also.
             foreach ( $all_sizes as $size ) {
                 $thumbnail_url = null;
                 if ( 'full' === $size ) {
@@ -378,7 +379,6 @@ class Richie_Article {
 
             foreach ( $galleries as $gallery ) {
                 $gallery_photos = [];
-                $sizes = get_intermediate_image_sizes();
 
                 if ( false !== $gallery ) {
                     $ids = explode( ',', $gallery['ids'] );
@@ -407,7 +407,7 @@ class Richie_Article {
                         $all_gallery_images[] = $attachment_url;
 
                         // get all variants and filter from main gallery
-                        foreach ( $sizes as $size ) {
+                        foreach ( $all_sizes as $size ) {
                             $img = wp_get_attachment_image_src($attachment_id, $size);
 
                             if ( false !== $img ) {
