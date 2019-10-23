@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= WIP =
+* Improved removal of duplicates from photo galleries
+
 = 1.2.6 (12.09.2019) =
 * Convert asset local name to ascii characters
 
