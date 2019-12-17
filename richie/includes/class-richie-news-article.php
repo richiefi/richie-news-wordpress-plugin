@@ -222,6 +222,7 @@ class Richie_Article {
         }
 
         $article->share_link_url = get_permalink( $post_id );
+        $article->origin_url = $article->share_link_url; // Use same for origin
 
         $metered_id = $this->news_options['metered_pmpro_level'];
         $member_only_id = $this->news_options['member_only_pmpro_level'];
