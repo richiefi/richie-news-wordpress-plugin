@@ -405,6 +405,7 @@ class Richie_Public {
         }
 
         foreach ( $custom_assets as $asset ) {
+            $asset->local_name = RICHIE_APP_ASSET_URL_PREFIX . $asset->local_name;
             $all_assets[$asset->local_name] = $asset;
         }
 
