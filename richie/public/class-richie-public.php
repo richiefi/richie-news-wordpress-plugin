@@ -310,7 +310,7 @@ class Richie_Public {
 
             if ( $etag_header === $etag ) {
                 header( $_SERVER['SERVER_PROTOCOL'] . ' 304 Not Modified' );
-                wp_send_json(); // send response and exit.
+                die(); // send response and exit.
             }
         }
 
