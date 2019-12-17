@@ -380,7 +380,7 @@ class Richie_Public {
             $script     = $wp_scripts->registered[ $script_name ];
             $remote_url = $script->src;
             if ( ( substr( $remote_url, -3 ) === '.js' ) && ! strpos( $remote_url, 'wp-admin' ) ) {
-                $general_assets[] = new Richie_App_Asset( $script );
+                $general_assets[] = new Richie_App_Asset( $script, RICHIE_APP_ASSET_URL_PREFIX );
             }
         }
         // Print all loaded Styles (CSS).
@@ -388,7 +388,7 @@ class Richie_Public {
             $style      = $wp_styles->registered[ $style_name ];
             $remote_url = $style->src;
             if ( ( substr( $remote_url, -4 ) === '.css' ) && ! strpos( $remote_url, 'wp-admin' ) ) {
-                $general_assets[] = new Richie_App_Asset( $style );
+                $general_assets[] = new Richie_App_Asset( $style, RICHIE_APP_ASSET_URL_PREFIX );
             }
         }
         $custom_assets = get_option( $this->plugin_name . '_assets' );

@@ -42,6 +42,8 @@ define( 'Richie_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
  */
 
 defined('RICHIE_ASSET_CACHE_KEY') or define('RICHIE_ASSET_CACHE_KEY', 'richie_assets_cache');
+defined('RICHIE_APP_ASSET_URL_PREFIX') or define('RICHIE_APP_ASSET_URL_PREFIX', 'https://richie.app/news/app-assets/');
+defined('RICHIE_ARTICLE_ASSET_URL_PREFIX') or define('RICHIE_ARTICLE_ASSET_URL_PREFIX', 'https://richie.app/news/article-assets/');
 
 
 /**

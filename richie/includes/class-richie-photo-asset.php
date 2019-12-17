@@ -9,7 +9,7 @@ class Richie_Photo_Asset implements JsonSerializable {
 
         $local_name = remove_query_arg( 'ver', wp_make_link_relative( $url ) );
 
-        $local_name = ltrim( $local_name, '/' );
+        $local_name = RICHIE_ARTICLE_ASSET_URL_PREFIX . ltrim( $local_name, '/' );
 
         $remote_url = richie_make_link_absolute( $url );
 

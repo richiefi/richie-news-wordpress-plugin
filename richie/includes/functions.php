@@ -252,7 +252,7 @@ function richie_get_article_assets() {
         $script = $wp_scripts->registered[ $script_name ];
         $remote_url = $script->src;
         if ( ( substr( $remote_url, -3 ) === '.js' ) && ! strpos( $remote_url, 'wp-admin' ) ) {
-            $article_assets[] = new Richie_App_Asset( $script, '' );
+            $article_assets[] = new Richie_App_Asset( $script, RICHIE_ARTICLE_ASSET_URL_PREFIX );
         }
     }
     // Print all loaded Styles (CSS).
@@ -260,7 +260,7 @@ function richie_get_article_assets() {
         $style = $wp_styles->registered[ $style_name ];
         $remote_url = $style->src;
         if ( ( substr( $remote_url, -4 ) === '.css' ) && ! strpos( $remote_url, 'wp-admin' ) ) {
-            $article_assets[] = new Richie_App_Asset( $style, '' );
+            $article_assets[] = new Richie_App_Asset( $style, RICHIE_ARTICLE_ASSET_URL_PREFIX );
         }
     }
 
