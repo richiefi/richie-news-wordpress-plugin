@@ -126,11 +126,11 @@ class Richie_Article {
      * @return array
      */
     public function get_article_images( $content, $include_links = false ) {
-
         $image_urls = [];
-        $dom = new DOMDocument();
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        $dom->substituteEntities = false;
         libxml_use_internal_errors( true );
-        $dom->loadHTML( mb_convert_encoding( $content, 'HTML-ENTITIES', 'UTF-8' ) );
+        $dom->loadHTML( $content );
         // Get all the images.
         $images = $dom->getElementsByTagName( 'img' );
         // Loop the images.
@@ -152,10 +152,10 @@ class Richie_Article {
 
         // Remove duplicate urls.
         $image_urls = array_unique( $image_urls );
-
+        $html = $dom->saveHTML($dom->documentElement);
         return array(
             'images' => $image_urls,
-            'content' => $dom->saveHTML()
+            'content' => $html
         );
     }
 
