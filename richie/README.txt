@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= 1.2.8 (30.12.2019) =
+* Support for google ad provider
+
 = 1.2.7 (23.10.2019) =
 * Improved removal of duplicates from photo galleries
 
