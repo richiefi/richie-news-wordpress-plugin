@@ -338,8 +338,9 @@ class Richie_Article {
         // Save the HTML with img srcset removed.
         $rendered_content = $rendered_article_images['content'];
 
-        $all_sizes = get_intermediate_image_sizes();
-        $all_sizes[] = 'full'; // Append full size also.
+        $all_sizes          = get_intermediate_image_sizes();
+        $all_sizes[]        = 'full'; // Append full size also.
+        $all_gallery_images = [];
 
         if ( $thumbnail_id ) {
             $thumbnail          = wp_get_attachment_image_url( $thumbnail_id, 'full' );
@@ -360,6 +361,7 @@ class Richie_Article {
 
                     $rendered_content = str_replace( $thumbnail_url, $photo_asset->local_name, $rendered_content );
                     $main_gallery[]   = $photo_asset;
+                    $all_gallery_images[] = $thumbnail_url;
 
                     // Remove from general image array, since we have already handled this url.
                     $index = array_search( $thumbnail_url, $image_urls );
@@ -369,9 +371,6 @@ class Richie_Article {
                 }
             }
         }
-
-
-        $all_gallery_images = [];
 
         if ( ! $disable_url_handling ) {
             // Find galleries in post and append it to photos array.
