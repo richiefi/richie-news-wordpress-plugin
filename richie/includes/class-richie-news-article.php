@@ -209,6 +209,13 @@ class Richie_Article {
         if ( $category ) {
             $article->kicker = $category[0]->name;
         }
+        $revisions = wp_get_post_revisions( $my_post );
+        $published_rev = array_pop($revisions);
+
+        $article->analytics_data = array(
+            'wp_post_id' => $my_post->ID,
+            'original_title' => isset( $published_rev->post_title ) ? $published_rev->post_title : $my_post->post_title
+        );
 
         $date          = new DateTime( $my_post->post_date_gmt );
         $updated_date  = new DateTime( $my_post->post_modified_gmt );
