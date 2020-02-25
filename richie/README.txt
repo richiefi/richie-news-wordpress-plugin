@@ -23,10 +23,13 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
-= 1.2.10 (09.01.2019) =
+= 1.2.11 (25.02.2020)
+* Use wp post id instead of guid as article id
+
+= 1.2.10 (09.01.2020) =
 * Include wp post id and original title to analytics_data property
 
-= 1.2.9 (03.01.2019) =
+= 1.2.9 (03.01.2020) =
 * Fix issue with feature image included in both photos and assets array
 
 = 1.2.8 (30.12.2019) =
