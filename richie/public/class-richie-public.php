@@ -278,7 +278,7 @@ class Richie_Public {
             array_push(
                 $articles,
                 array(
-                    'id'                 => $content_post->guid,
+                    'id'                 => strval($content_post->ID),
                     'fetch_id'           => $content_post->ID,
                     'last_updated'       => max( $date, $updated_date ),
                     'article_attributes' => $p['article_attributes'],
