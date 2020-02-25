@@ -203,7 +203,7 @@ class Richie_Article {
         $user_data = get_userdata( $my_post->post_author );
         $category  = get_the_category( $post_id );
 
-        $article->id      = $my_post->guid;
+        $article->id      = strval($post_id);
         $article->title   = $my_post->post_title;
         $article->summary = $my_post->post_excerpt;
         if ( $category ) {
