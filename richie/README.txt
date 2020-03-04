@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= 1.2.12 (04.03.2020)
+* Fix issue with protocol relative urls in assets
+
 = 1.2.11 (25.02.2020)
 * Use wp post id instead of guid as article id
 
