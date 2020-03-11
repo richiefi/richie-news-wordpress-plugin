@@ -72,6 +72,25 @@ class Richie_Article {
             add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
         }
 
+        // modify urls to have scheme
+        add_filter( 'script_loader_src', 'richie_force_scheme' );
+        add_filter( 'style_loader_src', 'richie_force_scheme' );
+        function richie_force_scheme( $url )
+        {
+            // this should handle also protocol relative urls
+            $parsed_url = wp_parse_url( $url );
+
+            if ( $parsed_url !== false) {
+                if ( empty( $parsed_url['scheme'] ) ) {
+                    if ( isset( $parsed_url['host'] ) ) {
+                        // absolute url without protocol, set it based on site protocol
+                        $url = set_url_scheme( $url );
+                    }
+                }
+            }
+            return $url;
+        }
+
         ob_start();
         $richie_template_loader
             ->get_template_part( $slug, $name );
