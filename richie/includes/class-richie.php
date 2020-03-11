@@ -175,6 +175,9 @@ class Richie {
 
         // Options.
         $this->loader->add_action( 'admin_init', $plugin_admin, 'options_update' );
+
+        // allow origin
+        $this->loader->add_filter( 'allowed_http_origins', $plugin_admin, 'add_allowed_origin' );
     }
 
     /**

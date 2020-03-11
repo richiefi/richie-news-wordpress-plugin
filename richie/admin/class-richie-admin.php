@@ -195,6 +195,11 @@ class Richie_Admin {
         require_once plugin_dir_path( __FILE__ ) . 'partials/richie-admin-display.php';
     }
 
+    public function add_allowed_origin( $origins ) {
+        $origins[] = 'richienews://';
+        return $origins;
+    }
+
     /**
      * Validate general settings
      *
