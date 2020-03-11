@@ -3,6 +3,7 @@
 class Richie_App_Asset {
     public $local_name;
     public $remote_url;
+    private $url_scheme;
 
     function __construct($dependency, $local_prefix = 'app-assets/') {
         $remote_url = $dependency->src;
@@ -13,7 +14,9 @@ class Richie_App_Asset {
         if ( $parsed_url !== false) {
             if ( empty( $parsed_url['scheme'] ) ) {
                 if ( isset( $parsed_url['host'] ) ) {
-                    $remote_url = set_url_scheme( $remote_url );
+                    $scheme = is_ssl() ? 'https' : 'http';
+                    $remote_url = set_url_scheme( $remote_url, $scheme );
+                    $this->url_scheme = $scheme;
                 } else {
                     $remote_url = get_site_url( null, $remote_url );
                 }
@@ -30,6 +33,13 @@ class Richie_App_Asset {
         }
 
         $this->remote_url = $remote_url;
+    }
+
+    public function get_replace_url() {
+        if ( isset( $this->url_scheme ) ) {
+            return str_replace( $this->url_scheme . ':', '', $this->remote_url );
+        }
+        return $this->remote_url;
     }
 
     public function __toString() {

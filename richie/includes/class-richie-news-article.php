@@ -338,16 +338,25 @@ class Richie_Article {
 
         // Replace asset urls with localname.
         foreach ( $this->assets as $asset ) {
+            // asset feed may contain custom assets from the admin ui, not instances of article assets
+            // TODO: we should make all instances of Richie_App_Asset
+            if ( $asset instanceof Richie_App_Asset ) {
+                $replace_url = $asset->get_replace_url();
+            } else {
+                $replace_url = $asset->remote_url;
+            }
+
             $local_name       = ltrim( $asset->local_name, '/' );
-            $rendered_content = str_replace( $asset->remote_url, $local_name, $rendered_content );
+            $rendered_content = str_replace( $replace_url, $local_name, $rendered_content );
             $regex = '/(?<!app-assets)' . preg_quote( wp_make_link_relative( $asset->remote_url ), '/' ) . '/';
             $rendered_content = preg_replace( $regex, $local_name, $rendered_content );
         }
 
         // Replace local assets.
         foreach ( $local_assets as $asset ) {
+            $replace_url = $asset->get_replace_url();
             $local_name       = ltrim( $asset->local_name, '/' );
-            $rendered_content = str_replace( $asset->remote_url, $local_name, $rendered_content );
+            $rendered_content = str_replace( $replace_url, $local_name, $rendered_content );
             $regex = '/(?<!app-assets)' . preg_quote( wp_make_link_relative( $asset->remote_url ), '/' ) . '/';
             $rendered_content = preg_replace( $regex, $local_name, $rendered_content );
         }
