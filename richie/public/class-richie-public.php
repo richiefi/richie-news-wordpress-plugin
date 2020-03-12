@@ -329,7 +329,9 @@ class Richie_Public {
             $assets = [];
         }
 
-        header( 'Cache-Control: private, no-cache' );
+        if ( ! headers_sent() ) {
+            header( 'Cache-Control: private, no-cache' );
+        }
 
         $article = new Richie_Article( $this->richie_options, $assets );
         $post    = get_post( $data['id'] );
