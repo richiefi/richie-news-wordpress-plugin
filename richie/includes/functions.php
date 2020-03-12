@@ -315,3 +315,17 @@ function richie_encode_url_path( $url ) {
     return $encoded;
 }
 
+function richie_force_url_scheme( $url ) {
+    // this should handle also protocol relative urls
+    $parsed_url = wp_parse_url( $url );
+
+    if ( $parsed_url !== false) {
+        if ( empty( $parsed_url['scheme'] ) ) {
+            if ( isset( $parsed_url['host'] ) ) {
+                // absolute url without protocol, set it based on site protocol
+                $url = set_url_scheme( $url );
+            }
+        }
+    }
+    return $url;
+}
