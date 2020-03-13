@@ -109,7 +109,7 @@ class Richie_Admin {
 
         add_action( 'wp_ajax_list_update_order', array( $this, 'order_source_list' ) );
         add_action( 'wp_ajax_remove_source_item', array( $this, 'remove_source_item' ) );
-        add_action( 'wp_ajax_set_disable_summary', array( $this, 'set_disable_summary' ) );
+        add_action( 'wp_ajax_set_checkbox_field', array( $this, 'set_checkbox_field' ) );
         add_action( 'wp_ajax_publish_source_changes', array( $this, 'publish_source_changes' ) );
         add_action( 'wp_ajax_revert_source_changes', array( $this, 'revert_source_changes' ) );
         add_action( 'wp_ajax_remove_ad_slot', array( $this, 'remove_ad_slot' ) );
@@ -750,11 +750,11 @@ class Richie_Admin {
     }
 
     /**
-     * Ajax hook for disabling source feed summary. Sends json response.
+     * Ajax hook for setting source feed boolean values. Sends json response.
      *
      * @return void
      */
-    public function set_disable_summary() {
+    public function set_checkbox_field() {
         if ( ! check_ajax_referer( 'richie-security-nonce', 'security', false ) ) {
             wp_send_json_error( 'Invalid security token sent.' );
         }
@@ -764,16 +764,22 @@ class Richie_Admin {
             wp_die();
         }
 
-        $source_id       = intval( $_POST['source_id'] );
-        $disable_summary = $_POST['disable_summary'] === 'true';
-        $option          = get_option( $this->sources_option_name );
-        $current_list    = isset( $option['sources'] ) ? $option['sources'] : array();
+        if ( ! isset( $_POST['field_name'] ) ) {
+            echo 'Missing field name';
+            wp_die();
+        }
+
+        $field_name   = strval( $_POST['field_name'] );
+        $source_id    = intval( $_POST['source_id'] );
+        $is_checked   = 'true' === $_POST['checked'];
+        $option       = get_option( $this->sources_option_name );
+        $current_list = isset( $option['sources'] ) ? $option['sources'] : array();
 
         if ( isset( $current_list[ $source_id ] ) ) {
-            if ( $disable_summary ) {
-                $current_list[ $source_id ]['disable_summary'] = $disable_summary;
+            if ( $is_checked ) {
+                $current_list[ $source_id ][ $field_name ] = $is_checked;
             } else {
-                unset( $current_list[ $source_id ]['disable_summary'] );
+                unset( $current_list[ $source_id ][ $field_name ] );
             }
         }
 
