@@ -288,6 +288,10 @@ class Richie_Admin {
                 $source['disable_summary'] = true;
             }
 
+            if ( isset( $input['allow_duplicates'] ) && intval( $input['allow_duplicates'] ) === 1 ) {
+                $source['allow_duplicates'] = true;
+            }
+
             if ( isset( $input['max_age'] ) && $input['max-age'] !== 'All time' ) {
                 $source['max_age'] = sanitize_text_field( $input['max_age'] );
             }
@@ -611,6 +615,7 @@ class Richie_Admin {
         $section->add_field( 'max_age', __( 'Post max age', 'richie' ), 'max_age' );
         $section->add_field( 'list_layout_style', __( 'List layout', 'richie' ), 'select_field', array( 'options' => $this->available_layout_names, 'required' => true ) );
         $section->add_field( 'list_group_title', __( 'List group title', 'richie' ), 'input_field', array( 'description' => __( 'Header to display before the story, useful on the first small_group_item of a group', 'richie' ) ) );
+        $section->add_field( 'allow_duplicates', __( 'Allow duplicates', 'richie' ), 'checkbox', array( 'description' => __( 'Allow duplicate articles in this source', 'richie' ) ) );
         $section->add_field( 'disable_summary', __( 'Disable article summary', 'richie' ), 'checkbox', array( 'description' => __( 'Do not show summary text in news list', 'richie' ) ) );
 
         // Create adslots section.
@@ -793,6 +798,7 @@ class Richie_Admin {
         wp_send_json( array( 'updated' => $updated ) );
     }
 
+
     /**
      * Ajax hook for publishing source changes. Sends json response.
      *
@@ -941,6 +947,7 @@ class Richie_Admin {
                     <th><?php echo esc_html_x( 'Max age', 'column name', 'richie' ); ?></th>
                     <th><?php echo esc_html_x( 'List layout', 'column name', 'richie' ); ?></th>
                     <th style="text-align: center"><?php echo esc_html_x( 'Disable summary', 'column name', 'richie' ); ?></th>
+                    <th style="text-align: center"><?php echo esc_html_x( 'Allow duplicates', 'column name', 'richie' ); ?></th>
                     <th><?php echo esc_html_x( 'Actions', 'column name', 'richie' ); ?></th>
                 </thead>
                 <tbody>
@@ -976,6 +983,9 @@ class Richie_Admin {
                         <td><?php echo isset( $source['list_layout_style'] ) ? esc_html( $source['list_layout_style'] ) : 'none'; ?></td>
                         <td style="text-align: center">
                             <input class="disable-summary" type="checkbox" <?php echo isset( $source['disable_summary'] ) && $source['disable_summary'] === true ? 'checked' : ''; ?>>
+                        </td>
+                        <td style="text-align: center">
+                            <input class="allow-duplicates" type="checkbox" <?php echo isset( $source['allow_duplicates'] ) && $source['allow_duplicates'] === true ? 'checked' : ''; ?>>
                         </td>
                         <td>
                             <a href="#" class="remove-source-item"><?php esc_html_e( 'Remove', 'richie' ); ?></a>
