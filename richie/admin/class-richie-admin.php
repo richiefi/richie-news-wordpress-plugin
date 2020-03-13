@@ -125,8 +125,21 @@ class Richie_Admin {
      */
     public function enqueue_styles() {
 
-        wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/richie-admin.css', array(), $this->version, 'all' );
+        wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/richie-admin.css', array(), $this->get_version_id(), 'all' );
 
+    }
+
+    /**
+     * Get version string for scripts and styles
+     * If debug mode, return time to prevent caching
+     *
+     * @return string
+     */
+    public function get_version_id() {
+        if ( WP_DEBUG ) {
+            return time();
+        }
+        return $this->version;
     }
 
     /**
@@ -135,13 +148,12 @@ class Richie_Admin {
      * @since    1.0.0
      */
     public function enqueue_scripts() {
-
         wp_enqueue_script( 'jquery-ui-core' );
         wp_enqueue_script( 'jquery-ui-sortable' );
         add_thickbox();
         wp_enqueue_script( 'suggest' );
         wp_enqueue_code_editor( array( 'type' => 'application/json' ) );
-        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery' ), $this->version, false );
+        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery' ), $this->get_version_id(), false );
         wp_localize_script(
             $this->plugin_name,
             'richie_ajax',
