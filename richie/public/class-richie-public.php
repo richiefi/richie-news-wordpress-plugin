@@ -98,8 +98,7 @@ class Richie_Public {
                 'post__not_in'   => array(),
             );
 
-            $allow_duplicates = true === $source['allow_duplicates'];
-
+            $allow_duplicates = isset( $source['allow_duplicates'] ) && true === $source['allow_duplicates'];
             if ( ! $allow_duplicates ) {
                 $args['post__not_in'] = $found_ids;
             }
