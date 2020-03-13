@@ -67,7 +67,7 @@ class Test_Richie_App_Asset extends WP_UnitTestCase {
         $dependency->ver = '1.0.5';
         $app_asset = new Richie_App_Asset( $dependency, 'prefix/' );
         $this->assertEquals( $app_asset->remote_url, 'http://external.org/test/styles/style.css?ver=1.0.5' );
-        $this->assertEquals( $app_asset->local_name, 'prefix/test/styles/style.css' );
+        $this->assertEquals( $app_asset->local_name, 'prefix/external.org/test/styles/style.css' );
     }
 
     public function test_returns_app_asset_object_external_url_without_protocl() {
@@ -76,6 +76,6 @@ class Test_Richie_App_Asset extends WP_UnitTestCase {
         $dependency->ver = '1.0.5';
         $app_asset = new Richie_App_Asset( $dependency, 'prefix/' );
         $this->assertEquals( $app_asset->remote_url, 'http://external.org/test/styles/style.css?ver=1.0.5' );
-        $this->assertEquals( $app_asset->local_name, 'prefix/test/styles/style.css' );
+        $this->assertEquals( $app_asset->local_name, 'prefix/external.org/test/styles/style.css' );
     }
 }

@@ -95,6 +95,38 @@ class Test_JSON_API extends WP_UnitTestCase {
         $this->assertEquals( $response->data['errors'][0]['post_id'], $first );
     }
 
+    public function test_get_single_article_with_images() {
+        $id = $this->factory()->post->create( array( 'post_content' => '<img src="//external.url/testing/image.jpg"/>' ));
+        $attachment_id = $this->factory->attachment->create_object(
+            'richie.png',
+            $id,
+            array(
+                'post_mime_type' => 'image/png',
+				'post_type'      => 'attachment',
+                'post_excerpt' => 'caption'
+            )
+        );
+
+        $post = get_post($id);
+        set_post_thumbnail( $post, $attachment_id );
+
+        $request  = new WP_REST_Request( 'GET', '/richie/v1/article/' . $id );
+        $request->set_query_params( array( 'token' => 'testtoken' ) );
+
+        $response = $this->server->dispatch( $request );
+        $this->assertEquals( 200, $response->get_status() );
+        $article = $response->data;
+        $this->assertEquals( $article->id, $id );
+        $this->assertEquals( $article->title, $post->post_title );
+        $this->assertEquals( $article->photos[0][0]->local_name, 'wp-content/uploads/richie.png');
+        $this->assertEquals( $article->photos[0][0]->remote_url, 'http://example.org/wp-content/uploads/richie.png');
+        $this->assertEquals( $article->photos[0][0]->caption, 'caption');
+        $this->assertEquals( $article->photos[0][1]->local_name, 'external.url/testing/image.jpg');
+        $this->assertEquals( $article->photos[0][1]->remote_url, 'https://external.url/testing/image.jpg');
+        $this->assertContains( 'src="external.url/testing/image.jpg"', $article->content_html_document );
+
+    }
+
     public function test_get_assets_list_with_combined_custom() {
         update_option( 'richie_assets', json_decode('[{"local_name": "app-assets/test/test2/script.js", "remote_url": "http://example.org/test/test2/script.js"}]') );
         $request  = new WP_REST_Request( 'GET', '/richie/v1/assets' );

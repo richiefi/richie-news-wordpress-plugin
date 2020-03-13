@@ -72,6 +72,10 @@ class Richie_Article {
             add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
         }
 
+        // modify urls to have scheme
+        add_filter( 'script_loader_src', 'richie_force_url_scheme' );
+        add_filter( 'style_loader_src', 'richie_force_url_scheme' );
+
         ob_start();
         $richie_template_loader
             ->get_template_part( $slug, $name );
@@ -135,7 +139,9 @@ class Richie_Article {
         $images = $dom->getElementsByTagName( 'img' );
         // Loop the images.
         foreach ( $images as $image ) {
-            $image_urls[] = richie_make_link_absolute($image->getAttribute( 'src' ));
+            $url = richie_make_link_absolute($image->getAttribute( 'src' ));
+            $image_urls[] = $url;
+            $image->setAttribute( 'src', $url );
             $image->removeAttribute( 'srcset' );
         }
 
@@ -145,7 +151,9 @@ class Richie_Article {
             foreach ( $links as $link ) {
                 $href = $link->getAttribute( 'href' );
                 if( richie_is_image_url( $href ) ) {
-                    $image_urls[] = richie_make_link_absolute( $href );
+                    $url = richie_make_link_absolute( $href );
+                    $image_urls[] = $url;
+                    $link->setAttribute( 'href', $url );
                 }
             }
         }

@@ -2,7 +2,8 @@ version: "3.3"
 
 services:
   wordpress_phpunit:
-    image: "chriszarate/wordpress-phpunit:6.0.6"
+    build: './docker/phpunit'
+    # image: "chriszarate/wordpress-phpunit:6.0.6"
     volumes:
       - "./richie:/app"
       - "testsuite:/tmp"

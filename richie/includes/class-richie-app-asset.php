@@ -13,7 +13,8 @@ class Richie_App_Asset {
         if ( $parsed_url !== false) {
             if ( empty( $parsed_url['scheme'] ) ) {
                 if ( isset( $parsed_url['host'] ) ) {
-                    $remote_url = set_url_scheme( $remote_url );
+                    $scheme = is_ssl() ? 'https' : 'http';
+                    $remote_url = set_url_scheme( $remote_url, $scheme );
                 } else {
                     $remote_url = get_site_url( null, $remote_url );
                 }
@@ -23,7 +24,7 @@ class Richie_App_Asset {
             $remote_url = get_site_url( null, $remote_url );
         }
 
-        $this->local_name = richie_normalize_path($local_prefix . ltrim(wp_make_link_relative($remote_url), '/'));
+        $this->local_name = richie_normalize_path( $local_prefix . richie_make_local_name( $remote_url ) );
 
         if ( !empty( $dependency->ver ) ) {
             $remote_url = add_query_arg( 'ver', $dependency->ver, $remote_url );

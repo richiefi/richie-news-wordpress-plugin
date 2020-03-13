@@ -54,4 +54,21 @@ class FunctionTest extends WP_UnitTestCase {
         $path = richie_normalize_path('/test///path/.././somewhere.jpg');
         $this->assertEquals($path, '/test/somewhere.jpg');
     }
+
+    public function test_richie_make_local_name() {
+        $test_urls = array(
+            array( 'https://www.richie.fi/path/image.png', 'www.richie.fi/path/image.png' ),
+            array( 'http://example.org/path/image.png', 'path/image.png' ),
+            array( 'http://example.org/path/image/endingslash/', 'path/image/endingslash' ),
+            array( '//www.richie.fi/protocol/relative/external.js', 'www.richie.fi/protocol/relative/external.js' ),
+            array( '//protocol/relative/script.js', 'protocol/relative/script.js' ),
+            array( '/absolute/url/style.css', 'absolute/url/style.css' ),
+            array( 'relative/url/image.png', 'relative/url/image.png' ),
+            array( 'http://example.org/path/version.css?ver=1234&test=1', 'path/version.css?test=1' )
+        );
+
+        foreach ( $test_urls as $case ) {
+            $this->assertEquals( $case[1], richie_make_local_name( $case[0] ) );
+        }
+    }
 }

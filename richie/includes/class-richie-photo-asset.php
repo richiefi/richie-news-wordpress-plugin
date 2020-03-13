@@ -7,9 +7,7 @@ class Richie_Photo_Asset implements JsonSerializable {
 
     function __construct( $url, $use_attachment = false ) {
 
-        $local_name = remove_query_arg( 'ver', wp_make_link_relative( $url ) );
-
-        $local_name = ltrim( $local_name, '/' );
+        $local_name = richie_make_local_name( $url );
 
         $remote_url = richie_make_link_absolute( $url );
 

@@ -129,4 +129,67 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $this->assertEquals( $article->metered_paywall, 'no_access' );
 
     }
+
+    public function test_article_has_correct_paths() {
+        global $wp_scripts, $wp_styles;
+        $general_assets = [];
+
+        // generate general assets from scripts
+        foreach ( $wp_scripts->do_items() as $script_name ) {
+            $script     = $wp_scripts->registered[ $script_name ];
+            $remote_url = $script->src;
+            if ( ( substr( $remote_url, -3 ) === '.js' ) && ! strpos( $remote_url, 'wp-admin' ) ) {
+                $general_assets[] = new Richie_App_Asset( $script );
+            }
+        }
+        // Print all loaded Styles (CSS).
+        foreach ( $wp_styles->do_items() as $style_name ) {
+            $style      = $wp_styles->registered[ $style_name ];
+            $remote_url = $style->src;
+            if ( ( substr( $remote_url, -4 ) === '.css' ) && ! strpos( $remote_url, 'wp-admin' ) ) {
+                $general_assets[] = new Richie_App_Asset( $style );
+            }
+        }
+
+        $stub = $this->getMockBuilder( Richie_Article::class )
+        ->setConstructorArgs( array( $this->options, $general_assets ) )
+        ->setMethods( array( 'get_pmpro_levels') )
+        ->getMock();
+
+        $stub->method( 'get_pmpro_levels' )
+        ->willReturn( array() );
+
+        $postdate = '2010-01-01 12:00:00';
+        $updated  = '2010-01-01 12:05:00';
+
+        wp_enqueue_style( 'test-style', 'http://example.org/styles/style.css', null, 1.0, false );
+        wp_enqueue_script( 'test-script', '//www.richie.fi/js/script.js', null, 1.1, true);
+        $post = $this->factory->post->create_and_get(
+            array(
+                'post_type'     => 'post',
+                'post_title'    => 'My Title',
+                'post_date'     => $postdate,
+                'post_date_gmt' => get_gmt_from_date( $postdate ),
+                'post_content'  => 'content'
+            )
+        );
+
+        $post->post_modified = $updated;
+        $post->post_modified_gmt = get_gmt_from_date( $updated );
+        $article = $stub->generate_article( $post );
+        $this->assertEquals( $article->title, 'My Title' );
+
+        $assets = $article->assets;
+        $this->assertEquals( 2, count( $assets ) ); // 2 extras after general assets
+
+        $locals = array_column($assets, NULL, 'local_name');
+        $this->assertArrayHasKey( 'www.richie.fi/js/script.js', $locals);
+        $this->assertArrayHasKey( 'styles/style.css', $locals);
+
+        $this->assertEquals( $locals['www.richie.fi/js/script.js']->remote_url, 'http://www.richie.fi/js/script.js?ver=1.1' );
+        $this->assertEquals( $locals['styles/style.css']->remote_url, 'http://example.org/styles/style.css?ver=1' );
+
+        $this->assertContains( '"www.richie.fi/js/script.js"', $article->content_html_document );
+        $this->assertContains( '"styles/style.css"', $article->content_html_document);
+    }
 }

@@ -200,6 +200,34 @@ function richie_make_link_absolute( $url ) {
     }
 }
 
+function richie_make_local_name( $url ) {
+    // If scheme not included, prepend it
+    if (!preg_match('#^http(s)?://#', $url)) {
+        $url = set_url_scheme( $url );
+    }
+
+    // remove version string
+    $url = remove_query_arg( 'ver', $url );
+
+    // remove local host
+    $url = str_replace( get_site_url(), '', $url );
+
+    $url_parts = wp_parse_url($url);
+
+    // get domain
+    $domain = isset( $url_parts['host'] ) ? $url_parts['host'] : '';
+
+    // get path
+    $path = isset( $url_parts['path'] ) ? rtrim( $url_parts['path'], '/' ) : '';
+
+    // get query
+    $query = isset( $url_parts['query'] ) ? '?' . $url_parts['query'] : '';
+
+    // create url
+    $local_name = ltrim( $domain . $path . $query, '/' );
+    return $local_name;
+}
+
 /**
  * Get image id for image url
  *
@@ -315,3 +343,17 @@ function richie_encode_url_path( $url ) {
     return $encoded;
 }
 
+function richie_force_url_scheme( $url ) {
+    // this should handle also protocol relative urls
+    $parsed_url = wp_parse_url( $url );
+
+    if ( $parsed_url !== false) {
+        if ( empty( $parsed_url['scheme'] ) ) {
+            if ( isset( $parsed_url['host'] ) ) {
+                // absolute url without protocol, set it based on site protocol
+                $url = set_url_scheme( $url );
+            }
+        }
+    }
+    return $url;
+}
