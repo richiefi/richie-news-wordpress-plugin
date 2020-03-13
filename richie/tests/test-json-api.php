@@ -95,6 +95,112 @@ class Test_JSON_API extends WP_UnitTestCase {
         $this->assertEquals( $response->data['errors'][0]['post_id'], $first );
     }
 
+    public function test_get_news_feed_items_without_duplicates() {
+        $term_id = $this->factory->term->create([
+            'name'     => 'Test set',
+            'taxonomy' => 'richie_article_set',
+            'slug'     => 'test-set',
+        ]);
+
+        $sources = [];
+
+        $sources[1] = array(
+            'id'                => 1,
+            'name'              => 'test source',
+            'number_of_posts'   => 2,
+            'order_by'          => 'date',
+            'order_direction'   => 'ASC',
+            'article_set'       => $term_id,
+            'list_layout_style' => 'small_group_item',
+            'list_group_title'  => 'group title',
+            'allow_duplicates'  => 0,
+        );
+
+        $sources[2] = array(
+            'id'                => 2,
+            'name'              => 'test source 2',
+            'number_of_posts'   => 3,
+            'order_by'          => 'date',
+            'order_direction'   => 'ASC',
+            'article_set'       => $term_id,
+            'list_layout_style' => 'small',
+        );
+
+        add_option( 'richienews_sources', array( 'published' => $sources ) );
+
+        $posts = $this->factory->post->create_many( 10 );
+        $request  = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
+        $request->set_query_params( array( 'token' => 'testtoken' ) );
+        $response = $this->server->dispatch( $request );
+        $articles = $response->data['article_ids'];
+
+        $this->assertEquals( 200, $response->get_status() );
+        $this->assertEquals( count( $articles ), 5 );
+        $id_list = array_column( $articles, 'fetch_id' );
+        $this->assertEquals( $id_list, array_slice( $posts, 0, 5 ) );
+    }
+
+    public function test_get_news_feed_items_with_duplicates() {
+        $term_id = $this->factory->term->create([
+            'name'     => 'Test set',
+            'taxonomy' => 'richie_article_set',
+            'slug'     => 'test-set',
+        ]);
+
+        $sources = [];
+
+        $sources[1] = array(
+            'id'                => 1,
+            'name'              => 'test source',
+            'number_of_posts'   => 2,
+            'order_by'          => 'date',
+            'order_direction'   => 'ASC',
+            'article_set'       => $term_id,
+            'list_layout_style' => 'small',
+        );
+
+        $sources[2] = array(
+            'id'                => 2,
+            'name'              => 'test source 2',
+            'number_of_posts'   => 3,
+            'order_by'          => 'date',
+            'order_direction'   => 'ASC',
+            'article_set'       => $term_id,
+            'list_layout_style' => 'small_group_item',
+            'list_group_title'  => 'group title',
+            'allow_duplicates'  => true,
+        );
+
+        $sources[3] = array(
+            'id'                => 3,
+            'name'              => 'test source 3',
+            'number_of_posts'   => 3,
+            'order_by'          => 'date',
+            'order_direction'   => 'ASC',
+            'article_set'       => $term_id,
+            'list_layout_style' => 'small',
+        );
+
+        add_option( 'richienews_sources', array( 'published' => $sources ) );
+
+        $posts = $this->factory->post->create_many( 10 );
+
+        $request  = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
+        $request->set_query_params( array( 'token' => 'testtoken' ) );
+        $response = $this->server->dispatch( $request );
+        $articles = $response->data['article_ids'];
+
+        $this->assertEquals( 200, $response->get_status() );
+        $this->assertEquals( count( $articles ), 8 );
+        $id_list = array_column( $articles, 'fetch_id' );
+        // expects posts (indexes) [ 0, 1, 0, 1, 2, 2, 3, 4]
+        // first two in order, then three same order, allowing duplicates,
+        // last three shouldn't contain duplicates from first section,
+        // second section shouldn't matter
+        $expected_post_ids = [ $posts[0], $posts[1], $posts[0], $posts[1], $posts[2], $posts[2], $posts[3], $posts[4] ];
+        $this->assertEquals( $expected_post_ids, $id_list );
+    }
+
     public function test_get_single_article_with_images() {
         $id = $this->factory()->post->create( array( 'post_content' => '<img src="//external.url/testing/image.jpg"/>' ));
         $attachment_id = $this->factory->attachment->create_object(
@@ -103,7 +209,7 @@ class Test_JSON_API extends WP_UnitTestCase {
             array(
                 'post_mime_type' => 'image/png',
 				'post_type'      => 'attachment',
-                'post_excerpt' => 'caption'
+                'post_excerpt'   => 'caption'
             )
         );
 
