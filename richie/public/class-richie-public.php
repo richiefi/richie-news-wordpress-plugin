@@ -99,6 +99,7 @@ class Richie_Public {
             );
 
             $allow_duplicates = isset( $source['allow_duplicates'] ) && true === $source['allow_duplicates'];
+
             if ( ! $allow_duplicates ) {
                 $args['post__not_in'] = $found_ids;
             }
@@ -251,7 +252,9 @@ class Richie_Public {
                         )
                     );
 
-                    array_push( $found_ids, $p->ID );
+                    if ( ! $allow_duplicates ) {
+                        array_push( $found_ids, $p->ID );
+                    }
 
                     // Include list group title to the first item only.
                     if ( isset( $article_attributes['list_group_title'] ) ) {
