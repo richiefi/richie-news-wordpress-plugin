@@ -95,8 +95,14 @@ class Richie_Public {
         foreach ( $sources as $source ) {
             $args = array(
                 'posts_per_page' => $source['number_of_posts'],
-                'post__not_in'   => $found_ids,
+                'post__not_in'   => array(),
             );
+
+            $allow_duplicates = isset( $source['allow_duplicates'] ) && true === $source['allow_duplicates'];
+
+            if ( ! $allow_duplicates ) {
+                $args['post__not_in'] = $found_ids;
+            }
 
             if ( isset( $source['herald_featured_post_id'] ) ) {
                 if ( ! defined( 'HERALD_THEME_VERSION' ) ) {
@@ -181,8 +187,11 @@ class Richie_Public {
                             'range'     => $popular_range,
                             'limit'     => (int) $source['number_of_posts'],
                             'post_type' => 'post',
-                            'pid'       => implode( ',', $found_ids ),
                         );
+
+                        if ( ! $allow_duplicates ) {
+                            $popular_args['pid'] = implode( ',', $found_ids );
+                        }
 
                         if ( isset( $source['categories'] ) && ! empty( $source['categories'] ) ) {
                             $popular_args['cat'] = $source['categories'];
@@ -224,7 +233,7 @@ class Richie_Public {
             }
 
             foreach ( $source_posts as $p ) {
-                if ( ! in_array( $p->ID, $found_ids, true ) ) {
+                if ( $allow_duplicates || ! in_array( $p->ID, $found_ids, true ) ) {
                     if ( empty( $p->guid ) ) {
                         $errors[] = array(
                             'description' => 'Missing guid',
@@ -242,7 +251,10 @@ class Richie_Public {
                             'article_attributes' => $article_attributes,
                         )
                     );
-                    array_push( $found_ids, $p->ID );
+
+                    if ( ! $allow_duplicates ) {
+                        array_push( $found_ids, $p->ID );
+                    }
 
                     // Include list group title to the first item only.
                     if ( isset( $article_attributes['list_group_title'] ) ) {

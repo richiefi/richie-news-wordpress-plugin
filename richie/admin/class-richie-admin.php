@@ -109,7 +109,7 @@ class Richie_Admin {
 
         add_action( 'wp_ajax_list_update_order', array( $this, 'order_source_list' ) );
         add_action( 'wp_ajax_remove_source_item', array( $this, 'remove_source_item' ) );
-        add_action( 'wp_ajax_set_disable_summary', array( $this, 'set_disable_summary' ) );
+        add_action( 'wp_ajax_set_checkbox_field', array( $this, 'set_checkbox_field' ) );
         add_action( 'wp_ajax_publish_source_changes', array( $this, 'publish_source_changes' ) );
         add_action( 'wp_ajax_revert_source_changes', array( $this, 'revert_source_changes' ) );
         add_action( 'wp_ajax_remove_ad_slot', array( $this, 'remove_ad_slot' ) );
@@ -125,8 +125,21 @@ class Richie_Admin {
      */
     public function enqueue_styles() {
 
-        wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/richie-admin.css', array(), $this->version, 'all' );
+        wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/richie-admin.css', array(), $this->get_version_id(), 'all' );
 
+    }
+
+    /**
+     * Get version string for scripts and styles
+     * If debug mode, return time to prevent caching
+     *
+     * @return string
+     */
+    public function get_version_id() {
+        if ( WP_DEBUG ) {
+            return time();
+        }
+        return $this->version;
     }
 
     /**
@@ -135,13 +148,12 @@ class Richie_Admin {
      * @since    1.0.0
      */
     public function enqueue_scripts() {
-
         wp_enqueue_script( 'jquery-ui-core' );
         wp_enqueue_script( 'jquery-ui-sortable' );
         add_thickbox();
         wp_enqueue_script( 'suggest' );
         wp_enqueue_code_editor( array( 'type' => 'application/json' ) );
-        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery' ), $this->version, false );
+        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery' ), $this->get_version_id(), false );
         wp_localize_script(
             $this->plugin_name,
             'richie_ajax',
@@ -286,6 +298,10 @@ class Richie_Admin {
 
             if ( isset( $input['disable_summary'] ) && intval( $input['disable_summary'] ) === 1 ) {
                 $source['disable_summary'] = true;
+            }
+
+            if ( isset( $input['allow_duplicates'] ) && intval( $input['allow_duplicates'] ) === 1 ) {
+                $source['allow_duplicates'] = true;
             }
 
             if ( isset( $input['max_age'] ) && $input['max-age'] !== 'All time' ) {
@@ -611,6 +627,7 @@ class Richie_Admin {
         $section->add_field( 'max_age', __( 'Post max age', 'richie' ), 'max_age' );
         $section->add_field( 'list_layout_style', __( 'List layout', 'richie' ), 'select_field', array( 'options' => $this->available_layout_names, 'required' => true ) );
         $section->add_field( 'list_group_title', __( 'List group title', 'richie' ), 'input_field', array( 'description' => __( 'Header to display before the story, useful on the first small_group_item of a group', 'richie' ) ) );
+        $section->add_field( 'allow_duplicates', __( 'Allow duplicates', 'richie' ), 'checkbox', array( 'description' => __( 'Allow duplicate articles in this source', 'richie' ) ) );
         $section->add_field( 'disable_summary', __( 'Disable article summary', 'richie' ), 'checkbox', array( 'description' => __( 'Do not show summary text in news list', 'richie' ) ) );
 
         // Create adslots section.
@@ -750,11 +767,11 @@ class Richie_Admin {
     }
 
     /**
-     * Ajax hook for disabling source feed summary. Sends json response.
+     * Ajax hook for setting source feed boolean values. Sends json response.
      *
      * @return void
      */
-    public function set_disable_summary() {
+    public function set_checkbox_field() {
         if ( ! check_ajax_referer( 'richie-security-nonce', 'security', false ) ) {
             wp_send_json_error( 'Invalid security token sent.' );
         }
@@ -764,16 +781,22 @@ class Richie_Admin {
             wp_die();
         }
 
-        $source_id       = intval( $_POST['source_id'] );
-        $disable_summary = $_POST['disable_summary'] === 'true';
-        $option          = get_option( $this->sources_option_name );
-        $current_list    = isset( $option['sources'] ) ? $option['sources'] : array();
+        if ( ! isset( $_POST['field_name'] ) ) {
+            echo 'Missing field name';
+            wp_die();
+        }
+
+        $field_name   = strval( $_POST['field_name'] );
+        $source_id    = intval( $_POST['source_id'] );
+        $is_checked   = 'true' === $_POST['checked'];
+        $option       = get_option( $this->sources_option_name );
+        $current_list = isset( $option['sources'] ) ? $option['sources'] : array();
 
         if ( isset( $current_list[ $source_id ] ) ) {
-            if ( $disable_summary ) {
-                $current_list[ $source_id ]['disable_summary'] = $disable_summary;
+            if ( $is_checked ) {
+                $current_list[ $source_id ][ $field_name ] = $is_checked;
             } else {
-                unset( $current_list[ $source_id ]['disable_summary'] );
+                unset( $current_list[ $source_id ][ $field_name ] );
             }
         }
 
@@ -786,6 +809,7 @@ class Richie_Admin {
         add_filter( 'sanitize_option_' . $this->sources_option_name, array( $this, 'validate_source' ) );
         wp_send_json( array( 'updated' => $updated ) );
     }
+
 
     /**
      * Ajax hook for publishing source changes. Sends json response.
@@ -935,6 +959,7 @@ class Richie_Admin {
                     <th><?php echo esc_html_x( 'Max age', 'column name', 'richie' ); ?></th>
                     <th><?php echo esc_html_x( 'List layout', 'column name', 'richie' ); ?></th>
                     <th style="text-align: center"><?php echo esc_html_x( 'Disable summary', 'column name', 'richie' ); ?></th>
+                    <th style="text-align: center"><?php echo esc_html_x( 'Allow duplicates', 'column name', 'richie' ); ?></th>
                     <th><?php echo esc_html_x( 'Actions', 'column name', 'richie' ); ?></th>
                 </thead>
                 <tbody>
@@ -970,6 +995,9 @@ class Richie_Admin {
                         <td><?php echo isset( $source['list_layout_style'] ) ? esc_html( $source['list_layout_style'] ) : 'none'; ?></td>
                         <td style="text-align: center">
                             <input class="disable-summary" type="checkbox" <?php echo isset( $source['disable_summary'] ) && $source['disable_summary'] === true ? 'checked' : ''; ?>>
+                        </td>
+                        <td style="text-align: center">
+                            <input class="allow-duplicates" type="checkbox" <?php echo isset( $source['allow_duplicates'] ) && $source['allow_duplicates'] === true ? 'checked' : ''; ?>>
                         </td>
                         <td>
                             <a href="#" class="remove-source-item"><?php esc_html_e( 'Remove', 'richie' ); ?></a>

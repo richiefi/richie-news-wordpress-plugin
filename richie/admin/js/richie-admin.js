@@ -1,4 +1,4 @@
-(function( $ ) {
+( function( $ ) {
 	'use strict';
 
 	/**
@@ -38,8 +38,7 @@
         {
           var $originals = tr.children();
           var $helper = tr.clone();
-          $helper.children().each(function(index)
-          {
+          $helper.children().each(function(index) {
             // Set helper cell sizes to match the original sizes
             $(this).width($originals.eq(index).width());
           });
@@ -53,7 +52,7 @@
               source_items: $(this).sortable('toArray', {attribute: 'data-source-id'})
             }
             $.post(ajaxurl, data)
-            .done(function(response){
+            .done(function(response) {
               console.log(response);
             })
             .fail(function(err) {
@@ -82,10 +81,28 @@
 
       $('.feed-source-list').on('click', '.disable-summary', function() {
         var data = {
-          action: 'set_disable_summary',
+          action: 'set_checkbox_field',
           security: richie_ajax.security,
           source_id: $(this).parents('tr').data('source-id'),
-          disable_summary: $(this)[0].checked
+          checked: $(this)[0].checked,
+          field_name: 'disable_summary'
+        }
+        $.post(ajaxurl, data)
+        .done(function(response) {
+          console.log(response);
+        })
+        .fail(function(err) {
+          console.error(err);
+        });
+      });
+
+      $('.feed-source-list').on('click', '.allow-duplicates', function() {
+        var data = {
+          action: 'set_checkbox_field',
+          security: richie_ajax.security,
+          source_id: $(this).parents('tr').data('source-id'),
+          checked: $(this)[0].checked,
+          field_name: 'allow_duplicates'
         }
         $.post(ajaxurl, data)
         .done(function(response) {
@@ -188,4 +205,4 @@
         });
       });
     });
-})( jQuery );
+}( jQuery ) );

@@ -1,12 +1,14 @@
 {
-  "phpcs.standard": "WordPress",
+  "phpcs.enable": true,
+  "phpcs.standard": "./phpcs.xml",
   "phpcs.autoConfigSearch": true,
   "phpcs.executablePath": "./vendor/bin/phpcs",
   "phpcs.ignorePatterns": [
     "*/vendor/*",
     "*/richie/vendor/*",
     "*/node_modules/*",
-    "*/wp-content/*"
+    "*/wp-content/*",
+    "*/tmp/*"
   ],
   "phpcbf.standard": "WordPress",
   "phpcbf.executablePath": "./vendor/bin/phpcbf"
