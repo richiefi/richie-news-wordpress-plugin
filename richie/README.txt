@@ -23,6 +23,12 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+
+= 1.3.0 (31.03.2020) =
+* More protocol relative url fixes
+* Fix issue with ajax requests
+* Support duplicate items in feeds
+
 = 1.2.12 (04.03.2020)
 * Fix issue with protocol relative urls in assets
 
