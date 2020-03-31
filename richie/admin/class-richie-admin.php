@@ -272,6 +272,7 @@ class Richie_Admin {
             isset( $input['article_set'] ) &&
             ! empty( $input['article_set'] )
         ) {
+            $error = false;
 
             $source = array(
                 'id'              => $next_id,
@@ -282,8 +283,21 @@ class Richie_Admin {
                 'article_set'     => intval( $input['article_set'] ),
             );
 
+            if ( ! empty( $input['herald_featured_module_title'] ) && empty( $input['herald_featured_post_id'] ) ) {
+                add_settings_error(
+                    $this->sources_option_name,
+                    esc_attr( 'sources_error' ),
+                    __( 'Herald module name given but post id was empty', 'richie' ),
+                    'error'
+                );
+                $error = true;
+            }
+
             if ( isset( $input['herald_featured_post_id'] ) && ! empty( $input['herald_featured_post_id'] ) ) {
                 $source['herald_featured_post_id'] = intval( $input['herald_featured_post_id'] );
+                if ( ! empty( $input['herald_featured_module_title'] ) ) {
+                    $source['herald_featured_module_title'] = strval( $input['herald_featured_module_title'] );
+                }
             }
 
             if ( isset( $input['source_categories'] ) && ! empty( $input['source_categories'] ) ) {
@@ -308,7 +322,10 @@ class Richie_Admin {
                 $source['max_age'] = sanitize_text_field( $input['max_age'] );
             }
 
-            $sources[ $next_id ] = $source;
+            if ( false === $error ) {
+                // include new source
+                $sources[ $next_id ] = $source;
+            }
         } else {
             add_settings_error(
                 $this->sources_option_name,
@@ -615,11 +632,12 @@ class Richie_Admin {
 
         if ( defined( 'HERALD_THEME_VERSION' ) ) {
             $front_page  = (int) get_option( 'page_on_front' );
-            $description = __( 'Fetch posts from first featured module for given page id. Rest of filters will be ignored.', 'richie' );
+            $description = __( 'Fetch posts from herald modules of this page id. Rest of filters will be ignored.', 'richie' );
             if ( $front_page > 0 ) {
                 $description = sprintf( '%s %s %u.', $description, __( 'Current front page id is', 'richie' ), $front_page );
             }
             $section->add_field( 'herald_featured_post_id', __( 'Herald featured module', 'richie' ), 'input_field', array( 'description' => $description, 'class' => '' ) );
+            $section->add_field( 'herald_featured_module_title', __( 'Herald module title', 'richie' ), 'input_field', array( 'description' => __('Module title from the given page to be used as a source. If empty, defaults to first featured type module.', 'richie'), 'class' => '' ) );
         }
         $section->add_field( 'source_categories', __( 'Categories', 'richie' ), 'category_list' );
         $section->add_field( 'order_by', __( 'Order by', 'richie' ), 'order_by' );
