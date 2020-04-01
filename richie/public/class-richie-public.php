@@ -111,10 +111,10 @@ class Richie_Public {
                 }
 
                 // Use herald featured module.
-                $page_id = (int) $source['herald_featured_post_id'];
+                $page_id      = (int) $source['herald_featured_post_id'];
                 $module_title = $source['herald_featured_module_title'];
+                $meta         = get_post_meta( $page_id, '_herald_meta', true );
 
-                $meta    = get_post_meta( $page_id, '_herald_meta', true );
                 if ( empty( $meta ) ) {
                     // No metadata found.
                     continue;
@@ -172,6 +172,8 @@ class Richie_Public {
                     } else {
                         continue; // No module found, continue to next source.
                     }
+                } else {
+                    continue;
                 }
             } else {
                 if ( isset( $source['categories'] ) && ! empty( $source['categories'] ) ) {
