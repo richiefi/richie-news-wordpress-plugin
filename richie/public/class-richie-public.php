@@ -127,7 +127,13 @@ class Richie_Public {
                             break;
                         }
                         if ( isset( $sec['modules'] ) && ! empty( $sec['modules'] ) ) {
+                            $support_modules = array( 'posts', 'featured' );
                             foreach ( $sec['modules'] as $mod ) {
+                                if ( ! in_array( $mod['type'], $support_modules ) ) {
+                                    // Module not supported (yet).
+                                    continue;
+                                }
+
                                 if ( isset( $module_title ) ) {
                                     if ( $mod['title'] === $module_title && true === (bool) $mod['active'] ) {
                                         $module = $mod;
