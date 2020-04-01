@@ -41,6 +41,7 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
     <?php elseif ($active_tab === 'sources') : ?>
         <h3><?php _e('News sources', 'richie') ?></h3>
         <?php echo $this->source_list() ?>
+        <h3><?php _e( 'Add new feed source', 'richie' ) ?></h3>
         <hr>
         <form method="post" name="richie-source-form" action="options.php">
             <?php

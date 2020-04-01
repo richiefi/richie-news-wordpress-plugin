@@ -625,28 +625,35 @@ class Richie_Admin {
         $section->add_field( 'maggio_index_range', __( 'Maggio index range', 'richie' ), 'select_field', array( 'options' => $available_indexes, 'selected' => $selected, 'description' => 'Select index to use. "All" contains all issues, other options contain issues from specific range. To get available options, save Maggio Hostname setting first.' ) );
 
         // Create source section.
-        $section = new Richie_Settings_Section( $sources_section_name, __( 'Add new feed source', 'richie' ), $this->sources_option_name );
-        $section->add_field( 'source_name', __( 'Name', 'richie' ), 'input_field' );
-        $section->add_field( 'richie_article_set', __( 'Article set', 'richie' ), 'article_set' );
-        $section->add_field( 'number_of_posts', __( 'Number of posts', 'richie' ), 'input_field', array( 'type' => 'number', 'class' => 'small-text', 'description' => __( 'Number of posts included in the feed', 'richie' ) ) );
+        $source_section = new Richie_Settings_Section( $sources_section_name, __( 'Basic data', 'richie' ), $this->sources_option_name );
+        $source_section->add_field( 'source_name', __( 'Name', 'richie' ), 'input_field' );
+        $source_section->add_field( 'richie_article_set', __( 'Article set', 'richie' ), 'article_set' );
+        $source_section->add_field( 'number_of_posts', __( 'Number of posts', 'richie' ), 'input_field', array( 'type' => 'number', 'class' => 'small-text', 'description' => __( 'Number of posts included in the feed', 'richie' ) ) );
 
         if ( defined( 'HERALD_THEME_VERSION' ) ) {
-            $front_page  = (int) get_option( 'page_on_front' );
-            $description = __( 'Fetch posts from herald modules of this page id. Rest of filters will be ignored.', 'richie' );
+            $source_herald_section = new Richie_Settings_Section( $sources_section_name . 'herald', __( 'Herald featured module', 'richie' ), $this->sources_option_name );
+            $front_page            = (int) get_option( 'page_on_front' );
+            $description           = __( 'Fetch posts from herald modules of this page id. Rest of filters will be ignored.', 'richie' );
+
             if ( $front_page > 0 ) {
                 $description = sprintf( '%s %s %u.', $description, __( 'Current front page id is', 'richie' ), $front_page );
             }
-            $section->add_field( 'herald_featured_post_id', __( 'Herald featured module', 'richie' ), 'input_field', array( 'description' => $description, 'class' => '' ) );
-            $section->add_field( 'herald_featured_module_title', __( 'Herald module title', 'richie' ), 'input_field', array( 'description' => __('Module title from the given page to be used as a source. If empty, defaults to first featured type module.', 'richie'), 'class' => '' ) );
+
+            $source_herald_section->add_field( 'herald_featured_post_id', __( 'Herald page ID', 'richie' ), 'input_field', array( 'description' => $description, 'class' => '' ) );
+            $source_herald_section->add_field( 'herald_featured_module_title', __( 'Herald module title', 'richie' ), 'input_field', array( 'description' => __('Module title from the given page to be used as a source. If empty, defaults to first featured type module.', 'richie'), 'class' => '' ) );
         }
-        $section->add_field( 'source_categories', __( 'Categories', 'richie' ), 'category_list' );
-        $section->add_field( 'order_by', __( 'Order by', 'richie' ), 'order_by' );
-        $section->add_field( 'order_dir', __( 'Order direction', 'richie' ), 'order_direction' );
-        $section->add_field( 'max_age', __( 'Post max age', 'richie' ), 'max_age' );
-        $section->add_field( 'list_layout_style', __( 'List layout', 'richie' ), 'select_field', array( 'options' => $this->available_layout_names, 'required' => true ) );
-        $section->add_field( 'list_group_title', __( 'List group title', 'richie' ), 'input_field', array( 'description' => __( 'Header to display before the story, useful on the first small_group_item of a group', 'richie' ) ) );
-        $section->add_field( 'allow_duplicates', __( 'Allow duplicates', 'richie' ), 'checkbox', array( 'description' => __( 'Allow duplicate articles in this source', 'richie' ) ) );
-        $section->add_field( 'disable_summary', __( 'Disable article summary', 'richie' ), 'checkbox', array( 'description' => __( 'Do not show summary text in news list', 'richie' ) ) );
+
+        $source_filters = new Richie_Settings_Section( $sources_section_name . 'filters', __( 'Filters', 'richie' ), $this->sources_option_name );
+        $source_filters->add_field( 'source_categories', __( 'Categories', 'richie' ), 'category_list' );
+        $source_filters->add_field( 'order_by', __( 'Order by', 'richie' ), 'order_by' );
+        $source_filters->add_field( 'order_dir', __( 'Order direction', 'richie' ), 'order_direction' );
+        $source_filters->add_field( 'max_age', __( 'Post max age', 'richie' ), 'max_age' );
+
+        $source_options = new Richie_Settings_Section( $sources_section_name . 'options', __( 'Options', 'richie' ), $this->sources_option_name );
+        $source_options->add_field( 'list_layout_style', __( 'List layout', 'richie' ), 'select_field', array( 'options' => $this->available_layout_names, 'required' => true ) );
+        $source_options->add_field( 'list_group_title', __( 'List group title', 'richie' ), 'input_field', array( 'description' => __( 'Header to display before the story, useful on the first small_group_item of a group', 'richie' ) ) );
+        $source_options->add_field( 'allow_duplicates', __( 'Allow duplicates', 'richie' ), 'checkbox', array( 'description' => __( 'Allow duplicate articles in this source', 'richie' ) ) );
+        $source_options->add_field( 'disable_summary', __( 'Disable article summary', 'richie' ), 'checkbox', array( 'description' => __( 'Do not show summary text in news list', 'richie' ) ) );
 
         // Create adslots section.
         $slot_index_description = __( 'Specify an index number for the ad slot placement in the article set feed. 1-based index, so 1 means the first item on the feed. Existing index for the article set is overwritten.', 'richie' );
