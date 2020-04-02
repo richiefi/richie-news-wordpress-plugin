@@ -23,6 +23,8 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= 1.3.1 (02.04.2020) =
+* Improved herald-theme module support
 
 = 1.3.0 (31.03.2020) =
 * More protocol relative url fixes
