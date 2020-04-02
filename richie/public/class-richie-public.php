@@ -111,8 +111,10 @@ class Richie_Public {
                 }
 
                 // Use herald featured module.
-                $page_id = (int) $source['herald_featured_post_id'];
-                $meta    = get_post_meta( $page_id, '_herald_meta', true );
+                $page_id      = (int) $source['herald_featured_post_id'];
+                $module_title = $source['herald_featured_module_title'];
+                $meta         = get_post_meta( $page_id, '_herald_meta', true );
+
                 if ( empty( $meta ) ) {
                     // No metadata found.
                     continue;
@@ -125,9 +127,20 @@ class Richie_Public {
                             break;
                         }
                         if ( isset( $sec['modules'] ) && ! empty( $sec['modules'] ) ) {
+                            $support_modules = array( 'posts', 'featured' );
                             foreach ( $sec['modules'] as $mod ) {
-                                if ( 'featured' === $mod['type'] ) {
-                                    // Use first item.
+                                if ( ! in_array( $mod['type'], $support_modules ) ) {
+                                    // Module not supported (yet).
+                                    continue;
+                                }
+
+                                if ( isset( $module_title ) ) {
+                                    if ( $mod['title'] === $module_title && true === (bool) $mod['active'] ) {
+                                        $module = $mod;
+                                        break;
+                                    }
+                                } elseif ( 'featured' === $mod['type'] && true === (bool) $mod['active'] ) {
+                                    // Use first featured item if no title given.
                                     $module = $mod;
                                     break;
                                 }
@@ -140,6 +153,11 @@ class Richie_Public {
                             $args['post__in']            = array_diff( $module['manual'], $found_ids ); // post__not_in is ignored if post__in used, so use diff.
                             $args['ignore_sticky_posts'] = true;  // https://developer.wordpress.org/reference/classes/wp_query/parse_query/ .
                             $args['orderby']             = 'post__in';
+
+                            if ( empty( $args['post__in'] ) ) {
+                                // No more manual posts found, continue to next source.
+                                continue;
+                            }
                         } else {
                             $args['orderby'] = $module['order'];
                             $args['order']   = 'ASC' === $module['sort'] ? 'ASC' : 'DESC';
@@ -151,7 +169,11 @@ class Richie_Public {
                                 $args['post__not_in'] = array_merge( $args['post__not_in'], $module['exclude_by_id'] );
                             }
                         }
+                    } else {
+                        continue; // No module found, continue to next source.
                     }
+                } else {
+                    continue;
                 }
             } else {
                 if ( isset( $source['categories'] ) && ! empty( $source['categories'] ) ) {

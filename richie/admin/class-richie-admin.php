@@ -272,6 +272,7 @@ class Richie_Admin {
             isset( $input['article_set'] ) &&
             ! empty( $input['article_set'] )
         ) {
+            $error = false;
 
             $source = array(
                 'id'              => $next_id,
@@ -282,8 +283,21 @@ class Richie_Admin {
                 'article_set'     => intval( $input['article_set'] ),
             );
 
+            if ( ! empty( $input['herald_featured_module_title'] ) && empty( $input['herald_featured_post_id'] ) ) {
+                add_settings_error(
+                    $this->sources_option_name,
+                    esc_attr( 'sources_error' ),
+                    __( 'Herald module name given but post id was empty', 'richie' ),
+                    'error'
+                );
+                $error = true;
+            }
+
             if ( isset( $input['herald_featured_post_id'] ) && ! empty( $input['herald_featured_post_id'] ) ) {
                 $source['herald_featured_post_id'] = intval( $input['herald_featured_post_id'] );
+                if ( ! empty( $input['herald_featured_module_title'] ) ) {
+                    $source['herald_featured_module_title'] = strval( $input['herald_featured_module_title'] );
+                }
             }
 
             if ( isset( $input['source_categories'] ) && ! empty( $input['source_categories'] ) ) {
@@ -308,7 +322,10 @@ class Richie_Admin {
                 $source['max_age'] = sanitize_text_field( $input['max_age'] );
             }
 
-            $sources[ $next_id ] = $source;
+            if ( false === $error ) {
+                // include new source
+                $sources[ $next_id ] = $source;
+            }
         } else {
             add_settings_error(
                 $this->sources_option_name,
@@ -608,27 +625,35 @@ class Richie_Admin {
         $section->add_field( 'maggio_index_range', __( 'Maggio index range', 'richie' ), 'select_field', array( 'options' => $available_indexes, 'selected' => $selected, 'description' => 'Select index to use. "All" contains all issues, other options contain issues from specific range. To get available options, save Maggio Hostname setting first.' ) );
 
         // Create source section.
-        $section = new Richie_Settings_Section( $sources_section_name, __( 'Add new feed source', 'richie' ), $this->sources_option_name );
-        $section->add_field( 'source_name', __( 'Name', 'richie' ), 'input_field' );
-        $section->add_field( 'richie_article_set', __( 'Article set', 'richie' ), 'article_set' );
-        $section->add_field( 'number_of_posts', __( 'Number of posts', 'richie' ), 'input_field', array( 'type' => 'number', 'class' => 'small-text', 'description' => __( 'Number of posts included in the feed', 'richie' ) ) );
+        $source_section = new Richie_Settings_Section( $sources_section_name, __( 'Basic data', 'richie' ), $this->sources_option_name );
+        $source_section->add_field( 'source_name', __( 'Name', 'richie' ), 'input_field' );
+        $source_section->add_field( 'richie_article_set', __( 'Article set', 'richie' ), 'article_set' );
+        $source_section->add_field( 'number_of_posts', __( 'Number of posts', 'richie' ), 'input_field', array( 'type' => 'number', 'class' => 'small-text', 'description' => __( 'Number of posts included in the feed', 'richie' ) ) );
 
         if ( defined( 'HERALD_THEME_VERSION' ) ) {
-            $front_page  = (int) get_option( 'page_on_front' );
-            $description = __( 'Fetch posts from first featured module for given page id. Rest of filters will be ignored.', 'richie' );
+            $source_herald_section = new Richie_Settings_Section( $sources_section_name . 'herald', __( 'Herald featured module', 'richie' ), $this->sources_option_name );
+            $front_page            = (int) get_option( 'page_on_front' );
+            $description           = __( 'Fetch posts from herald modules of this page id. Rest of filters will be ignored.', 'richie' );
+
             if ( $front_page > 0 ) {
                 $description = sprintf( '%s %s %u.', $description, __( 'Current front page id is', 'richie' ), $front_page );
             }
-            $section->add_field( 'herald_featured_post_id', __( 'Herald featured module', 'richie' ), 'input_field', array( 'description' => $description, 'class' => '' ) );
+
+            $source_herald_section->add_field( 'herald_featured_post_id', __( 'Herald page ID', 'richie' ), 'input_field', array( 'description' => $description, 'class' => '' ) );
+            $source_herald_section->add_field( 'herald_featured_module_title', __( 'Herald module title', 'richie' ), 'input_field', array( 'description' => __('Module title from the given page to be used as a source. If empty, defaults to first featured type module.', 'richie'), 'class' => '' ) );
         }
-        $section->add_field( 'source_categories', __( 'Categories', 'richie' ), 'category_list' );
-        $section->add_field( 'order_by', __( 'Order by', 'richie' ), 'order_by' );
-        $section->add_field( 'order_dir', __( 'Order direction', 'richie' ), 'order_direction' );
-        $section->add_field( 'max_age', __( 'Post max age', 'richie' ), 'max_age' );
-        $section->add_field( 'list_layout_style', __( 'List layout', 'richie' ), 'select_field', array( 'options' => $this->available_layout_names, 'required' => true ) );
-        $section->add_field( 'list_group_title', __( 'List group title', 'richie' ), 'input_field', array( 'description' => __( 'Header to display before the story, useful on the first small_group_item of a group', 'richie' ) ) );
-        $section->add_field( 'allow_duplicates', __( 'Allow duplicates', 'richie' ), 'checkbox', array( 'description' => __( 'Allow duplicate articles in this source', 'richie' ) ) );
-        $section->add_field( 'disable_summary', __( 'Disable article summary', 'richie' ), 'checkbox', array( 'description' => __( 'Do not show summary text in news list', 'richie' ) ) );
+
+        $source_filters = new Richie_Settings_Section( $sources_section_name . 'filters', __( 'Filters', 'richie' ), $this->sources_option_name );
+        $source_filters->add_field( 'source_categories', __( 'Categories', 'richie' ), 'category_list' );
+        $source_filters->add_field( 'order_by', __( 'Order by', 'richie' ), 'order_by' );
+        $source_filters->add_field( 'order_dir', __( 'Order direction', 'richie' ), 'order_direction' );
+        $source_filters->add_field( 'max_age', __( 'Post max age', 'richie' ), 'max_age' );
+
+        $source_options = new Richie_Settings_Section( $sources_section_name . 'options', __( 'Options', 'richie' ), $this->sources_option_name );
+        $source_options->add_field( 'list_layout_style', __( 'List layout', 'richie' ), 'select_field', array( 'options' => $this->available_layout_names, 'required' => true ) );
+        $source_options->add_field( 'list_group_title', __( 'List group title', 'richie' ), 'input_field', array( 'description' => __( 'Header to display before the story, useful on the first small_group_item of a group', 'richie' ) ) );
+        $source_options->add_field( 'allow_duplicates', __( 'Allow duplicates', 'richie' ), 'checkbox', array( 'description' => __( 'Allow duplicate articles in this source', 'richie' ) ) );
+        $source_options->add_field( 'disable_summary', __( 'Disable article summary', 'richie' ), 'checkbox', array( 'description' => __( 'Do not show summary text in news list', 'richie' ) ) );
 
         // Create adslots section.
         $slot_index_description = __( 'Specify an index number for the ad slot placement in the article set feed. 1-based index, so 1 means the first item on the feed. Existing index for the article set is overwritten.', 'richie' );
@@ -982,13 +1007,22 @@ class Richie_Admin {
                     $article_set     = get_term( $source['article_set'] );
                     $herald_featured = isset( $source['herald_featured_post_id'] );
 
+                    if ( $herald_featured ) {
+                        $herald_category_name = 'Herald module';
+                        if ( isset( $source['herald_featured_module_title'] ) ) {
+                            $herald_category_name = $herald_category_name . ': ' . $source['herald_featured_module_title'];
+                        } else {
+                            $herald_category_name = 'Herald featured module';
+                        }
+                    }
+
                     ?>
                     <tr id="source-<?php echo esc_attr( $source['id'] ); ?>" data-source-id="<?php echo esc_attr( $source['id'] ); ?>" class="source-item">
                         <td><span class="dashicons dashicons-menu"></span></td>
                         <td><?php echo esc_html( $source['id'] ); ?></td>
                         <td><?php echo esc_html( $article_set->name ); ?></td>
                         <td><?php echo esc_html( $source['name'] ); ?></td>
-                        <td><?php echo ! $herald_featured ? esc_html( implode( ', ', $category_names ) ) : 'Herald featured module'; ?></td>
+                        <td><?php echo ! $herald_featured ? esc_html( implode( ', ', $category_names ) ) : esc_html($herald_category_name); ?></td>
                         <td><?php echo esc_html( $source['number_of_posts'] ); ?></td>
                         <td><?php echo isset( $source['order_by'] ) && ! $herald_featured ? esc_html( "{$source['order_by']} {$source['order_direction']}" ) : ''; ?> </td>
                         <td><?php echo isset( $source['max_age'] ) ? esc_html( $source['max_age'] ) : 'All time'; ?></td>

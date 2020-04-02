@@ -201,6 +201,91 @@ class Test_JSON_API extends WP_UnitTestCase {
         $this->assertEquals( $expected_post_ids, $id_list );
     }
 
+    public function test_get_news_feed_items_with_herald_modules() {
+        $term_id = $this->factory->term->create([
+            'name'     => 'Test set',
+            'taxonomy' => 'richie_article_set',
+            'slug'     => 'test-set',
+        ]);
+
+        define( 'HERALD_THEME_VERSION', '1.0.0' ); // required for theme support test
+        $herald_post_id = 5;
+
+        $sources = [];
+
+        $sources[1] = array(
+            'id'                           => 1,
+            'name'                         => 'test module',
+            'number_of_posts'              => 2,
+            'order_by'                     => 'date',
+            'order_direction'              => 'DESC',
+            'article_set'                  => $term_id,
+            'list_layout_style'            => 'big',
+            'allow_duplicates'             => 0,
+            'disable_summary'              => 1,
+            'herald_featured_post_id'      => $herald_post_id,
+            'herald_featured_module_title' => 'module title',
+        );
+
+        $post_ids = $this->factory->post->create_many( 10 );
+
+        // replicate herald theme meta data, include few modules, last one is active
+        // and matches given title
+        $fake_meta = array(
+            'sections' => array(
+                array(
+                    'modules' => array(
+                        array(
+                            'type'   => 'text',
+                            'active' => 1,
+                        ),
+                        array(
+                            'type'   => 'posts',
+                            'active' => 0,
+                            'title'  => 'module title',
+                            'manual' => array(
+                                $post_ids[1],
+                                $post_ids[2],
+                            ),
+                        ),
+                        array(
+                            'type'   => 'posts',
+                            'active' => 1,
+                            'title'  => 'module title not matching',
+                            'manual' => array(
+                                $post_ids[1],
+                                $post_ids[2],
+                            ),
+                        ),
+                        array(
+                            'type'   => 'posts',
+                            'active' => 1,
+                            'title'  => 'module title',
+                            'manual' => array(
+                                $post_ids[3], // this and
+                                $post_ids[4], // this should be picked
+                                $post_ids[5],
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        );
+        add_option( 'richienews_sources', array( 'published' => $sources ) );
+        add_post_meta( $herald_post_id, '_herald_meta', $fake_meta );
+
+        $request  = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
+        $request->set_query_params( array( 'token' => 'testtoken' ) );
+        $response = $this->server->dispatch( $request );
+        $articles = $response->data['article_ids'];
+
+        $this->assertEquals( 200, $response->get_status() );
+        $this->assertEquals( count( $articles ), 2 );
+        $id_list = array_column( $articles, 'fetch_id' );
+        // it should have second posts module posts, since first one isn't active
+        $this->assertEquals( $id_list, array_slice( $post_ids, 3, 2 ) );
+    }
+
     public function test_get_single_article_with_images() {
         $id = $this->factory()->post->create( array( 'post_content' => '<img src="//external.url/testing/image.jpg"/>' ));
         $attachment_id = $this->factory->attachment->create_object(
