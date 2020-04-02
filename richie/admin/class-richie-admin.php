@@ -1007,13 +1007,22 @@ class Richie_Admin {
                     $article_set     = get_term( $source['article_set'] );
                     $herald_featured = isset( $source['herald_featured_post_id'] );
 
+                    if ( $herald_featured ) {
+                        $herald_category_name = 'Herald module';
+                        if ( isset( $source['herald_featured_module_title'] ) ) {
+                            $herald_category_name = $herald_category_name . ': ' . $source['herald_featured_module_title'];
+                        } else {
+                            $herald_category_name = 'Herald featured module';
+                        }
+                    }
+
                     ?>
                     <tr id="source-<?php echo esc_attr( $source['id'] ); ?>" data-source-id="<?php echo esc_attr( $source['id'] ); ?>" class="source-item">
                         <td><span class="dashicons dashicons-menu"></span></td>
                         <td><?php echo esc_html( $source['id'] ); ?></td>
                         <td><?php echo esc_html( $article_set->name ); ?></td>
                         <td><?php echo esc_html( $source['name'] ); ?></td>
-                        <td><?php echo ! $herald_featured ? esc_html( implode( ', ', $category_names ) ) : 'Herald featured module'; ?></td>
+                        <td><?php echo ! $herald_featured ? esc_html( implode( ', ', $category_names ) ) : esc_html($herald_category_name); ?></td>
                         <td><?php echo esc_html( $source['number_of_posts'] ); ?></td>
                         <td><?php echo isset( $source['order_by'] ) && ! $herald_featured ? esc_html( "{$source['order_by']} {$source['order_direction']}" ) : ''; ?> </td>
                         <td><?php echo isset( $source['max_age'] ) ? esc_html( $source['max_age'] ) : 'All time'; ?></td>
