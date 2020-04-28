@@ -246,6 +246,10 @@ class Richie_Public {
                 }
             }
 
+            if ( ! empty( $source['post_type'] ) ) {
+                $args['post_type'] = $source['post_type'];
+            }
+
             $source_posts = get_posts( $args );
 
             $article_attributes = array(
@@ -261,6 +265,24 @@ class Richie_Public {
             }
 
             foreach ( $source_posts as $p ) {
+                if ( $p->post_type !== 'post') {
+                    // custom post type
+                    // TODO: separate handlers to own functions
+                    if ( $p->post_type === 'mb_featured_post' ) {
+                        $target_url = get_post_meta( $p->ID, 'featured_post_url', true );
+                        if ( false === $target_url ) {
+                            // failed to get meta, ignore
+                            continue;
+                        }
+
+                        $target_id = url_to_postid( $target_url );
+
+                        if ( 0 === $target_id ) {
+                            // target url not internal wordpress page
+                            continue;
+                        }
+                    }
+                }
                 if ( $allow_duplicates || ! in_array( $p->ID, $found_ids, true ) ) {
                     if ( empty( $p->guid ) ) {
                         $errors[] = array(
