@@ -373,8 +373,8 @@ class Richie_Admin {
 
             if ( isset( $input['background_color'] ) ) {
                 $background_color = sanitize_text_field( $input['background_color'] );
-                if ( $this->check_color( $background_color) ) {
-                    $source['background_color'] = $background_color;
+                if ( $this->check_color( $background_color ) ) {
+                    $source['background_color'] = ltrim( $background_color, '#' );
                 }
             }
 
@@ -1043,7 +1043,7 @@ class Richie_Admin {
                     <th><?php echo esc_html_x( 'Order', 'column name', 'richie' ); ?></th>
                     <th><?php echo esc_html_x( 'Max age', 'column name', 'richie' ); ?></th>
                     <th><?php echo esc_html_x( 'List layout', 'column name', 'richie' ); ?></th>
-                    <th><?php echo esc_html_x( 'Background', 'column name', 'richie'); ?></th>
+                    <th><?php echo esc_html_x( 'Background', 'column name', 'richie' ); ?></th>
                     <th style="text-align: center"><?php echo esc_html_x( 'Disable summary', 'column name', 'richie' ); ?></th>
                     <th style="text-align: center"><?php echo esc_html_x( 'Allow duplicates', 'column name', 'richie' ); ?></th>
                     <th><?php echo esc_html_x( 'Actions', 'column name', 'richie' ); ?></th>
@@ -1077,7 +1077,7 @@ class Richie_Admin {
                         }
                     }
 
-                    $post_type = isset ( $source['post_type'] ) ? $source['post_type'] : 'post';
+                    $post_type = isset( $source['post_type'] ) ? $source['post_type'] : 'post';
 
                     ?>
                     <tr id="source-<?php echo esc_attr( $source['id'] ); ?>" data-source-id="<?php echo esc_attr( $source['id'] ); ?>" class="source-item">
@@ -1091,7 +1091,7 @@ class Richie_Admin {
                         <td><?php echo isset( $source['order_by'] ) && ! $herald_featured ? esc_html( "{$source['order_by']} {$source['order_direction']}" ) : ''; ?> </td>
                         <td><?php echo isset( $source['max_age'] ) ? esc_html( $source['max_age'] ) : 'All time'; ?></td>
                         <td><?php echo isset( $source['list_layout_style'] ) ? esc_html( $source['list_layout_style'] ) : 'none'; ?></td>
-                        <td><div style="display:block; height: 20px; width: 20px; margin: 0 auto; background-color: <?php echo isset( $source['background_color'] ) ? esc_html( $source['background_color'] ) : 'transparent'; ?>" /></td>
+                        <td><div style="display:block; height: 20px; width: 20px; margin: 0 auto; background-color: #<?php echo isset( $source['background_color'] ) ? esc_html( $source['background_color'] ) : 'transparent'; ?>" /></td>
                         <td style="text-align: center">
                             <input class="disable-summary" type="checkbox" <?php echo isset( $source['disable_summary'] ) && $source['disable_summary'] === true ? 'checked' : ''; ?>>
                         </td>

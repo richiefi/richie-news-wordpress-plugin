@@ -102,6 +102,7 @@ class Richie_Public {
             $args = array(
                 'posts_per_page' => $source['number_of_posts'],
                 'post__not_in'   => array(),
+                'post_type'      => 'post', // Default post type.
             );
 
             $allow_duplicates = isset( $source['allow_duplicates'] ) && true === $source['allow_duplicates'];
@@ -265,14 +266,14 @@ class Richie_Public {
             }
 
             if ( ! empty( $source['background_color'] ) ) {
-                $article_attributes['background_color'] = $source['background_color'];
+                $article_attributes['background_color'] = ltrim( $source['background_color'], '#' );
             }
 
             foreach ( $source_posts as $p ) {
-                if ( $p->post_type !== 'post') {
+                if ( 'post' !== $p->post_type ) {
                     // custom post type
                     // TODO: separate handlers to own functions
-                    if ( $p->post_type === 'mb_featured_post' ) {
+                    if ( 'mb_featured_post' === $p->post_type ) {
                         $target_url = get_post_meta( $p->ID, 'featured_post_url', true );
                         if ( false === $target_url ) {
                             // failed to get meta, ignore
