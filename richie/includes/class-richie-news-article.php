@@ -197,9 +197,20 @@ class Richie_Article {
         return $results;
     }
 
-    public function generate_article( $my_post ) {
-        if ( empty( $my_post ) ) {
+    public function generate_article( $original_post ) {
+        if ( empty( $original_post ) ) {
             return new stdClass(); // Return empty object.
+        }
+
+        if ( $original_post->post_type === 'mb_featured_post' ) {
+            $target_url  = get_post_meta( $original_post->ID, 'featured_post_url', true );
+            $target_post = url_to_postid( $target_url );
+            if ( 0 === $target_post ) {
+                return new stdClass(); // Return empty object.
+            }
+            $my_post = get_post( $target_post );
+        } else {
+            $my_post = get_post( $original_post );
         }
 
         $hash          = md5( wp_json_encode( $my_post ) );
@@ -207,22 +218,22 @@ class Richie_Article {
         $article->hash = $hash;
 
         // Get metadata.
-        $post_id   = $my_post->ID;
+        $post_id   = $original_post->ID;
         $user_data = get_userdata( $my_post->post_author );
         $category  = get_the_category( $post_id );
 
-        $article->id      = strval($post_id);
-        $article->title   = $my_post->post_title;
+        $article->id      = strval( $original_post->ID );
+        $article->title   = $original_post->post_title;
         $article->summary = $my_post->post_excerpt;
         if ( $category ) {
             $article->kicker = $category[0]->name;
         }
-        $revisions = wp_get_post_revisions( $my_post );
-        $published_rev = array_pop($revisions);
+        $revisions     = wp_get_post_revisions( $original_post );
+        $published_rev = array_pop( $revisions );
 
         $article->analytics_data = array(
-            'wp_post_id' => $my_post->ID,
-            'original_title' => isset( $published_rev->post_title ) ? $published_rev->post_title : $my_post->post_title
+            'wp_post_id'     => $original_post->ID,
+            'original_title' => isset( $published_rev->post_title ) ? $published_rev->post_title : $original_post->post_title,
         );
 
         $date          = new DateTime( $my_post->post_date_gmt );
