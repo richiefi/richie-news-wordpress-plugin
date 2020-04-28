@@ -70,8 +70,14 @@ class Richie_Public {
 
     public function feed_route_handler( $data ) {
         // Get saved (and published) source list.
-        $sourcelist          = get_option( $this->plugin_name . 'news_sources' );
-        $richie_news_sources = isset( $sourcelist['published'] ) ? $sourcelist['published'] : array();
+        $sourcelist = get_option( $this->plugin_name . 'news_sources' );
+        $params     = $data->get_query_params();
+
+        if ( isset( $params['unpublished'] ) && '1' === $params['unpublished'] ) {
+            $richie_news_sources = isset( $sourcelist['sources'] ) ? $sourcelist['sources'] : array();
+        } else {
+            $richie_news_sources = isset( $sourcelist['published'] ) ? $sourcelist['published'] : array();
+        }
 
         $posts       = array();
         $found_ids   = array();
