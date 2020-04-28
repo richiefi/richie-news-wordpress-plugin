@@ -66,7 +66,7 @@ class Richie_Public {
 		$this->plugin_name         = $plugin_name;
         $this->version             = $version;
         $this->richie_options      = get_option( $plugin_name );
-     }
+    }
 
     public function feed_route_handler( $data ) {
         // Get saved (and published) source list.
@@ -262,6 +262,10 @@ class Richie_Public {
 
             if ( isset( $source['disable_summary'] ) && true === $source['disable_summary'] ) {
                 $article_attributes['summary'] = null;
+            }
+
+            if ( ! empty( $source['background_color'] ) ) {
+                $article_attributes['background_color'] = $source['background_color'];
             }
 
             foreach ( $source_posts as $p ) {
