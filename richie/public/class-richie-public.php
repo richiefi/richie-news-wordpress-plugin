@@ -12,6 +12,7 @@
 ?>
 <?php
 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-post-type.php';
 
 /**
  * The public-facing functionality of the plugin.
@@ -270,24 +271,12 @@ class Richie_Public {
             }
 
             foreach ( $source_posts as $p ) {
-                if ( 'post' !== $p->post_type ) {
-                    // custom post type
-                    // TODO: separate handlers to own functions
-                    if ( 'mb_featured_post' === $p->post_type ) {
-                        $target_url = get_post_meta( $p->ID, 'featured_post_url', true );
-                        if ( false === $target_url ) {
-                            // failed to get meta, ignore
-                            continue;
-                        }
+                $is_valid = Richie_Post_Type::validate_post( $p );
 
-                        $target_id = url_to_postid( $target_url );
-
-                        if ( 0 === $target_id ) {
-                            // target url not internal wordpress page
-                            continue;
-                        }
-                    }
+                if ( ! $is_valid ) {
+                    continue;
                 }
+
                 if ( $allow_duplicates || ! in_array( $p->ID, $found_ids, true ) ) {
                     if ( empty( $p->guid ) ) {
                         $errors[] = array(

@@ -10,6 +10,7 @@
  */
 
 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-post-type.php';
 
 /**
  * The admin-specific functionality of the plugin.
@@ -82,27 +83,6 @@ class Richie_Admin {
      * @var boolean
      */
     private $debug_sources;
-
-    /**
-     * Return available (and supported post types)
-     *
-     * @return array
-     */
-    private function available_post_types() {
-        $available_types = get_post_types( array(), 'objects' );
-        // print_r($available_types);
-        // wp_die();
-        $supported_types = array(
-            array( 'value' => 'post', 'title' => $available_types['post']->label )
-        );
-
-        if ( isset( $available_types['mb_featured_post'] ) ) {
-            $type = $available_types['mb_featured_post'];
-            $supported_types[] = array( 'value' => $type->name, 'title' => $type->label);
-        }
-
-        return $supported_types;
-    }
 
     /**
      * Initialize the class and set its properties.
@@ -299,7 +279,7 @@ class Richie_Admin {
             }
         }
 
-        $available_types = $this->available_post_types();
+        $available_types = Richie_Post_Type::available_post_types();
 
         if (
             isset( $input['source_name'] ) &&
@@ -330,7 +310,7 @@ class Richie_Admin {
                 $error = true;
             }
 
-            if ( in_array( $input['post_type'], array_column( $available_types, 'value' ), true ) ) {
+            if ( in_array( $input['post_type'], $available_types, true ) ) {
                 $source['post_type'] = $input['post_type'];
             } else {
                 add_settings_error(
@@ -699,7 +679,7 @@ class Richie_Admin {
             $source_herald_section->add_field( 'herald_featured_module_title', __( 'Herald module title', 'richie' ), 'input_field', array( 'description' => __('Module title from the given page to be used as a source. If empty, defaults to first featured type module.', 'richie'), 'class' => '' ) );
         }
 
-        $source_section->add_field( 'post_type', __( 'Post type', 'richie' ), 'select_field', array( 'options' => $this->available_post_types(), 'required' => true ) );
+        $source_section->add_field( 'post_type', __( 'Post type', 'richie' ), 'select_field', array( 'options' => Richie_Post_Type::available_post_types( 'object' ), 'required' => true ) );
 
         $source_filters = new Richie_Settings_Section( $sources_section_name . 'filters', __( 'Filters', 'richie' ), $this->sources_option_name );
         $source_filters->add_field( 'source_categories', __( 'Categories', 'richie' ), 'category_list' );

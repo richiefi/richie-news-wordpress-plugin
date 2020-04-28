@@ -9,6 +9,7 @@
  */
 
 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-photo-asset.php';
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-post-type.php';
 
 
 /**
@@ -202,16 +203,8 @@ class Richie_Article {
             return new stdClass(); // Return empty object.
         }
 
-        if ( $original_post->post_type === 'mb_featured_post' ) {
-            $target_url  = get_post_meta( $original_post->ID, 'featured_post_url', true );
-            $target_post = url_to_postid( $target_url );
-            if ( 0 === $target_post ) {
-                return new stdClass(); // Return empty object.
-            }
-            $my_post = get_post( $target_post );
-        } else {
-            $my_post = get_post( $original_post );
-        }
+        $richie_post_type = Richie_Post_Type::get_post_type( $original_post );
+        $my_post = $richie_post_type->get_post( $original_post );
 
         $hash          = md5( wp_json_encode( $my_post ) );
         $article       = new stdClass();
@@ -236,15 +229,17 @@ class Richie_Article {
             'original_title' => isset( $published_rev->post_title ) ? $published_rev->post_title : $original_post->post_title,
         );
 
-        $date          = new DateTime( $my_post->post_date_gmt );
-        $updated_date  = new DateTime( $my_post->post_modified_gmt );
-        $article->date = $date->format( 'c' );
+        if ( ! $richie_post_type->check_feature( 'hide_date' ) ) {
+            $date          = new DateTime( $my_post->post_date_gmt );
+            $updated_date  = new DateTime( $my_post->post_modified_gmt );
+            $article->date = $date->format( 'c' );
 
-        $diff = $updated_date->getTimestamp() - $date->getTimestamp();
+            $diff = $updated_date->getTimestamp() - $date->getTimestamp();
 
-        // Include updated_date if its at least 5 minutes after creation date.
-        if ( $diff >= 5 * MINUTE_IN_SECONDS ) {
-            $article->updated_date = $updated_date->format( 'c' );
+            // Include updated_date if its at least 5 minutes after creation date.
+            if ( $diff >= 5 * MINUTE_IN_SECONDS ) {
+                $article->updated_date = $updated_date->format( 'c' );
+            }
         }
 
         $article->share_link_url = get_permalink( $post_id );
