@@ -23,6 +23,10 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= WIP =
+* Support background color property in news sources
+* Support for Mediabox Featured Post -custom type
+
 = 1.3.1 (02.04.2020) =
 * Improved herald-theme module support
 
