@@ -32,7 +32,7 @@ class Test_Richie_Post_Type extends WP_UnitTestCase {
     }
 
     public function test_returns_available_post_types_object() {
-        $types = Richie_Post_Type::available_post_types('object');
+        $types = Richie_Post_Type::available_post_types( 'object' );
         $expected = array(
             array( 'value' => 'post', 'title' => 'Posts' ),
             array( 'value' => 'mb_featured_post', 'title' => 'Featured Posts' ),
@@ -45,7 +45,7 @@ class Test_Richie_Post_Type extends WP_UnitTestCase {
         $post = $this->factory->post->create_and_get(
             array(
                 'post_type'  => 'post',
-                'post_title' => 'My Title'
+                'post_title' => 'My Title',
             )
         );
 
@@ -57,8 +57,8 @@ class Test_Richie_Post_Type extends WP_UnitTestCase {
         $target_post = $this->factory->post->create_and_get();
         $post = $this->factory->post->create_and_get(
             array(
-                'post_type'          => 'mb_featured_post',
-                'post_title'         => 'My Title',
+                'post_type'  => 'mb_featured_post',
+                'post_title' => 'My Title',
             )
         );
         update_post_meta( $post->ID, 'featured_post_url', get_permalink( $target_post ) );
@@ -69,8 +69,8 @@ class Test_Richie_Post_Type extends WP_UnitTestCase {
     public function test_validate_post_featured_post_invalid_url() {
         $post = $this->factory->post->create_and_get(
             array(
-                'post_type'          => 'mb_featured_post',
-                'post_title'         => 'My Title',
+                'post_type'  => 'mb_featured_post',
+                'post_title' => 'My Title',
             )
         );
         update_post_meta( $post->ID, 'featured_post_url', 'https://www.richie.fi' );
@@ -78,10 +78,22 @@ class Test_Richie_Post_Type extends WP_UnitTestCase {
         $this->assertFalse( $is_valid );
     }
 
-    public function test_check_featured_post_feature() {
+    public function test_check_featured_post_field_support_custom_type() {
         $post_type = new Richie_Post_Type( 'mb_featured_post' );
-        $this->assertTrue( $post_type->check_feature( 'hide_date' ) ); // Should hide dates for featured post
-        $this->assertFalse( $post_type->check_feature( 'unknown_feature' ) ); // Returns false as default
+        $this->assertFalse( $post_type->supports_property( 'date' ) ); // Should hide dates for featured post
+        $this->assertTrue( $post_type->supports_property( 'unknown_field' ) ); // Returns true as default (for supported post types)
+    }
+
+    public function test_check_featured_post_field_support_post_type() {
+        $post_type = new Richie_Post_Type( 'post' );
+        $this->assertTrue( $post_type->supports_property( 'date' ) ); // Post should support all fields
+        $this->assertTrue( $post_type->supports_property( 'unknown_field' ) ); // Returns true as default (for supported post types)
+    }
+
+    public function test_check_featured_post_field_support_unknown_post_type() {
+        $post_type = new Richie_Post_Type( 'custom_post_type' );
+        $this->assertFalse( $post_type->supports_property( 'date' ) ); // Always false for unsupported post type
+        $this->assertFalse( $post_type->supports_property( 'unknown_field' ) ); // Always false for unsupported post type
     }
 
     public function test_is_supported_post_type() {

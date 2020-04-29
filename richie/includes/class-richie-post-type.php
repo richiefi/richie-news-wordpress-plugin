@@ -7,9 +7,12 @@
  * @author     Markku Uusitupa <markku@richie.fi>
  */
 class Richie_Post_Type {
-    const CUSTOM_POST_TYPE_FEATURES = array(
+    const CUSTOM_POST_TYPE_DISABLED_PROPERTIES = array(
         'mb_featured_post' => array(
-            'hide_date' => true,
+            'date',
+            'updated_date',
+            'kicker',
+            'summary',
         ),
     );
 
@@ -30,23 +33,24 @@ class Richie_Post_Type {
     }
 
     /**
-     * Check if
+     * Check if feed property is supported for the post type.
+     * Always returns false if post type is not supported.
      *
-     * @param [string] $feature Feature to be checked.
+     * @param [string] $field Field to be checked.
      * @return boolean
      */
-    public function check_feature( $feature ) {
+    public function supports_property( $field ) {
         if ( ! $this->is_supported_post_type() ) {
             return false;
         }
 
-        if ( isset( self::CUSTOM_POST_TYPE_FEATURES[ $this->post_type ] ) ) {
-            $post_type_features = self::CUSTOM_POST_TYPE_FEATURES[ $this->post_type ];
-            if ( isset( $post_type_features[ $feature ] ) ) {
-                return $post_type_features[ $feature ];
+        if ( isset( self::CUSTOM_POST_TYPE_DISABLED_PROPERTIES[ $this->post_type ] ) ) {
+            $post_type_features = self::CUSTOM_POST_TYPE_DISABLED_PROPERTIES[ $this->post_type ];
+            if ( in_array( $field, $post_type_features, true ) ) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     public function is_supported_post_type() {

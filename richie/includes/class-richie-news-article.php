@@ -215,12 +215,17 @@ class Richie_Article {
         $user_data = get_userdata( $my_post->post_author );
         $category  = get_the_category( $post_id );
 
-        $article->id      = strval( $original_post->ID );
-        $article->title   = $original_post->post_title;
-        $article->summary = $my_post->post_excerpt;
-        if ( $category ) {
+        $article->id    = strval( $original_post->ID );
+        $article->title = $original_post->post_title;
+
+        if ( $richie_post_type->supports_property( 'summary' ) ) {
+            $article->summary = $my_post->post_excerpt;
+        }
+
+        if ( $category && $richie_post_type->supports_property( 'kicker' ) ) {
             $article->kicker = $category[0]->name;
         }
+
         $revisions     = wp_get_post_revisions( $original_post );
         $published_rev = array_pop( $revisions );
 
@@ -229,8 +234,11 @@ class Richie_Article {
             'original_title' => isset( $published_rev->post_title ) ? $published_rev->post_title : $original_post->post_title,
         );
 
-        if ( ! $richie_post_type->check_feature( 'hide_date' ) ) {
-            $date          = new DateTime( $my_post->post_date_gmt );
+        if ( $richie_post_type->supports_property( 'date' ) ) {
+            $date = new DateTime( $my_post->post_date_gmt );
+        }
+
+        if ( $richie_post_type->supports_property( 'updated_date' ) ) {
             $updated_date  = new DateTime( $my_post->post_modified_gmt );
             $article->date = $date->format( 'c' );
 
