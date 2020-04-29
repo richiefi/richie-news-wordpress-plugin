@@ -204,14 +204,14 @@ class Richie_Article {
         }
 
         $richie_post_type = Richie_Post_Type::get_post_type( $original_post );
-        $my_post = $richie_post_type->get_post( $original_post );
+        $my_post          = $richie_post_type->get_post( $original_post );
 
         $hash          = md5( wp_json_encode( $my_post ) );
         $article       = new stdClass();
         $article->hash = $hash;
 
         // Get metadata.
-        $post_id   = $original_post->ID;
+        $post_id   = $my_post->ID;
         $user_data = get_userdata( $my_post->post_author );
         $category  = get_the_category( $post_id );
 
