@@ -378,4 +378,23 @@ class Richie_Admin_Components {
         </fieldset>
         <?php
     }
+
+    /**
+     * Render input text field with color picker (with the help of javascript)
+     *
+     * @param array $args Rendering options.
+     * @return void
+     */
+    public function color_picker( array $args ) {
+        $option_name = $args['option_name'];
+        $id          = $args['id'];
+        $name        = $option_name . '[' . $id . ']';
+        $value       = isset( $args['value'] ) ? $args['value'] : '';
+        $class_name  = isset( $args['class'] ) ? $args['class'] : '';
+        printf( '<input class="cpa-color-picker %s" type="text" name="%s" value="%s">', esc_attr( $class_name ), esc_attr( $name ), esc_attr( $value ) );
+
+        if ( isset( $args['description'] ) ) {
+            printf( '<br><span class="description">%s</span>', esc_html( $args['description'] ) );
+        }
+    }
 }

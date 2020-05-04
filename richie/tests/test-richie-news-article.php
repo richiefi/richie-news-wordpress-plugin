@@ -53,7 +53,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
 
         $post = $this->factory->post->create_and_get(
             array(
-                'post_type'     => 'article',
+                'post_type'     => 'post',
                 'post_title'    => 'My Title',
                 'post_date'     => $postdate,
                 'post_date_gmt' => get_gmt_from_date( $postdate ),
@@ -76,7 +76,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
 
         $post = $this->factory->post->create_and_get(
             array(
-                'post_type'     => 'article',
+                'post_type'     => 'post',
                 'post_title'    => 'My Title',
                 'post_date'     => $postdate,
                 'post_date_gmt' => get_gmt_from_date( $postdate ),
@@ -110,7 +110,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
 
         $post = $this->factory->post->create_and_get(
             array(
-                'post_type'     => 'article',
+                'post_type'     => 'post',
                 'post_title'    => 'My Title',
             )
         );

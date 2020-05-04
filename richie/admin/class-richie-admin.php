@@ -10,6 +10,7 @@
  */
 
 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-post-type.php';
 
 /**
  * The admin-specific functionality of the plugin.
@@ -104,6 +105,7 @@ class Richie_Admin {
             'small',
             'small_group_item',
             'featured',
+            'full_width_text',
             'none',
         );
 
@@ -124,9 +126,8 @@ class Richie_Admin {
      * @since    1.0.0
      */
     public function enqueue_styles() {
-
         wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/richie-admin.css', array(), $this->get_version_id(), 'all' );
-
+        wp_enqueue_style( 'wp-color-picker' );
     }
 
     /**
@@ -213,6 +214,20 @@ class Richie_Admin {
     }
 
     /**
+     * Function that will check if value is a valid HEX color.
+     *
+     * @param array $value Hex color value
+     * @return boolean
+     */
+    public function check_color( $value ) {
+        if ( preg_match( '/^#[a-f0-9]{6}$/i', $value ) ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Validate general settings
      *
      * @param array $input Data from settings form.
@@ -264,6 +279,8 @@ class Richie_Admin {
             }
         }
 
+        $available_types = Richie_Post_Type::available_post_types();
+
         if (
             isset( $input['source_name'] ) &&
             isset( $input['number_of_posts'] ) &&
@@ -288,6 +305,18 @@ class Richie_Admin {
                     $this->sources_option_name,
                     esc_attr( 'sources_error' ),
                     __( 'Herald module name given but post id was empty', 'richie' ),
+                    'error'
+                );
+                $error = true;
+            }
+
+            if ( in_array( $input['post_type'], $available_types, true ) ) {
+                $source['post_type'] = $input['post_type'];
+            } else {
+                add_settings_error(
+                    $this->sources_option_name,
+                    esc_attr( 'sources_error' ),
+                    __( 'Given post type not supported', 'richie' ),
                     'error'
                 );
                 $error = true;
@@ -320,6 +349,13 @@ class Richie_Admin {
 
             if ( isset( $input['max_age'] ) && $input['max-age'] !== 'All time' ) {
                 $source['max_age'] = sanitize_text_field( $input['max_age'] );
+            }
+
+            if ( isset( $input['background_color'] ) ) {
+                $background_color = sanitize_text_field( $input['background_color'] );
+                if ( $this->check_color( $background_color ) ) {
+                    $source['background_color'] = ltrim( $background_color, '#' );
+                }
             }
 
             if ( false === $error ) {
@@ -643,6 +679,8 @@ class Richie_Admin {
             $source_herald_section->add_field( 'herald_featured_module_title', __( 'Herald module title', 'richie' ), 'input_field', array( 'description' => __('Module title from the given page to be used as a source. If empty, defaults to first featured type module.', 'richie'), 'class' => '' ) );
         }
 
+        $source_section->add_field( 'post_type', __( 'Post type', 'richie' ), 'select_field', array( 'options' => Richie_Post_Type::available_post_types( 'object' ), 'required' => true ) );
+
         $source_filters = new Richie_Settings_Section( $sources_section_name . 'filters', __( 'Filters', 'richie' ), $this->sources_option_name );
         $source_filters->add_field( 'source_categories', __( 'Categories', 'richie' ), 'category_list' );
         $source_filters->add_field( 'order_by', __( 'Order by', 'richie' ), 'order_by' );
@@ -652,6 +690,7 @@ class Richie_Admin {
         $source_options = new Richie_Settings_Section( $sources_section_name . 'options', __( 'Options', 'richie' ), $this->sources_option_name );
         $source_options->add_field( 'list_layout_style', __( 'List layout', 'richie' ), 'select_field', array( 'options' => $this->available_layout_names, 'required' => true ) );
         $source_options->add_field( 'list_group_title', __( 'List group title', 'richie' ), 'input_field', array( 'description' => __( 'Header to display before the story, useful on the first small_group_item of a group', 'richie' ) ) );
+        $source_options->add_field( 'background_color', __( 'Background color', 'richie' ), 'color_picker', array( 'description' => __( 'Background color to be used with layout types. Not all layout types support this.', 'richie' ) ) );
         $source_options->add_field( 'allow_duplicates', __( 'Allow duplicates', 'richie' ), 'checkbox', array( 'description' => __( 'Allow duplicate articles in this source', 'richie' ) ) );
         $source_options->add_field( 'disable_summary', __( 'Disable article summary', 'richie' ), 'checkbox', array( 'description' => __( 'Do not show summary text in news list', 'richie' ) ) );
 
@@ -978,11 +1017,13 @@ class Richie_Admin {
                     <th><?php echo esc_html_x( 'ID', 'column name', 'richie' ); ?></th>
                     <th><?php echo esc_html_x( 'Article Set', 'column name', 'richie' ); ?></th>
                     <th><?php echo esc_html_x( 'Name', 'column name', 'richie' ); ?></th>
+                    <th><?php echo esc_html_x( 'Post type', 'column name', 'richie' ); ?></th>
                     <th><?php echo esc_html_x( 'Categories', 'column name', 'richie' ); ?></th>
                     <th><?php echo esc_html_x( 'Posts', 'column name', 'richie' ); ?></th>
                     <th><?php echo esc_html_x( 'Order', 'column name', 'richie' ); ?></th>
                     <th><?php echo esc_html_x( 'Max age', 'column name', 'richie' ); ?></th>
                     <th><?php echo esc_html_x( 'List layout', 'column name', 'richie' ); ?></th>
+                    <th><?php echo esc_html_x( 'Background', 'column name', 'richie' ); ?></th>
                     <th style="text-align: center"><?php echo esc_html_x( 'Disable summary', 'column name', 'richie' ); ?></th>
                     <th style="text-align: center"><?php echo esc_html_x( 'Allow duplicates', 'column name', 'richie' ); ?></th>
                     <th><?php echo esc_html_x( 'Actions', 'column name', 'richie' ); ?></th>
@@ -1016,17 +1057,21 @@ class Richie_Admin {
                         }
                     }
 
+                    $post_type = isset( $source['post_type'] ) ? $source['post_type'] : 'post';
+
                     ?>
                     <tr id="source-<?php echo esc_attr( $source['id'] ); ?>" data-source-id="<?php echo esc_attr( $source['id'] ); ?>" class="source-item">
                         <td><span class="dashicons dashicons-menu"></span></td>
                         <td><?php echo esc_html( $source['id'] ); ?></td>
                         <td><?php echo esc_html( $article_set->name ); ?></td>
                         <td><?php echo esc_html( $source['name'] ); ?></td>
+                        <td><?php echo esc_html( $post_type ); ?></td>
                         <td><?php echo ! $herald_featured ? esc_html( implode( ', ', $category_names ) ) : esc_html($herald_category_name); ?></td>
                         <td><?php echo esc_html( $source['number_of_posts'] ); ?></td>
                         <td><?php echo isset( $source['order_by'] ) && ! $herald_featured ? esc_html( "{$source['order_by']} {$source['order_direction']}" ) : ''; ?> </td>
                         <td><?php echo isset( $source['max_age'] ) ? esc_html( $source['max_age'] ) : 'All time'; ?></td>
                         <td><?php echo isset( $source['list_layout_style'] ) ? esc_html( $source['list_layout_style'] ) : 'none'; ?></td>
+                        <td><div style="display:block; height: 20px; width: 20px; margin: 0 auto; background-color: #<?php echo isset( $source['background_color'] ) ? esc_html( $source['background_color'] ) : 'transparent'; ?>" /></td>
                         <td style="text-align: center">
                             <input class="disable-summary" type="checkbox" <?php echo isset( $source['disable_summary'] ) && $source['disable_summary'] === true ? 'checked' : ''; ?>>
                         </td>

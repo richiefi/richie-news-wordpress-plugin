@@ -29,6 +29,7 @@
 	 * practising this, we should strive to set a better example in our own work.
 	 */
     $(function() {
+      $('.cpa-color-picker').wpColorPicker();
       $('.sortable-list tbody').sortable({
         items: '.source-item',
         opacity: 0.5,

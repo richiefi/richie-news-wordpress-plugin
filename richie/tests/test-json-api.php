@@ -89,7 +89,7 @@ class Test_JSON_API extends WP_UnitTestCase {
         $this->assertEquals( 200, $response->get_status() );
         $this->assertEquals( count( $articles ), 2 ); // Should not include item with empty guid.
         $id_list = array_column( $articles, 'fetch_id' );
-        $this->assertEquals( $id_list, [ 5, 6 ] );
+        $this->assertEquals( $id_list, array_slice( $posts, 1 ) );
 
         $this->assertEquals( $response->data['errors'][0]['description'], 'Missing guid' );
         $this->assertEquals( $response->data['errors'][0]['post_id'], $first );

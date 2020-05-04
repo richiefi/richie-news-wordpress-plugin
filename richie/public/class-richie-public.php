@@ -12,6 +12,7 @@
 ?>
 <?php
 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-post-type.php';
 
 /**
  * The public-facing functionality of the plugin.
@@ -66,12 +67,18 @@ class Richie_Public {
 		$this->plugin_name         = $plugin_name;
         $this->version             = $version;
         $this->richie_options      = get_option( $plugin_name );
-     }
+    }
 
     public function feed_route_handler( $data ) {
         // Get saved (and published) source list.
-        $sourcelist          = get_option( $this->plugin_name . 'news_sources' );
-        $richie_news_sources = isset( $sourcelist['published'] ) ? $sourcelist['published'] : array();
+        $sourcelist = get_option( $this->plugin_name . 'news_sources' );
+        $params     = $data->get_query_params();
+
+        if ( isset( $params['unpublished'] ) && '1' === $params['unpublished'] ) {
+            $richie_news_sources = isset( $sourcelist['sources'] ) ? $sourcelist['sources'] : array();
+        } else {
+            $richie_news_sources = isset( $sourcelist['published'] ) ? $sourcelist['published'] : array();
+        }
 
         $posts       = array();
         $found_ids   = array();
@@ -96,6 +103,7 @@ class Richie_Public {
             $args = array(
                 'posts_per_page' => $source['number_of_posts'],
                 'post__not_in'   => array(),
+                'post_type'      => 'post', // Default post type.
             );
 
             $allow_duplicates = isset( $source['allow_duplicates'] ) && true === $source['allow_duplicates'];
@@ -240,6 +248,10 @@ class Richie_Public {
                 }
             }
 
+            if ( ! empty( $source['post_type'] ) ) {
+                $args['post_type'] = $source['post_type'];
+            }
+
             $source_posts = get_posts( $args );
 
             $article_attributes = array(
@@ -254,7 +266,17 @@ class Richie_Public {
                 $article_attributes['summary'] = null;
             }
 
+            if ( ! empty( $source['background_color'] ) ) {
+                $article_attributes['background_color'] = ltrim( $source['background_color'], '#' );
+            }
+
             foreach ( $source_posts as $p ) {
+                $is_valid = Richie_Post_Type::validate_post( $p );
+
+                if ( ! $is_valid ) {
+                    continue;
+                }
+
                 if ( $allow_duplicates || ! in_array( $p->ID, $found_ids, true ) ) {
                     if ( empty( $p->guid ) ) {
                         $errors[] = array(

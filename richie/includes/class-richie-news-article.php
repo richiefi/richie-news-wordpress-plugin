@@ -9,6 +9,7 @@
  */
 
 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-photo-asset.php';
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-post-type.php';
 
 
 /**
@@ -197,10 +198,13 @@ class Richie_Article {
         return $results;
     }
 
-    public function generate_article( $my_post ) {
-        if ( empty( $my_post ) ) {
+    public function generate_article( $original_post ) {
+        if ( empty( $original_post ) ) {
             return new stdClass(); // Return empty object.
         }
+
+        $richie_post_type = Richie_Post_Type::get_post_type( $original_post );
+        $my_post          = $richie_post_type->get_post( $original_post );
 
         $hash          = md5( wp_json_encode( $my_post ) );
         $article       = new stdClass();
@@ -211,29 +215,39 @@ class Richie_Article {
         $user_data = get_userdata( $my_post->post_author );
         $category  = get_the_category( $post_id );
 
-        $article->id      = strval($post_id);
-        $article->title   = $my_post->post_title;
-        $article->summary = $my_post->post_excerpt;
-        if ( $category ) {
+        $article->id    = strval( $original_post->ID );
+        $article->title = $original_post->post_title;
+
+        if ( $richie_post_type->supports_property( 'summary' ) ) {
+            $article->summary = $my_post->post_excerpt;
+        }
+
+        if ( $category && $richie_post_type->supports_property( 'kicker' ) ) {
             $article->kicker = $category[0]->name;
         }
-        $revisions = wp_get_post_revisions( $my_post );
-        $published_rev = array_pop($revisions);
+
+        $revisions     = wp_get_post_revisions( $original_post );
+        $published_rev = array_pop( $revisions );
 
         $article->analytics_data = array(
-            'wp_post_id' => $my_post->ID,
-            'original_title' => isset( $published_rev->post_title ) ? $published_rev->post_title : $my_post->post_title
+            'wp_post_id'     => $original_post->ID,
+            'original_title' => isset( $published_rev->post_title ) ? $published_rev->post_title : $original_post->post_title,
         );
 
-        $date          = new DateTime( $my_post->post_date_gmt );
-        $updated_date  = new DateTime( $my_post->post_modified_gmt );
-        $article->date = $date->format( 'c' );
+        if ( $richie_post_type->supports_property( 'date' ) ) {
+            $date = new DateTime( $my_post->post_date_gmt );
+        }
 
-        $diff = $updated_date->getTimestamp() - $date->getTimestamp();
+        if ( $richie_post_type->supports_property( 'updated_date' ) ) {
+            $updated_date  = new DateTime( $my_post->post_modified_gmt );
+            $article->date = $date->format( 'c' );
 
-        // Include updated_date if its at least 5 minutes after creation date.
-        if ( $diff >= 5 * MINUTE_IN_SECONDS ) {
-            $article->updated_date = $updated_date->format( 'c' );
+            $diff = $updated_date->getTimestamp() - $date->getTimestamp();
+
+            // Include updated_date if its at least 5 minutes after creation date.
+            if ( $diff >= 5 * MINUTE_IN_SECONDS ) {
+                $article->updated_date = $updated_date->format( 'c' );
+            }
         }
 
         $article->share_link_url = get_permalink( $post_id );
