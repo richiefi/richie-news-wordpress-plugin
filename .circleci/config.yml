@@ -3,8 +3,8 @@ workflows:
   main:
     jobs:
       #- php56-build
-      - php70-build
-      - php71-build
+      #- php70-build
+      #- php71-build
       - php72-build
 
 version: 2
