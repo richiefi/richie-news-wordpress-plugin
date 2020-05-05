@@ -318,6 +318,65 @@ class Test_JSON_API extends WP_UnitTestCase {
 
     }
 
+    public function test_get_news_feed_items_with_tags() {
+        $term_id = $this->factory->term->create([
+            'name'     => 'Test set',
+            'taxonomy' => 'richie_article_set',
+            'slug'     => 'test-set',
+        ]);
+
+        $this->factory->tag->create_and_get( array( 'slug' => 'tag1' ) );
+        $this->factory->tag->create_and_get( array( 'slug' => 'tag2' ) );
+        $this->factory->tag->create_and_get( array( 'slug' => 'tag3' ) );
+
+        $sources = [];
+
+        $sources[1] = array(
+            'id'                => 1,
+            'name'              => 'test source',
+            'number_of_posts'   => 3,
+            'order_by'          => 'date',
+            'order_direction'   => 'ASC',
+            'article_set'       => $term_id,
+            'list_layout_style' => 'small_group_item',
+            'list_group_title'  => 'group title',
+            'allow_duplicates'  => 0,
+            'tags'              => array( 'tag1', 'tag2' ),
+        );
+
+        $sources[2] = array(
+            'id'                => 1,
+            'name'              => 'test source 2',
+            'number_of_posts'   => 3,
+            'order_by'          => 'date',
+            'order_direction'   => 'ASC',
+            'article_set'       => $term_id,
+            'list_layout_style' => 'small',
+            'tags'              => array( 'tag3' ),
+        );
+
+        add_option( 'richienews_sources', array( 'published' => $sources ) );
+
+        $posts     = $this->factory->post->create_many( 10 ); // create few posts without tags
+        $both_tags = $this->factory->post->create( array( 'post_date' => '2020-01-01', 'tags_input' => array( 'tag1', 'tag2' ) ) );
+        $tag_1     = $this->factory->post->create( array( 'post_date' => '2020-01-02', 'tags_input' => array( 'tag1' ) ) );
+        $tag_2     = $this->factory->post->create( array( 'post_date' => '2020-01-03', 'tags_input' => array( 'tag2' ) ) );
+        $tag_2_2   = $this->factory->post->create( array( 'post_date' => '2020-01-04', 'tags_input' => array( 'tag2' ) ) );
+        $tag_3     = $this->factory->post->create( array( 'post_date' => '2020-01-05', 'tags_input' => array( 'tag3' ) ) );
+
+        $request  = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
+        $request->set_query_params( array( 'token' => 'testtoken' ) );
+        $response = $this->server->dispatch( $request );
+        $articles = $response->data['article_ids'];
+
+        $this->assertEquals( 200, $response->get_status() );
+        $this->assertEquals( 4, count( $articles ) );
+        $id_list = array_column( $articles, 'fetch_id' );
+        // Should include 3 posts from first source (including tag1 or tag2) and one from second (having tag3)
+        // tag_2_2 should not be in returned list
+        $this->assertEquals( $id_list, array( $both_tags, $tag_1, $tag_2, $tag_3 ) );
+    }
+
     public function test_get_assets_list_with_combined_custom() {
         update_option( 'richie_assets', json_decode('[{"local_name": "app-assets/test/test2/script.js", "remote_url": "http://example.org/test/test2/script.js"}]') );
         $request  = new WP_REST_Request( 'GET', '/richie/v1/assets' );
