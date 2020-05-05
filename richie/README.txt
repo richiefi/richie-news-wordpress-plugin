@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= 1.4.1 (05.05.2020) =
+* Support filtering news source items with tag list
+
 = 1.4.0 (04.05.2020) =
 * Support background color property in news sources
 * Support for Mediabox Featured Post -custom type

@@ -30,6 +30,7 @@
 	 */
     $(function() {
       $('.cpa-color-picker').wpColorPicker();
+      $('.richie-tag-suggest').suggest( window.ajaxurl + '?action=ajax-tag-search&tax=post_tag', {multiple: true, multipleSep: ','});
       $('.sortable-list tbody').sortable({
         items: '.source-item',
         opacity: 0.5,

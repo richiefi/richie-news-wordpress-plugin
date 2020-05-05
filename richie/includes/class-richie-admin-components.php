@@ -240,6 +240,20 @@ class Richie_Admin_Components {
         <?php
     }
 
+    public function tag_field( array $args ) {
+
+        $option_name = $args['option_name'];
+        $id          = $args['id'];
+        $name        = $option_name . '[' . $id . ']';
+        $value       = isset( $args['value'] ) ? $args['value'] : '';
+        $class_name  = isset( $args['class'] ) ? $args['class'] : 'regular-text';
+        printf( '<input class="richie-tag-suggest %s" type="text" name="%s" value="%s">', esc_attr( $class_name ), esc_attr( $name ), esc_attr( $value ) );
+
+        if ( isset( $args['description'] ) ) {
+            printf( '<br><span class="description">%s</span>', esc_html( $args['description'] ) );
+        }
+    }
+
     /**
      * Render select box for supported article ordering
      *

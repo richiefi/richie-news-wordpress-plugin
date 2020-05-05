@@ -188,8 +188,12 @@ class Richie_Public {
                     $args['cat'] = $source['categories'];
                 }
 
+                if ( isset( $source['tags'] ) && ! empty( $source['tags'] ) ) {
+                    $args['tag_slug__in'] = $source['tags'];
+                }
+
                 if ( isset( $source['order_by'] ) && ! empty( $source['order_by'] ) ) {
-                    $order_by = 'date';
+                    $order_by   = 'date';
                     $is_metakey = strpos( $source['order_by'], 'metakey:' ) === 0;
                     $is_popular = strpos( $source['order_by'], 'popular:' ) === 0;
 

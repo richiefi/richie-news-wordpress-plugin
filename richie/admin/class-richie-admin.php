@@ -333,6 +333,10 @@ class Richie_Admin {
                 $source['categories'] = $input['source_categories'];
             }
 
+            if ( isset( $input['source_tags'] ) && ! empty( $input['source_tags'] ) ) {
+                $source['tags'] = wp_parse_slug_list( $input['source_tags'] );
+            }
+
             $source['list_layout_style'] = in_array( $input['list_layout_style'], $this->available_layout_names, true ) ? sanitize_text_field( $input['list_layout_style'] ) : 'none';
 
             if ( isset( $input['list_group_title'] ) && ! empty( $input['list_group_title'] ) ) {
@@ -683,6 +687,7 @@ class Richie_Admin {
 
         $source_filters = new Richie_Settings_Section( $sources_section_name . 'filters', __( 'Filters', 'richie' ), $this->sources_option_name );
         $source_filters->add_field( 'source_categories', __( 'Categories', 'richie' ), 'category_list' );
+        $source_filters->add_field( 'source_tags', __( 'Tags', 'richie' ), 'tag_field' );
         $source_filters->add_field( 'order_by', __( 'Order by', 'richie' ), 'order_by' );
         $source_filters->add_field( 'order_dir', __( 'Order direction', 'richie' ), 'order_direction' );
         $source_filters->add_field( 'max_age', __( 'Post max age', 'richie' ), 'max_age' );
@@ -1066,7 +1071,14 @@ class Richie_Admin {
                         <td><?php echo esc_html( $article_set->name ); ?></td>
                         <td><?php echo esc_html( $source['name'] ); ?></td>
                         <td><?php echo esc_html( $post_type ); ?></td>
-                        <td><?php echo ! $herald_featured ? esc_html( implode( ', ', $category_names ) ) : esc_html($herald_category_name); ?></td>
+                        <td>
+                            <?php
+                            echo ! $herald_featured ? esc_html( implode( ', ', $category_names ) ) : esc_html($herald_category_name);
+                            if ( ! empty( $source['tags'] ) ) {
+                                echo '<br/>Tags: ' . esc_html( implode( ', ', $source['tags'] ) );
+                            }
+                            ?>
+                        </td>
                         <td><?php echo esc_html( $source['number_of_posts'] ); ?></td>
                         <td><?php echo isset( $source['order_by'] ) && ! $herald_featured ? esc_html( "{$source['order_by']} {$source['order_direction']}" ) : ''; ?> </td>
                         <td><?php echo isset( $source['max_age'] ) ? esc_html( $source['max_age'] ) : 'All time'; ?></td>
