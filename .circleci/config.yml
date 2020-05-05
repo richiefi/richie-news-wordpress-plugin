@@ -36,14 +36,14 @@ job-references:
       - checkout
       - run: *setup_environment
       - run: *install_dependencies
-      # - restore_cache: # special step to restore the dependency cache if `composer.lock` does not change
-      #     keys:
-      #       - composer-v1-{{.Environment.CIRCLE_JOB}}-{{ checksum "composer.lock" }}
+      - restore_cache: # special step to restore the dependency cache if `composer.lock` does not change
+          keys:
+            - composer-v1-{{.Environment.CIRCLE_JOB}}-{{ checksum "composer.lock" }}
       - run: composer install -n --prefer-dist
-      # - save_cache: # special step to save the dependency cache with the `composer.lock` cache key template
-      #     key: composer-v1-{{.Environment.CIRCLE_JOB}}-{{ checksum "composer.lock" }}
-      #     paths:
-      #       - vendor
+      - save_cache: # special step to save the dependency cache with the `composer.lock` cache key template
+          key: composer-v1-{{.Environment.CIRCLE_JOB}}-{{ checksum "composer.lock" }}
+          paths:
+            - vendor
       - run:
           working_directory: "richie"
           name: "Run Tests"
