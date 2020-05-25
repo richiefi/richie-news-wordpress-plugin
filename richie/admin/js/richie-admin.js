@@ -29,9 +29,14 @@
 	 * practising this, we should strive to set a better example in our own work.
 	 */
     $(function() {
-      $('.cpa-color-picker').wpColorPicker();
-      $('.richie-tag-suggest').suggest( window.ajaxurl + '?action=ajax-tag-search&tax=post_tag', {multiple: true, multipleSep: ','});
-      $('.sortable-list tbody').sortable({
+      $('.richie-settings .cpa-color-picker').wpColorPicker();
+
+      var tagSuggest = $('.richie-settings .richie-tag-suggest');
+      if (tagSuggest.length > 0) {
+        $('.richie-settings .richie-tag-suggest').suggest( window.ajaxurl + '?action=ajax-tag-search&tax=post_tag', {multiple: true, multipleSep: ','});
+      }
+
+      $('.richie-settings .sortable-list tbody').sortable({
         items: '.source-item',
         opacity: 0.5,
         cursor: 'pointer',
@@ -63,7 +68,7 @@
         }
       });
 
-      $('.feed-source-list').on('click', '.remove-source-item', function() {
+      $('.richie-settings .feed-source-list').on('click', '.remove-source-item', function() {
         var result = confirm('Are you sure?');
         if (!result) {
           return;
@@ -81,7 +86,7 @@
         });
       });
 
-      $('.feed-source-list').on('click', '.disable-summary', function() {
+      $('.richie-settings .feed-source-list').on('click', '.disable-summary', function() {
         var data = {
           action: 'set_checkbox_field',
           security: richie_ajax.security,
@@ -98,7 +103,7 @@
         });
       });
 
-      $('.feed-source-list').on('click', '.allow-duplicates', function() {
+      $('.richie-settings .feed-source-list').on('click', '.allow-duplicates', function() {
         var data = {
           action: 'set_checkbox_field',
           security: richie_ajax.security,
@@ -115,7 +120,7 @@
         });
       });
 
-      if( $('#code_editor_page_js').length ) {
+      if( $('.richie-settings #code_editor_page_js').length ) {
         var editorSettings = wp.codeEditor.defaultSettings ? _.clone( wp.codeEditor.defaultSettings ) : {};
         editorSettings.codemirror = _.extend(
             {},
@@ -128,7 +133,7 @@
             }
         );
         var editor = wp.codeEditor.initialize( $('#code_editor_page_js'), editorSettings );
-        $('button#generate-assets').on('click', function() {
+        $('.richie-settings button#generate-assets').on('click', function() {
           $.getJSON(assetUrl + '?generate=true')
           .then(function(assets) {
             if (assets && assets.app_assets) {
@@ -138,7 +143,7 @@
         });
       }
 
-      $('a#publish-sources').on('click', function() {
+      $('.richie-notice a#publish-sources').on('click', function() {
         var data = {
           action: 'publish_source_changes',
           security: richie_ajax.security
@@ -149,7 +154,7 @@
         });
         return false;
       });
-      $('a#revert-source-changes').on('click', function() {
+      $('.richie-notice a#revert-source-changes').on('click', function() {
         var data = {
           action: 'revert_source_changes',
           security: richie_ajax.security
@@ -161,7 +166,7 @@
         return false;
       });
 
-      $('.slot-list').on('click', '.remove-slot-item', function() {
+      $('.richie-settings .slot-list').on('click', '.remove-slot-item', function() {
         var result = confirm('Are you sure?');
         if (!result) {
           return;
@@ -181,7 +186,7 @@
         });
       });
 
-      $('.slot-list').on('click', '.copy-slot-value', function() {
+      $('.richie-settings .slot-list').on('click', '.copy-slot-value', function() {
         var row = $(this).parents('tr');
         var data = {
           action: 'get_adslot_data',

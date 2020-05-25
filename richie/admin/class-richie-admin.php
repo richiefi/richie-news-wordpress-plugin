@@ -148,12 +148,16 @@ class Richie_Admin {
      *
      * @since    1.0.0
      */
-    public function enqueue_scripts() {
-        wp_enqueue_script( 'jquery-ui-core' );
-        wp_enqueue_script( 'jquery-ui-sortable' );
-        add_thickbox();
-        wp_enqueue_script( 'suggest' );
-        wp_enqueue_code_editor( array( 'type' => 'application/json' ) );
+    public function enqueue_scripts($hook) {
+        /* These scripts are only needed on actual plugin settings page */
+        if ( 'settings_page_richie' === $hook ) {
+            wp_enqueue_script( 'jquery-ui-core' );
+            wp_enqueue_script( 'jquery-ui-sortable' );
+            add_thickbox();
+            wp_enqueue_code_editor( array( 'type' => 'application/json' ) );
+            wp_enqueue_script( 'suggest' );
+        }
+
         wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery' ), $this->get_version_id(), false );
         wp_localize_script(
             $this->plugin_name,
@@ -487,7 +491,7 @@ class Richie_Admin {
     public function add_admin_notices() {
         if ( $this->has_unpublished_changes() ) {
             ?>
-            <div class="notice notice-warning">
+            <div class="richie-notice notice notice-warning">
             <p>
                 <strong>Richie: <?php esc_html_e( 'News sources have unpublished changes.', 'richie' ); ?></strong>
                 <span>
