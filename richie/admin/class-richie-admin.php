@@ -491,7 +491,7 @@ class Richie_Admin {
     public function add_admin_notices() {
         if ( $this->has_unpublished_changes() ) {
             ?>
-            <div class="notice notice-warning">
+            <div class="richie-notice notice notice-warning">
             <p>
                 <strong>Richie: <?php esc_html_e( 'News sources have unpublished changes.', 'richie' ); ?></strong>
                 <span>
