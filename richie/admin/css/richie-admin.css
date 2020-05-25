@@ -3,12 +3,12 @@
  * included in this file.
  */
 
- ul.children {
+.richie-settings ul.children {
   margin-left: 16px;
   margin-top: 8px;
 }
 
-form .CodeMirror {
+.richie-settings form .CodeMirror {
   border: 1px solid #eee;
   height: 300px !important;
 }
