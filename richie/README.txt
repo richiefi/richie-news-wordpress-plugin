@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= 1.4.2 (25.05.2020) =
+* Fix possible conflicts with other plugins and client scripts
+
 = 1.4.1 (05.05.2020) =
 * Support filtering news source items with tag list
 
