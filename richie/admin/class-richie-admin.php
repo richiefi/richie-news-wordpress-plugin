@@ -148,12 +148,16 @@ class Richie_Admin {
      *
      * @since    1.0.0
      */
-    public function enqueue_scripts() {
-        wp_enqueue_script( 'jquery-ui-core' );
-        wp_enqueue_script( 'jquery-ui-sortable' );
-        add_thickbox();
-        wp_enqueue_script( 'suggest' );
-        wp_enqueue_code_editor( array( 'type' => 'application/json' ) );
+    public function enqueue_scripts($hook) {
+        /* These scripts are only needed on actual plugin settings page */
+        if ( 'settings_page_richie' === $hook ) {
+            wp_enqueue_script( 'jquery-ui-core' );
+            wp_enqueue_script( 'jquery-ui-sortable' );
+            add_thickbox();
+            wp_enqueue_code_editor( array( 'type' => 'application/json' ) );
+            wp_enqueue_script( 'suggest' );
+        }
+
         wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery' ), $this->get_version_id(), false );
         wp_localize_script(
             $this->plugin_name,
