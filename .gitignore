@@ -1,7 +1,7 @@
 wp-content
 node_modules
 tmp
-vendor
+vendor/**
 
 package-lock.json
 *.zip
