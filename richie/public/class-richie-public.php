@@ -548,6 +548,9 @@ class Richie_Public {
             array(
                 'methods'  => 'GET',
                 'callback' => array( $this, 'asset_feed_handler' ),
+                'permission_callback' => function () {
+                    return true;
+                },
             )
         );
     }
