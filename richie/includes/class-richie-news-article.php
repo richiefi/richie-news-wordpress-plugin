@@ -134,8 +134,9 @@ class Richie_Article {
         $image_urls = [];
         $dom = new DOMDocument('1.0', 'UTF-8');
         $dom->substituteEntities = false;
+        $dom->preserveWhiteSpace = false;
         libxml_use_internal_errors( true );
-        $dom->loadHTML( $content );
+        @$dom->loadHTML( $content, LIBXML_SCHEMA_CREATE );
         // Get all the images.
         $images = $dom->getElementsByTagName( 'img' );
         // Loop the images.
@@ -164,7 +165,7 @@ class Richie_Article {
         $html = $dom->saveHTML($dom->documentElement);
         return array(
             'images' => $image_urls,
-            'content' => $html
+            'content' => $html,
         );
     }
 
