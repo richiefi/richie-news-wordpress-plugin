@@ -41,7 +41,7 @@ define( 'Richie_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
  * Define plugin constants
  */
 
-defined('RICHIE_ASSET_CACHE_KEY') or define('RICHIE_ASSET_CACHE_KEY', 'richie_assets_cache');
+defined( 'RICHIE_ASSET_CACHE_KEY' ) or define( 'RICHIE_ASSET_CACHE_KEY', 'richie_assets_cache' );
 
 
 /**
