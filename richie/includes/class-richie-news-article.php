@@ -132,11 +132,12 @@ class Richie_Article {
      */
     public function get_article_images( $content, $include_links = false ) {
         $image_urls = [];
-        $dom = new DOMDocument('1.0', 'UTF-8');
+        //$dom = new DOMDocument('1.0', 'UTF-8');
+        $dom = new IvoPetkov\HTML5DOMDocument();
         $dom->substituteEntities = false;
         $dom->preserveWhiteSpace = false;
-        libxml_use_internal_errors( true );
-        @$dom->loadHTML( $content, LIBXML_SCHEMA_CREATE );
+        //libxml_use_internal_errors( true );
+        @$dom->loadHTML( $content );
         // Get all the images.
         $images = $dom->getElementsByTagName( 'img' );
         // Loop the images.
