@@ -52,6 +52,14 @@ class Richie_Article {
         $this->assets       = $assets;
     }
 
+    /**
+     * Render template as string
+     *
+     * @param [type] $slug Template slug.
+     * @param [type] $name Template variation name.
+     * @param [type] $post_obj Post object.
+     * @return string
+     */
     public function render_template( $slug, $name, $post_obj ) {
         global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $user_ID, $wp_styles, $wp_scripts, $wp_filter;
         require_once plugin_dir_path( __FILE__ ) . 'class-richie-template-loader.php';
@@ -73,7 +81,7 @@ class Richie_Article {
             add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
         }
 
-        // modify urls to have scheme
+        // Modify urls to have scheme.
         add_filter( 'script_loader_src', 'richie_force_url_scheme' );
         add_filter( 'style_loader_src', 'richie_force_url_scheme' );
 
@@ -127,22 +135,23 @@ class Richie_Article {
     /**
      * Parse html content and return all img tag source urls
      *
-     * @param string $content
+     * @param string  $content HTML string.
+     * @param boolean $include_links Detect images in a tags.
      * @return array
      */
     public function get_article_images( $content, $include_links = false ) {
         $image_urls = [];
-        //$dom = new DOMDocument('1.0', 'UTF-8');
-        $dom = new IvoPetkov\HTML5DOMDocument();
+        $dom        = new IvoPetkov\HTML5DOMDocument();
+
         $dom->substituteEntities = false;
         $dom->preserveWhiteSpace = false;
-        //libxml_use_internal_errors( true );
+        libxml_use_internal_errors( true );
         @$dom->loadHTML( $content );
         // Get all the images.
         $images = $dom->getElementsByTagName( 'img' );
         // Loop the images.
         foreach ( $images as $image ) {
-            $url = richie_make_link_absolute($image->getAttribute( 'src' ));
+            $url          = richie_make_link_absolute( $image->getAttribute( 'src' ) );
             $image_urls[] = $url;
             $image->setAttribute( 'src', $url );
             $image->removeAttribute( 'srcset' );
@@ -153,8 +162,8 @@ class Richie_Article {
 
             foreach ( $links as $link ) {
                 $href = $link->getAttribute( 'href' );
-                if( richie_is_image_url( $href ) ) {
-                    $url = richie_make_link_absolute( $href );
+                if ( richie_is_image_url( $href ) ) {
+                    $url          = richie_make_link_absolute( $href );
                     $image_urls[] = $url;
                     $link->setAttribute( 'href', $url );
                 }
@@ -163,9 +172,9 @@ class Richie_Article {
 
         // Remove duplicate urls.
         $image_urls = array_unique( $image_urls );
-        $html = $dom->saveHTML($dom->documentElement);
+        $html       = $dom->saveHTML( $dom->documentElement );
         return array(
-            'images' => $image_urls,
+            'images'  => $image_urls,
             'content' => $html,
         );
     }
@@ -175,12 +184,11 @@ class Richie_Article {
      * Finding attachment by url is really slow, so it is disabled as default.
      * It also replaces urls found in passed content string with generated local_name.
      *
-     * @param array $image_urls
+     * @param array  $image_urls Array of image urls.
      * @param string $rendered_content Passed as reference, modifies content.
-     * @param boolean $resolve_attachment
      * @return array
      */
-    public function generate_photos_array( $image_urls, &$rendered_content, $resolve_attachment = false ) {
+    public function generate_photos_array( $image_urls, &$rendered_content ) {
         if ( empty( $image_urls ) ) {
             return [];
         }
@@ -189,8 +197,8 @@ class Richie_Article {
         $results          = [];
 
         foreach ( array_unique( $image_urls ) as $url ) {
-            $photo_asset = new Richie_Photo_Asset( $url, false);
-            $results[] = $photo_asset;
+            $photo_asset = new Richie_Photo_Asset( $url, false );
+            $results[]   = $photo_asset;
 
             $encoded_url = richie_encode_url_path( $url );
             $rendered_content = str_replace( $url, $photo_asset->local_name, $rendered_content );
@@ -213,9 +221,8 @@ class Richie_Article {
         $article->hash = $hash;
 
         // Get metadata.
-        $post_id   = $my_post->ID;
-        $user_data = get_userdata( $my_post->post_author );
-        $category  = get_the_category( $post_id );
+        $post_id  = $my_post->ID;
+        $category = get_the_category( $post_id );
 
         $article->id    = strval( $original_post->ID );
         $article->title = $original_post->post_title;
@@ -254,7 +261,7 @@ class Richie_Article {
 
         $article->share_link_url = get_permalink( $post_id );
 
-        $metered_id = $this->news_options['metered_pmpro_level'];
+        $metered_id     = $this->news_options['metered_pmpro_level'];
         $member_only_id = $this->news_options['member_only_pmpro_level'];
 
         // Get paywall type.
@@ -291,7 +298,6 @@ class Richie_Article {
         if ( isset( $_GET['use_local_render'] ) ) {
             $use_local_render = $_GET['use_local_render'] === '1';
         }
-
 
         //$article->debug_content_url = $content_url;
 
@@ -345,7 +351,7 @@ class Richie_Article {
         foreach ( $this->assets as $asset ) {
             $local_name       = ltrim( $asset->local_name, '/' );
             $rendered_content = str_replace( $asset->remote_url, $local_name, $rendered_content );
-            $regex = '/(?<!app-assets)' . preg_quote( wp_make_link_relative( $asset->remote_url ), '/' ) . '/';
+            $regex            = '/(?<!app-assets)' . preg_quote( wp_make_link_relative( $asset->remote_url ), '/' ) . '/';
             $rendered_content = preg_replace( $regex, $local_name, $rendered_content );
         }
 
@@ -353,7 +359,7 @@ class Richie_Article {
         foreach ( $local_assets as $asset ) {
             $local_name       = ltrim( $asset->local_name, '/' );
             $rendered_content = str_replace( $asset->remote_url, $local_name, $rendered_content );
-            $regex = '/(?<!app-assets)' . preg_quote( wp_make_link_relative( $asset->remote_url ), '/' ) . '/';
+            $regex            = '/(?<!app-assets)' . preg_quote( wp_make_link_relative( $asset->remote_url ), '/' ) . '/';
             $rendered_content = preg_replace( $regex, $local_name, $rendered_content );
         }
 
@@ -363,7 +369,7 @@ class Richie_Article {
         $thumbnail_id = get_post_thumbnail_id( $my_post );
 
         $rendered_article_images = $this->get_article_images( $rendered_content );
-        $image_urls   = $rendered_article_images['images'];
+        $image_urls              = $rendered_article_images['images'];
 
 
         // Save the HTML with img srcset removed.
@@ -419,10 +425,10 @@ class Richie_Article {
                         }
                         $attachment_url = wp_get_attachment_url( $attachment->ID );
 
-                        $photo_asset = new Richie_Photo_Asset( $attachment_url );
+                        $photo_asset          = new Richie_Photo_Asset( $attachment_url );
                         $photo_asset->caption = $attachment->post_excerpt;
 
-                        $local_name = $photo_asset->local_name;
+                        $local_name   = $photo_asset->local_name;
                         $absolute_url = richie_make_link_absolute( $attachment_url );
 
                         if ( false !== strpos( $rendered_content, $absolute_url ) ) {
@@ -431,18 +437,17 @@ class Richie_Article {
                             $rendered_content = str_replace( $attachment_url, $local_name, $rendered_content );
                         }
 
-
                         $gallery_photos [] = $photo_asset;
 
                         $all_gallery_images[] = $attachment_url;
 
-                        // get all variants and filter from main gallery
+                        // Get all variants and filter from main gallery.
                         foreach ( $all_sizes as $size ) {
-                            $img = wp_get_attachment_image_src($attachment_id, $size);
+                            $img = wp_get_attachment_image_src( $attachment_id, $size );
 
                             if ( false !== $img ) {
-                                // Remove from general image array, since this is in wordpress gallery.
-                                $url = $img[0];
+                                // Remove from general image array, since this is in WordPress gallery.
+                                $url   = $img[0];
                                 $index = array_search( $url, $image_urls );
                                 if ( false !== $index ) {
                                     unset( $image_urls[ $index ] );
@@ -458,9 +463,8 @@ class Richie_Article {
             }
         }
 
-
         if ( $image_urls ) {
-            $img_list = $this->generate_photos_array($image_urls, $rendered_content, false);
+            $img_list     = $this->generate_photos_array( $image_urls, $rendered_content, false );
             $main_gallery = array_merge( $main_gallery, $img_list );
         }
 
@@ -472,19 +476,18 @@ class Richie_Article {
             $unique[ $item->local_name ] = $item;
         }
 
-        // prepend main gallery
-        if ( !empty( $unique ) ) {
+        // Prepend main gallery.
+        if ( ! empty( $unique ) ) {
             array_unshift( $article_photos, array_values( $unique ) );
         }
 
-        // Find images not in post content and add them to assets
-        $other_images = array_diff( array_diff( $rendered_article_images[ 'images' ], $image_urls ), array_unique( $all_gallery_images ) );
+        // Find images not in post content and add them to assets.
+        $other_images = array_diff( array_diff( $rendered_article_images['images'], $image_urls ), array_unique( $all_gallery_images ) );
 
-        if ( !empty( $other_images ) ) {
-            $arr = $this->generate_photos_array( $other_images, $rendered_content, false);
+        if ( ! empty( $other_images ) ) {
+            $arr          = $this->generate_photos_array( $other_images, $rendered_content, false );
             $local_assets = array_merge( $local_assets, $arr );
         }
-
 
         $article->content_html_document = $rendered_content;
         $article->assets                = array_values( $local_assets );
