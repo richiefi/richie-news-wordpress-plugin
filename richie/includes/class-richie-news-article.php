@@ -148,7 +148,7 @@ class Richie_Article {
         libxml_use_internal_errors( true );
         @$dom->loadHTML( $content );
         // Get all the images.
-        $images = $dom->getElementsByTagName( 'img' );
+        $images = $dom->querySelectorAll( 'body img' );
         // Loop the images.
         foreach ( $images as $image ) {
             $url          = richie_make_link_absolute( $image->getAttribute( 'src' ) );
