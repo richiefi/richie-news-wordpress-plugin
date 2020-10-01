@@ -3,7 +3,7 @@ Contributors: (this should be a list of wordpress.org userid's)
 Donate link: https://www.richie.fi
 Tags: rest, feed, api, shortcode
 Requires at least: 4.0
-Tested up to: 5.1
+Tested up to: 5.5
 License: Copyright Richie Oy
 
 This plugin provides backend feeds and digital paper support for Richie Platform.
@@ -23,7 +23,7 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
-= WIP =
+= 1.4.3 (01.10.2020) =
 * Fix invalid html output if script tags includes html tags (templates etc)
 
 = 1.4.2 (25.05.2020) =
