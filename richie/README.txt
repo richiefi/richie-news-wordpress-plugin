@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= WIP =
+* Fix invalid html output if script tags includes html tags (templates etc)
+
 = 1.4.2 (25.05.2020) =
 * Fix possible conflicts with other plugins and client scripts
 

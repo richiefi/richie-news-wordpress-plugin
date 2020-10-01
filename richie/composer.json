@@ -1,5 +1,5 @@
 {
-    "require-dev": {
-        "10up/wp_mock": "^0.3.0"
+    "require": {
+        "ivopetkov/html5-dom-document-php": "2.*"
     }
 }

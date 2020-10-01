@@ -546,8 +546,11 @@ class Richie_Public {
             'richie/v1',
             '/assets',
             array(
-                'methods'  => 'GET',
-                'callback' => array( $this, 'asset_feed_handler' ),
+                'methods'             => 'GET',
+                'callback'            => array( $this, 'asset_feed_handler' ),
+                'permission_callback' => function () {
+                    return true;
+                },
             )
         );
     }

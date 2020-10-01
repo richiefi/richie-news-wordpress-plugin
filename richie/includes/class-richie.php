@@ -99,6 +99,7 @@ class Richie {
     */
     private function load_dependencies() {
 
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
         /**
          * Richie dependencies
          */

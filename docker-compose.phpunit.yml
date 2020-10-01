@@ -3,7 +3,8 @@ version: "3.3"
 services:
   wordpress_phpunit:
     build: './docker/phpunit'
-    # image: "chriszarate/wordpress-phpunit:6.0.6"
+    environment:
+      PHPUNIT_DB_HOST: "mysql_phpunit"
     volumes:
       - "./richie:/app"
       - "testsuite:/tmp"

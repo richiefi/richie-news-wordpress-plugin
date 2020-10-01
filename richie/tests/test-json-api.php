@@ -17,13 +17,13 @@ class Test_JSON_API extends WP_UnitTestCase {
         parent::setUp();
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
-		$this->server = $wp_rest_server = new \WP_REST_Server;
+		$this->server = $wp_rest_server = new \WP_REST_Server();
 		do_action( 'rest_api_init' );
-        update_option('richie', array('access_token' => 'testtoken') );
+        update_option( 'richie', array( 'access_token' => 'testtoken' ) );
     }
 
     public function tearDown() {
-        delete_option('richie');
+        delete_option( 'richie' );
         parent::tearDown();
     }
 
@@ -34,7 +34,7 @@ class Test_JSON_API extends WP_UnitTestCase {
     }
 
     public function test_get_news_feed_with_invalid_token() {
-        $request  = new WP_REST_Request( 'GET', '/richie/v1/news/set' );
+        $request = new WP_REST_Request( 'GET', '/richie/v1/news/set' );
         $request->set_query_params( array( 'token' => 'wrong_token' ) );
 		$response = $this->server->dispatch( $request );
         $this->assertEquals( 401, $response->get_status() );
@@ -42,25 +42,29 @@ class Test_JSON_API extends WP_UnitTestCase {
 
     public function test_get_news_feed_with_correct_token() {
         // create article set
-        $term_id = $this->factory->term->create([
-            'name'     => 'Test set',
-            'taxonomy' => 'richie_article_set',
-            'slug'     => 'test-set'
-        ]);
-        $request  = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
+        $term_id = $this->factory->term->create(
+            array(
+				'name'     => 'Test set',
+				'taxonomy' => 'richie_article_set',
+				'slug'     => 'test-set',
+            )
+        );
+        $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
         $response = $this->server->dispatch( $request );
         $this->assertEquals( 200, $response->get_status() );
     }
 
     public function test_get_news_feed_items_with_missing_guid() {
-        $term_id = $this->factory->term->create([
-            'name'     => 'Test set',
-            'taxonomy' => 'richie_article_set',
-            'slug'     => 'test-set',
-        ]);
+        $term_id = $this->factory->term->create(
+            array(
+				'name'     => 'Test set',
+				'taxonomy' => 'richie_article_set',
+				'slug'     => 'test-set',
+            )
+        );
 
-        $sources = [];
+        $sources = array();
 
         $sources[1] = array(
             'id'                => 1,
@@ -81,7 +85,7 @@ class Test_JSON_API extends WP_UnitTestCase {
         $wpdb->update( $wpdb->posts, array( 'guid' => '' ), array( 'ID' => $first ) );
         clean_post_cache( $first );
 
-        $request  = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
+        $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
         $response = $this->server->dispatch( $request );
         $articles = $response->data['article_ids'];
@@ -96,13 +100,15 @@ class Test_JSON_API extends WP_UnitTestCase {
     }
 
     public function test_get_news_feed_items_without_duplicates() {
-        $term_id = $this->factory->term->create([
-            'name'     => 'Test set',
-            'taxonomy' => 'richie_article_set',
-            'slug'     => 'test-set',
-        ]);
+        $term_id = $this->factory->term->create(
+            array(
+				'name'     => 'Test set',
+				'taxonomy' => 'richie_article_set',
+				'slug'     => 'test-set',
+            )
+        );
 
-        $sources = [];
+        $sources = array();
 
         $sources[1] = array(
             'id'                => 1,
@@ -128,8 +134,8 @@ class Test_JSON_API extends WP_UnitTestCase {
 
         add_option( 'richienews_sources', array( 'published' => $sources ) );
 
-        $posts = $this->factory->post->create_many( 10 );
-        $request  = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
+        $posts   = $this->factory->post->create_many( 10 );
+        $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
         $response = $this->server->dispatch( $request );
         $articles = $response->data['article_ids'];
@@ -141,13 +147,15 @@ class Test_JSON_API extends WP_UnitTestCase {
     }
 
     public function test_get_news_feed_items_with_duplicates() {
-        $term_id = $this->factory->term->create([
-            'name'     => 'Test set',
-            'taxonomy' => 'richie_article_set',
-            'slug'     => 'test-set',
-        ]);
+        $term_id = $this->factory->term->create(
+            array(
+				'name'     => 'Test set',
+				'taxonomy' => 'richie_article_set',
+				'slug'     => 'test-set',
+            )
+        );
 
-        $sources = [];
+        $sources = array();
 
         $sources[1] = array(
             'id'                => 1,
@@ -185,7 +193,7 @@ class Test_JSON_API extends WP_UnitTestCase {
 
         $posts = $this->factory->post->create_many( 10 );
 
-        $request  = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
+        $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
         $response = $this->server->dispatch( $request );
         $articles = $response->data['article_ids'];
@@ -197,21 +205,23 @@ class Test_JSON_API extends WP_UnitTestCase {
         // first two in order, then three same order, allowing duplicates,
         // last three shouldn't contain duplicates from first section,
         // second section shouldn't matter
-        $expected_post_ids = [ $posts[0], $posts[1], $posts[0], $posts[1], $posts[2], $posts[2], $posts[3], $posts[4] ];
+        $expected_post_ids = array( $posts[0], $posts[1], $posts[0], $posts[1], $posts[2], $posts[2], $posts[3], $posts[4] );
         $this->assertEquals( $expected_post_ids, $id_list );
     }
 
     public function test_get_news_feed_items_with_herald_modules() {
-        $term_id = $this->factory->term->create([
-            'name'     => 'Test set',
-            'taxonomy' => 'richie_article_set',
-            'slug'     => 'test-set',
-        ]);
+        $term_id = $this->factory->term->create(
+            array(
+				'name'     => 'Test set',
+				'taxonomy' => 'richie_article_set',
+				'slug'     => 'test-set',
+            )
+        );
 
         define( 'HERALD_THEME_VERSION', '1.0.0' ); // required for theme support test
         $herald_post_id = 5;
 
-        $sources = [];
+        $sources = array();
 
         $sources[1] = array(
             'id'                           => 1,
@@ -274,7 +284,7 @@ class Test_JSON_API extends WP_UnitTestCase {
         add_option( 'richienews_sources', array( 'published' => $sources ) );
         add_post_meta( $herald_post_id, '_herald_meta', $fake_meta );
 
-        $request  = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
+        $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
         $response = $this->server->dispatch( $request );
         $articles = $response->data['article_ids'];
@@ -287,21 +297,21 @@ class Test_JSON_API extends WP_UnitTestCase {
     }
 
     public function test_get_single_article_with_images() {
-        $id = $this->factory()->post->create( array( 'post_content' => '<img src="//external.url/testing/image.jpg"/>' ));
+        $id            = $this->factory()->post->create( array( 'post_content' => '<img src="//external.url/testing/image.jpg"/>' ) );
         $attachment_id = $this->factory->attachment->create_object(
             'richie.png',
             $id,
             array(
                 'post_mime_type' => 'image/png',
 				'post_type'      => 'attachment',
-                'post_excerpt'   => 'caption'
+                'post_excerpt'   => 'caption',
             )
         );
 
-        $post = get_post($id);
+        $post = get_post( $id );
         set_post_thumbnail( $post, $attachment_id );
 
-        $request  = new WP_REST_Request( 'GET', '/richie/v1/article/' . $id );
+        $request = new WP_REST_Request( 'GET', '/richie/v1/article/' . $id );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
 
         $response = $this->server->dispatch( $request );
@@ -309,27 +319,29 @@ class Test_JSON_API extends WP_UnitTestCase {
         $article = $response->data;
         $this->assertEquals( $article->id, $id );
         $this->assertEquals( $article->title, $post->post_title );
-        $this->assertEquals( $article->photos[0][0]->local_name, 'wp-content/uploads/richie.png');
-        $this->assertEquals( $article->photos[0][0]->remote_url, 'http://example.org/wp-content/uploads/richie.png');
-        $this->assertEquals( $article->photos[0][0]->caption, 'caption');
-        $this->assertEquals( $article->photos[0][1]->local_name, 'external.url/testing/image.jpg');
-        $this->assertEquals( $article->photos[0][1]->remote_url, 'https://external.url/testing/image.jpg');
+        $this->assertEquals( $article->photos[0][0]->local_name, 'wp-content/uploads/richie.png' );
+        $this->assertEquals( $article->photos[0][0]->remote_url, 'http://example.org/wp-content/uploads/richie.png' );
+        $this->assertEquals( $article->photos[0][0]->caption, 'caption' );
+        $this->assertEquals( $article->photos[0][1]->local_name, 'external.url/testing/image.jpg' );
+        $this->assertEquals( $article->photos[0][1]->remote_url, 'https://external.url/testing/image.jpg' );
         $this->assertContains( 'src="external.url/testing/image.jpg"', $article->content_html_document );
 
     }
 
     public function test_get_news_feed_items_with_tags() {
-        $term_id = $this->factory->term->create([
-            'name'     => 'Test set',
-            'taxonomy' => 'richie_article_set',
-            'slug'     => 'test-set',
-        ]);
+        $term_id = $this->factory->term->create(
+            array(
+				'name'     => 'Test set',
+				'taxonomy' => 'richie_article_set',
+				'slug'     => 'test-set',
+            )
+        );
 
         $this->factory->tag->create_and_get( array( 'slug' => 'tag1' ) );
         $this->factory->tag->create_and_get( array( 'slug' => 'tag2' ) );
         $this->factory->tag->create_and_get( array( 'slug' => 'tag3' ) );
 
-        $sources = [];
+        $sources = array();
 
         $sources[1] = array(
             'id'                => 1,
@@ -358,13 +370,41 @@ class Test_JSON_API extends WP_UnitTestCase {
         add_option( 'richienews_sources', array( 'published' => $sources ) );
 
         $posts     = $this->factory->post->create_many( 10 ); // create few posts without tags
-        $both_tags = $this->factory->post->create( array( 'post_date' => '2020-01-01', 'tags_input' => array( 'tag1', 'tag2' ) ) );
-        $tag_1     = $this->factory->post->create( array( 'post_date' => '2020-01-02', 'tags_input' => array( 'tag1' ) ) );
-        $tag_2     = $this->factory->post->create( array( 'post_date' => '2020-01-03', 'tags_input' => array( 'tag2' ) ) );
-        $tag_2_2   = $this->factory->post->create( array( 'post_date' => '2020-01-04', 'tags_input' => array( 'tag2' ) ) );
-        $tag_3     = $this->factory->post->create( array( 'post_date' => '2020-01-05', 'tags_input' => array( 'tag3' ) ) );
+        $both_tags = $this->factory->post->create(
+            array(
+				'post_date'  => '2020-01-01',
+				'tags_input' => array(
+					'tag1',
+					'tag2',
+				),
+            )
+        );
+        $tag_1     = $this->factory->post->create(
+            array(
+				'post_date'  => '2020-01-02',
+				'tags_input' => array( 'tag1' ),
+            )
+        );
+        $tag_2     = $this->factory->post->create(
+            array(
+				'post_date'  => '2020-01-03',
+				'tags_input' => array( 'tag2' ),
+            )
+        );
+        $tag_2_2   = $this->factory->post->create(
+            array(
+				'post_date'  => '2020-01-04',
+				'tags_input' => array( 'tag2' ),
+            )
+        );
+        $tag_3     = $this->factory->post->create(
+            array(
+				'post_date'  => '2020-01-05',
+				'tags_input' => array( 'tag3' ),
+            )
+        );
 
-        $request  = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
+        $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
         $response = $this->server->dispatch( $request );
         $articles = $response->data['article_ids'];
@@ -378,25 +418,25 @@ class Test_JSON_API extends WP_UnitTestCase {
     }
 
     public function test_get_assets_list_with_combined_custom() {
-        update_option( 'richie_assets', json_decode('[{"local_name": "app-assets/test/test2/script.js", "remote_url": "http://example.org/test/test2/script.js"}]') );
+        update_option( 'richie_assets', json_decode( '[{"local_name": "app-assets/test/test2/script.js", "remote_url": "http://example.org/test/test2/script.js"}]' ) );
         $request  = new WP_REST_Request( 'GET', '/richie/v1/assets' );
         $response = $this->server->dispatch( $request );
         $this->assertEquals( 200, $response->get_status() );
 
         $assets = $response->data['app_assets'];
-        $last = array_pop($assets);
+        $last   = array_pop( $assets );
         $this->assertEquals( $last->local_name, 'app-assets/test/test2/script.js' );
         $this->assertEquals( $last->remote_url, 'http://example.org/test/test2/script.js' );
     }
 
     public function test_get_assets_list_with_combined_and_overriding_custom() {
-        update_option( 'richie_assets', json_decode('[{"local_name": "app-assets/wp-includes/js/jquery/jquery.js", "remote_url": "http://another.org/wp-includes/js/jquery/jquery2.js?ver=1.12.4-wp"}]') );
+        update_option( 'richie_assets', json_decode( '[{"local_name": "app-assets/wp-includes/js/jquery/jquery.js", "remote_url": "http://another.org/wp-includes/js/jquery/jquery2.js?ver=1.12.4-wp"}]' ) );
         $request  = new WP_REST_Request( 'GET', '/richie/v1/assets' );
         $response = $this->server->dispatch( $request );
         $this->assertEquals( 200, $response->get_status() );
 
         $assets = $response->data['app_assets'];
-        $first = array_shift($assets); // jquery is first in the array
+        $first  = array_shift( $assets ); // jquery is first in the array
         $this->assertEquals( $first->local_name, 'app-assets/wp-includes/js/jquery/jquery.js' );
         $this->assertEquals( $first->remote_url, 'http://another.org/wp-includes/js/jquery/jquery2.js?ver=1.12.4-wp' );
     }
