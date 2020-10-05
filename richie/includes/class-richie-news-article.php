@@ -146,7 +146,7 @@ class Richie_Article {
         $dom->substituteEntities = false;
         $dom->preserveWhiteSpace = false;
         libxml_use_internal_errors( true );
-        @$dom->loadHTML( $content );
+        $dom->loadHTML( $content, IvoPetkov\HTML5DOMDocument::ALLOW_DUPLICATE_IDS );
         // Get all the images.
         $images = $dom->querySelectorAll( 'body img' );
         // Loop the images.

@@ -244,4 +244,51 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $this->assertContains( '<img src="img/included.jpg">', $article->content_html_document );
         $this->assertEquals( count( $photos ), 1 ); // One image should be included.
     }
+
+    public function test_article_handles_duplicate_id() {
+        global $wpdb;
+        $stub = $this->getMockBuilder( Richie_Article::class )
+        ->setConstructorArgs( array( $this->options, $this->assets ) )
+        ->setMethods( array( 'get_pmpro_levels', 'render_template', 'get_article_assets' ) )
+        ->getMock();
+
+        // Configure the stub.
+        $stub->method( 'get_pmpro_levels' )
+            ->willReturn( array() );
+
+        $stub->method( 'get_article_assets' )
+            ->willReturn( array() );
+
+        $template = '
+            <html>
+                <head>
+                </head>
+                <body>
+                    <div id="duplicate">Test</div>
+                    <div id="duplicate">Test2</div>
+                </body>
+            </html>
+        ';
+
+        $stub->method( 'render_template' )
+            ->willReturn( $template );
+
+        $postdate = '2010-01-01 12:00:00';
+        $updated  = '2010-01-01 12:04:59';
+
+        $post = $this->factory->post->create_and_get(
+            array(
+                'post_type'     => 'post',
+                'post_title'    => 'My Title',
+                'post_date'     => $postdate,
+                'post_date_gmt' => get_gmt_from_date( $postdate ),
+            )
+        );
+
+        $post->post_modified     = $updated;
+        $post->post_modified_gmt = get_gmt_from_date( $updated );
+
+        $article = $stub->generate_article( $post );
+        $this->assertXmlStringEqualsXmlString($template, $article->content_html_document);
+    }
 }
