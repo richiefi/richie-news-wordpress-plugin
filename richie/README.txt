@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= WIP =
+* Reduce api calls on plugin settings page
+
 = 1.4.4 (05.10.2020) =
 * Fix failing html5 parser because of duplicate ids in source
 
