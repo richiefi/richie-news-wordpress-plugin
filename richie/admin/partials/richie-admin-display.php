@@ -15,6 +15,7 @@
 
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
 <?php
+do_action( 'richie_plugin_add_settings_sections' );
 $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
 ?>
 
