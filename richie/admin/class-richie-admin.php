@@ -118,6 +118,7 @@ class Richie_Admin {
         add_action( 'wp_ajax_get_adslot_data', array( $this, 'get_adslot_data' ) );
 
         add_action( 'admin_notices', array( $this, 'add_admin_notices' ) );
+        add_action( 'richie_plugin_add_settings_sections', array( $this, 'generate_settings' ) );
     }
 
     /**
@@ -634,6 +635,16 @@ class Richie_Admin {
             $options['access_token'] = bin2hex( random_bytes( 16 ) );
             update_option( $this->settings_option_name, $options );
         }
+
+    }
+
+    /**
+     * Generate settings groups and fields
+     *
+     * @return void
+     */
+    public function generate_settings() {
+        $options = get_option( $this->settings_option_name );
 
         $general_section_name = 'richie_general';
         $paywall_section_name = 'richie_paywall';
