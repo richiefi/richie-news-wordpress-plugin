@@ -70,21 +70,13 @@ class Richie_Admin_Components {
         }
 
         $option_name          = $args['option_name'];
-        $example_alternatives = array(
-            'alternatives' => array(
-                array(
-                    'page_id'   => '',
-                    'format_id' => '',
-                    'min_width' => '',
-                ),
-            ),
-        );
+        $example_data = (object) array();
         ?>
 
-        <textarea id="code_editor_page_js" rows="10" name="<?php echo esc_attr( $option_name ); ?>[ad_data]" class="textarea"><?php echo esc_html( wp_unslash( wp_json_encode( $example_alternatives, JSON_PRETTY_PRINT ) ) ); ?></textarea>
+        <textarea id="code_editor_page_js" rows="10" name="<?php echo esc_attr( $option_name ); ?>[ad_data]" class="textarea"><?php echo esc_html( wp_unslash( wp_json_encode( $example_data, JSON_PRETTY_PRINT ) ) ); ?></textarea>
         <div style="font-size: 11px">
         <p>
-            Accepts valid json array. Example:
+            Accepts valid json. Example:
         </p>
         <pre>
     {
