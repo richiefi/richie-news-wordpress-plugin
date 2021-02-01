@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= 1.4.6 (01.02.2021) =
+* Support readpeak ad configuration
+
 = 1.4.5 (01.12.2020) =
 * Limit index api call (and settings render) to plugin settings page only
 
