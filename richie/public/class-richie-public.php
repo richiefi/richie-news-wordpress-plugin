@@ -119,8 +119,8 @@ class Richie_Public {
                 }
 
                 // Use herald featured module.
-                $page_id      = (int) $source['herald_featured_post_id'];
-                $module_title = $source['herald_featured_module_title'];
+                $page_id      = (int) isset( $source['herald_featured_post_id'] ) ? $source['herald_featured_post_id'] : null;
+                $module_title = isset( $source['herald_featured_module_title'] ) ? $source['herald_featured_module_title'] : null;
                 $meta         = get_post_meta( $page_id, '_herald_meta', true );
 
                 if ( empty( $meta ) ) {
