@@ -108,6 +108,9 @@ class Richie_Admin {
             'full_width_text',
             'none',
         );
+        add_action( 'added_option', array( __CLASS__, 'maybe_clear_alloptions_cache' ) );
+        add_action( 'updated_option', array( __CLASS__, 'maybe_clear_alloptions_cache' ) );
+        add_action( 'deleted_option', array( __CLASS__, 'maybe_clear_alloptions_cache' ) );
 
         add_action( 'wp_ajax_list_update_order', array( $this, 'order_source_list' ) );
         add_action( 'wp_ajax_remove_source_item', array( $this, 'remove_source_item' ) );
@@ -119,6 +122,24 @@ class Richie_Admin {
 
         add_action( 'admin_notices', array( $this, 'add_admin_notices' ) );
         add_action( 'richie_plugin_add_settings_sections', array( $this, 'generate_settings' ) );
+    }
+
+    /**
+     * Fix a race condition in options caching
+     *
+     * See https://core.trac.wordpress.org/ticket/31245
+     * and https://github.com/tillkruss/redis-cache/issues/58
+     *
+     */
+    public static function maybe_clear_alloptions_cache( $option ) {
+        if ( wp_installing() === false ) {
+            $alloptions = wp_load_alloptions();
+
+            // If option is part of the alloptions collection then clear it.
+            if ( array_key_exists( $option, $alloptions ) ) {
+                wp_cache_delete( $option, 'options' );
+            }
+        }
     }
 
     /**
