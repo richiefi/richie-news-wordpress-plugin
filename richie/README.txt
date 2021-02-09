@@ -23,6 +23,10 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= 1.4.7 (09.02.2021) =
+* Fix potential php notice when configuring source with herald block
+* Possible workaround for random failures on settings save, when using object cache
+
 = 1.4.6 (01.02.2021) =
 * Support readpeak ad configuration
 
