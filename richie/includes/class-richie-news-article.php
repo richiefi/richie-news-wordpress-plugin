@@ -208,7 +208,7 @@ class Richie_Article {
         return $results;
     }
 
-    public function generate_article( $original_post ) {
+    public function generate_article( $original_post, $without_content = false ) {
         if ( empty( $original_post ) ) {
             return new stdClass(); // Return empty object.
         }
@@ -278,220 +278,231 @@ class Richie_Article {
             $article->metered_paywall = self::METERED_PAYWALL_FREE_VALUE;
         }
 
-        $content_url = add_query_arg(
-            array(
-                'richie_news' => 1,
-                'token'       => $this->news_options['access_token'],
-            ),
-            get_permalink( $post_id )
-        );
+        if ( ! $without_content ) {
+            $content_url = add_query_arg(
+                array(
+                    'richie_news' => 1,
+                    'token'       => $this->news_options['access_token'],
+                ),
+                get_permalink( $post_id )
+            );
 
-        $content_url = $this->append_wpp_shadow( $content_url );
+            $content_url = $this->append_wpp_shadow( $content_url );
 
-        $disable_url_handling = false;
+            $disable_url_handling = false;
 
-        if ( isset( $_GET['disable_asset_parsing'] ) ) {
-            $disable_url_handling = $_GET['disable_asset_parsing'] === '1';
-        }
+            if ( isset( $_GET['disable_asset_parsing'] ) ) {
+                $disable_url_handling = $_GET['disable_asset_parsing'] === '1';
+            }
 
-        $use_local_render = true;
-        if ( isset( $_GET['use_local_render'] ) ) {
-            $use_local_render = $_GET['use_local_render'] === '1';
-        }
+            $use_local_render = true;
+            if ( isset( $_GET['use_local_render'] ) ) {
+                $use_local_render = $_GET['use_local_render'] === '1';
+            }
 
-        //$article->debug_content_url = $content_url;
+            //$article->debug_content_url = $content_url;
 
-        if ( ! $use_local_render ) {
-            $transient_key    = 'richie_' . $hash;
-            $rendered_content = get_transient( $transient_key );
+            if ( ! $use_local_render ) {
+                $transient_key    = 'richie_' . $hash;
+                $rendered_content = get_transient( $transient_key );
 
-            if ( empty( $rendered_content ) ) {
-                $response = wp_remote_get(
-                    $content_url,
-                    array(
-                        'sslverify' => false,
-                        'timeout'   => 15,
-                    )
-                );
+                if ( empty( $rendered_content ) ) {
+                    $response = wp_remote_get(
+                        $content_url,
+                        array(
+                            'sslverify' => false,
+                            'timeout'   => 15,
+                        )
+                    );
 
-                if ( is_array( $response ) && ! is_wp_error( $response ) ) {
-                    $rendered_content = $response['body'];
-                    set_transient( $transient_key, $rendered_content, 10 );
-                    $article->from_cache = false;
+                    if ( is_array( $response ) && ! is_wp_error( $response ) ) {
+                        $rendered_content = $response['body'];
+                        set_transient( $transient_key, $rendered_content, 10 );
+                        $article->from_cache = false;
+                    } else {
+                        $rendered_content = __( 'Failed to get content', 'richie' );
+                        if ( is_wp_error( $response ) ) {
+                            $article->content_error = $response->get_error_message();
+                        }
+                    }
                 } else {
-                    $rendered_content = __( 'Failed to get content', 'richie' );
-                    if ( is_wp_error( $response ) ) {
-                        $article->content_error = $response->get_error_message();
+                    $article->from_cache = true;
+                }
+            }
+
+            // Render locally to get assets.
+            $local_rendered_content = $this->render_template( 'richie-news', 'article', $my_post );
+
+            if ( $use_local_render ) {
+                $rendered_content = $local_rendered_content;
+            }
+            // $wp_scripts and $wp_styles globals should now been set
+            $article_assets = $this->get_article_assets();
+
+            // Find local article assets (shortcodes etc).
+            $local_assets = array_udiff(
+                $article_assets,
+                $this->assets,
+                function( $a, $b ) {
+                    return strcmp( $a->remote_url, $b->remote_url );
+                }
+            );
+
+            // Replace asset urls with localname.
+            foreach ( $this->assets as $asset ) {
+                $local_name       = ltrim( $asset->local_name, '/' );
+                $rendered_content = str_replace( $asset->remote_url, $local_name, $rendered_content );
+                $regex            = '/(?<!app-assets)' . preg_quote( wp_make_link_relative( $asset->remote_url ), '/' ) . '/';
+                $rendered_content = preg_replace( $regex, $local_name, $rendered_content );
+            }
+
+            // Replace local assets.
+            foreach ( $local_assets as $asset ) {
+                $local_name       = ltrim( $asset->local_name, '/' );
+                $rendered_content = str_replace( $asset->remote_url, $local_name, $rendered_content );
+                $regex            = '/(?<!app-assets)' . preg_quote( wp_make_link_relative( $asset->remote_url ), '/' ) . '/';
+                $rendered_content = preg_replace( $regex, $local_name, $rendered_content );
+            }
+
+            $article_photos = array();
+
+            $main_gallery = [];
+            $thumbnail_id = get_post_thumbnail_id( $my_post );
+
+            $rendered_article_images = $this->get_article_images( $rendered_content );
+            $image_urls              = $rendered_article_images['images'];
+
+
+            // Save the HTML with img srcset removed.
+            $rendered_content = $rendered_article_images['content'];
+
+            $all_sizes          = get_intermediate_image_sizes();
+            $all_sizes[]        = 'full'; // Append full size also.
+            $all_gallery_images = [];
+
+            if ( $thumbnail_id ) {
+                $thumbnail          = wp_get_attachment_image_url( $thumbnail_id, 'full' );
+                $remote_url         = richie_make_link_absolute( $thumbnail );
+                $article->image_url = $this->append_wpp_shadow( $remote_url );
+
+                foreach ( $all_sizes as $size ) {
+                    $thumbnail_url = null;
+                    if ( 'full' === $size ) {
+                        // We already have full url.
+                        $thumbnail_url = $thumbnail;
+                    } else {
+                        $thumbnail_url = wp_get_attachment_image_url( $thumbnail_id, $size );
+                    }
+                    if ( false !== strpos( $rendered_content, $thumbnail_url ) ) {
+                        $photo_asset = new Richie_Photo_Asset( $remote_url, false );
+                        $photo_asset->caption = get_the_post_thumbnail_caption( $my_post );
+
+                        $rendered_content = str_replace( $thumbnail_url, $photo_asset->local_name, $rendered_content );
+                        $main_gallery[]   = $photo_asset;
+                        $all_gallery_images[] = $thumbnail_url;
+
+                        // Remove from general image array, since we have already handled this url.
+                        $index = array_search( $thumbnail_url, $image_urls );
+                        if ( false !== $index ) {
+                            unset( $image_urls[ $index ] );
+                        }
                     }
                 }
-            } else {
-                $article->from_cache = true;
             }
-        }
 
-        // Render locally to get assets.
-        $local_rendered_content = $this->render_template( 'richie-news', 'article', $my_post );
+            if ( ! $disable_url_handling ) {
+                // Find galleries in post and append it to photos array.
+                $galleries = get_post_galleries( $my_post, false );
 
-        if ( $use_local_render ) {
-            $rendered_content = $local_rendered_content;
-        }
-        // $wp_scripts and $wp_styles globals should now been set
-        $article_assets = $this->get_article_assets();
+                foreach ( $galleries as $gallery ) {
+                    $gallery_photos = [];
 
-        // Find local article assets (shortcodes etc).
-        $local_assets = array_udiff(
-            $article_assets,
-            $this->assets,
-            function( $a, $b ) {
-                return strcmp( $a->remote_url, $b->remote_url );
-            }
-        );
+                    if ( false !== $gallery ) {
+                        $ids = explode( ',', $gallery['ids'] );
+                        foreach ( $ids as $attachment_id ) {
+                            $attachment = get_post( $attachment_id );
+                            if ( null === $attachment ) {
+                                continue;
+                            }
+                            $attachment_url = wp_get_attachment_url( $attachment->ID );
 
-        // Replace asset urls with localname.
-        foreach ( $this->assets as $asset ) {
-            $local_name       = ltrim( $asset->local_name, '/' );
-            $rendered_content = str_replace( $asset->remote_url, $local_name, $rendered_content );
-            $regex            = '/(?<!app-assets)' . preg_quote( wp_make_link_relative( $asset->remote_url ), '/' ) . '/';
-            $rendered_content = preg_replace( $regex, $local_name, $rendered_content );
-        }
+                            $photo_asset          = new Richie_Photo_Asset( $attachment_url );
+                            $photo_asset->caption = $attachment->post_excerpt;
 
-        // Replace local assets.
-        foreach ( $local_assets as $asset ) {
-            $local_name       = ltrim( $asset->local_name, '/' );
-            $rendered_content = str_replace( $asset->remote_url, $local_name, $rendered_content );
-            $regex            = '/(?<!app-assets)' . preg_quote( wp_make_link_relative( $asset->remote_url ), '/' ) . '/';
-            $rendered_content = preg_replace( $regex, $local_name, $rendered_content );
-        }
+                            $local_name   = $photo_asset->local_name;
+                            $absolute_url = richie_make_link_absolute( $attachment_url );
 
-        $article_photos = array();
+                            if ( false !== strpos( $rendered_content, $absolute_url ) ) {
+                                $rendered_content = str_replace( $absolute_url, $local_name, $rendered_content );
+                            } else {
+                                $rendered_content = str_replace( $attachment_url, $local_name, $rendered_content );
+                            }
 
-        $main_gallery = [];
-        $thumbnail_id = get_post_thumbnail_id( $my_post );
+                            $gallery_photos [] = $photo_asset;
 
-        $rendered_article_images = $this->get_article_images( $rendered_content );
-        $image_urls              = $rendered_article_images['images'];
+                            $all_gallery_images[] = $attachment_url;
 
+                            // Get all variants and filter from main gallery.
+                            foreach ( $all_sizes as $size ) {
+                                $img = wp_get_attachment_image_src( $attachment_id, $size );
 
-        // Save the HTML with img srcset removed.
-        $rendered_content = $rendered_article_images['content'];
-
-        $all_sizes          = get_intermediate_image_sizes();
-        $all_sizes[]        = 'full'; // Append full size also.
-        $all_gallery_images = [];
-
-        if ( $thumbnail_id ) {
-            $thumbnail          = wp_get_attachment_image_url( $thumbnail_id, 'full' );
-            $remote_url         = richie_make_link_absolute( $thumbnail );
-            $article->image_url = $this->append_wpp_shadow( $remote_url );
-
-            foreach ( $all_sizes as $size ) {
-                $thumbnail_url = null;
-                if ( 'full' === $size ) {
-                    // We already have full url.
-                    $thumbnail_url = $thumbnail;
-                } else {
-                    $thumbnail_url = wp_get_attachment_image_url( $thumbnail_id, $size );
-                }
-                if ( false !== strpos( $rendered_content, $thumbnail_url ) ) {
-                    $photo_asset = new Richie_Photo_Asset( $remote_url, false );
-                    $photo_asset->caption = get_the_post_thumbnail_caption( $my_post );
-
-                    $rendered_content = str_replace( $thumbnail_url, $photo_asset->local_name, $rendered_content );
-                    $main_gallery[]   = $photo_asset;
-                    $all_gallery_images[] = $thumbnail_url;
-
-                    // Remove from general image array, since we have already handled this url.
-                    $index = array_search( $thumbnail_url, $image_urls );
-                    if ( false !== $index ) {
-                        unset( $image_urls[ $index ] );
-                    }
-                }
-            }
-        }
-
-        if ( ! $disable_url_handling ) {
-            // Find galleries in post and append it to photos array.
-            $galleries = get_post_galleries( $my_post, false );
-
-            foreach ( $galleries as $gallery ) {
-                $gallery_photos = [];
-
-                if ( false !== $gallery ) {
-                    $ids = explode( ',', $gallery['ids'] );
-                    foreach ( $ids as $attachment_id ) {
-                        $attachment = get_post( $attachment_id );
-                        if ( null === $attachment ) {
-                            continue;
-                        }
-                        $attachment_url = wp_get_attachment_url( $attachment->ID );
-
-                        $photo_asset          = new Richie_Photo_Asset( $attachment_url );
-                        $photo_asset->caption = $attachment->post_excerpt;
-
-                        $local_name   = $photo_asset->local_name;
-                        $absolute_url = richie_make_link_absolute( $attachment_url );
-
-                        if ( false !== strpos( $rendered_content, $absolute_url ) ) {
-                            $rendered_content = str_replace( $absolute_url, $local_name, $rendered_content );
-                        } else {
-                            $rendered_content = str_replace( $attachment_url, $local_name, $rendered_content );
-                        }
-
-                        $gallery_photos [] = $photo_asset;
-
-                        $all_gallery_images[] = $attachment_url;
-
-                        // Get all variants and filter from main gallery.
-                        foreach ( $all_sizes as $size ) {
-                            $img = wp_get_attachment_image_src( $attachment_id, $size );
-
-                            if ( false !== $img ) {
-                                // Remove from general image array, since this is in WordPress gallery.
-                                $url   = $img[0];
-                                $index = array_search( $url, $image_urls );
-                                if ( false !== $index ) {
-                                    unset( $image_urls[ $index ] );
+                                if ( false !== $img ) {
+                                    // Remove from general image array, since this is in WordPress gallery.
+                                    $url   = $img[0];
+                                    $index = array_search( $url, $image_urls );
+                                    if ( false !== $index ) {
+                                        unset( $image_urls[ $index ] );
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                if ( ! empty( $gallery_photos ) ) {
-                    $article_photos[] = $gallery_photos;
+                    if ( ! empty( $gallery_photos ) ) {
+                        $article_photos[] = $gallery_photos;
+                    }
                 }
             }
+
+            if ( $image_urls ) {
+                $img_list     = $this->generate_photos_array( $image_urls, $rendered_content, false );
+                $main_gallery = array_merge( $main_gallery, $img_list );
+            }
+
+            // Remove possible duplicate entries from main gallery.
+            $unique = array();
+
+            foreach ( $main_gallery as $item ) {
+                // Duplicate items will replace the key in unique array.
+                $unique[ $item->local_name ] = $item;
+            }
+
+            // Prepend main gallery.
+            if ( ! empty( $unique ) ) {
+                array_unshift( $article_photos, array_values( $unique ) );
+            }
+
+            // Find images not in post content and add them to assets.
+            $other_images = array_diff( array_diff( $rendered_article_images['images'], $image_urls ), array_unique( $all_gallery_images ) );
+
+            if ( ! empty( $other_images ) ) {
+                $arr          = $this->generate_photos_array( $other_images, $rendered_content, false );
+                $local_assets = array_merge( $local_assets, $arr );
+            }
+
+            $article->content_html_document = $rendered_content;
+            $article->assets                = array_values( $local_assets );
+            $article->photos                = $article_photos;
+        } else {
+            // Without content, just include the thumbnail if found.
+            $thumbnail_id = get_post_thumbnail_id( $my_post );
+
+            if ( $thumbnail_id ) {
+                $thumbnail          = wp_get_attachment_image_url( $thumbnail_id, 'full' );
+                $remote_url         = richie_make_link_absolute( $thumbnail );
+                $article->image_url = $this->append_wpp_shadow( $remote_url );
+            }
         }
-
-        if ( $image_urls ) {
-            $img_list     = $this->generate_photos_array( $image_urls, $rendered_content, false );
-            $main_gallery = array_merge( $main_gallery, $img_list );
-        }
-
-        // Remove possible duplicate entries from main gallery.
-        $unique = array();
-
-        foreach ( $main_gallery as $item ) {
-            // Duplicate items will replace the key in unique array.
-            $unique[ $item->local_name ] = $item;
-        }
-
-        // Prepend main gallery.
-        if ( ! empty( $unique ) ) {
-            array_unshift( $article_photos, array_values( $unique ) );
-        }
-
-        // Find images not in post content and add them to assets.
-        $other_images = array_diff( array_diff( $rendered_article_images['images'], $image_urls ), array_unique( $all_gallery_images ) );
-
-        if ( ! empty( $other_images ) ) {
-            $arr          = $this->generate_photos_array( $other_images, $rendered_content, false );
-            $local_assets = array_merge( $local_assets, $arr );
-        }
-
-        $article->content_html_document = $rendered_content;
-        $article->assets                = array_values( $local_assets );
-        $article->photos                = $article_photos;
 
         return $article;
     }

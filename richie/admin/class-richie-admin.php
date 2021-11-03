@@ -273,6 +273,7 @@ class Richie_Admin {
         $valid['maggio_organization']         = isset( $input['maggio_organization'] ) ? sanitize_text_field( $input['maggio_organization'] ) : '';
         $valid['maggio_required_pmpro_level'] = isset( $input['maggio_required_pmpro_level'] ) ? intval( $input['maggio_required_pmpro_level'] ) : '';
         $valid['maggio_index_range']          = isset( $input['maggio_index_range'] ) ? sanitize_text_field( $input['maggio_index_range'] ) : '';
+        $valid['search_list_layout_style']    = in_array( $input['search_list_layout_style'], $this->available_layout_names, true ) ? sanitize_text_field( $input['search_list_layout_style'] ) : 'small';
 
         $options          = get_option( $this->settings_option_name );
         $current_hostname = isset( $options['maggio_hostname'] ) ? $options['maggio_hostname'] : '';
@@ -657,6 +658,11 @@ class Richie_Admin {
             update_option( $this->settings_option_name, $options );
         }
 
+        if ( ! isset( $options['search_list_layout_style'] ) ) {
+            $options['search_list_layout_style'] = 'none';
+            update_option( $this->settings_option_name, $options );
+        }
+
     }
 
     /**
@@ -672,6 +678,7 @@ class Richie_Admin {
         $sources_section_name = 'richie_news_source';
         $assets_section_name  = 'richie_feed_assets';
         $maggio_section_name  = 'richie_maggio';
+        $search_section_name  = 'richie_search';
         $adslots_section_name = 'richie_ad_slot';
 
         // Create general section.
@@ -699,6 +706,11 @@ class Richie_Admin {
         $available_indexes = $this->get_available_indexes();
         $selected = isset( $options['maggio_index_range'] ) ? $options['maggio_index_range'] : '/_data/index.json';
         $section->add_field( 'maggio_index_range', __( 'Maggio index range', 'richie' ), 'select_field', array( 'options' => $available_indexes, 'selected' => $selected, 'description' => 'Select index to use. "All" contains all issues, other options contain issues from specific range. To get available options, save Maggio Hostname setting first.' ) );
+
+        // Create search settings section.
+        $section  = new Richie_Settings_Section( $search_section_name, __( 'Search API settings', 'richie' ), $this->settings_option_name );
+        $selected = isset( $options['search_list_layout_style'] ) ? $options['search_list_layout_style'] : 'none';
+        $section->add_field( 'search_list_layout_style', __( 'Search list layout', 'richie' ), 'select_field', array( 'options' => $this->available_layout_names, 'selected' => $selected, 'required' => true ) );
 
         // Create source section.
         $source_section = new Richie_Settings_Section( $sources_section_name, __( 'Basic data', 'richie' ), $this->sources_option_name );

@@ -382,6 +382,39 @@ class Richie_Public {
         return $output;
     }
 
+    public function search_route_handler( $data ) {
+        $term = sanitize_text_field( $data->get_param( 'q' ) );
+
+        if ( ! $term ) {
+            return array( 'articles' => array() );
+        }
+
+        $args = array(
+            'numberposts' => 50,
+            'post_type'   => 'post', // Default post type.
+            's'           => $term,
+        );
+
+        $source_posts = get_posts( $args );
+
+        $posts   = array();
+        $article = new Richie_Article( $this->richie_options );
+
+        foreach ( $source_posts as $p ) {
+            $is_valid = Richie_Post_Type::validate_post( $p );
+
+            if ( ! $is_valid ) {
+                continue;
+            }
+
+            $generated_article                    = $article->generate_article( $p, true );
+            $generated_article->list_layout_style = isset( $this->richie_options['search_list_layout_style'] ) ? $this->richie_options['search_list_layout_style'] : 'small';
+            array_push( $posts, $generated_article );
+        }
+
+        return array( 'articles' => $posts );
+    }
+
     public function article_route_handler( $data ) {
         $assets = $this->get_assets();
 
@@ -522,6 +555,16 @@ class Richie_Public {
                         'sanitize_callback' => 'sanitize_title',
                     ),
                 ),
+            )
+        );
+
+        register_rest_route(
+            'richie/v1',
+            '/search',
+            array(
+                'methods'             => 'GET',
+                'callback'            => array( $this, 'search_route_handler' ),
+                'permission_callback' => array( $this, 'check_permission' ),
             )
         );
 
