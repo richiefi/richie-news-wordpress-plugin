@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= 1.5.0 (03.10.2021) =
+* Implmented api for news search
+
 = 1.4.7 (09.02.2021) =
 * Fix potential php notice when configuring source with herald block
 * Possible workaround for random failures on settings save, when using object cache
