@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= 1.5.1 (03.10.2021) =
+* Include `text_left_square_thumb_right` layout style
+
 = 1.5.0 (03.10.2021) =
 * Implmented api for news search
 
