@@ -106,6 +106,7 @@ class Richie_Admin {
             'small_group_item',
             'featured',
             'full_width_text',
+            'text_left_square_thumb_right',
             'none',
         );
         add_action( 'added_option', array( __CLASS__, 'maybe_clear_alloptions_cache' ) );
