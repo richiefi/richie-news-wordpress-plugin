@@ -433,7 +433,7 @@ class Richie_Public {
                 continue;
             }
 
-            $generated_article                    = $article->generate_article( $p, true );
+            $generated_article                    = $article->generate_article( $p, Richie_Article::EXCLUDE_CONTENT );
             $generated_article->list_layout_style = isset( $this->richie_options['search_list_layout_style'] ) ? $this->richie_options['search_list_layout_style'] : 'small';
             array_push( $posts, $generated_article );
         }
