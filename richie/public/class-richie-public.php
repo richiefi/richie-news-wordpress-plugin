@@ -69,12 +69,16 @@ class Richie_Public {
         $this->richie_options      = get_option( $plugin_name );
     }
 
-    public function feed_route_handler( $data ) {
+    public function get_ad_slots( $article_set ) {
+        $adslots_option = get_option( $this->plugin_name . '_adslots' );
+        return isset( $adslots_option['slots'] ) && isset( $adslots_option['slots'][ $article_set->term_id ] ) ? $adslots_option['slots'][ $article_set->term_id ] : array();
+    }
+
+    public function fetch_articles( $article_set, $unpublished, $include_original = false ) {
         // Get saved (and published) source list.
         $sourcelist = get_option( $this->plugin_name . 'news_sources' );
-        $params     = $data->get_query_params();
 
-        if ( isset( $params['unpublished'] ) && '1' === $params['unpublished'] ) {
+        if ( $unpublished ) {
             $richie_news_sources = isset( $sourcelist['sources'] ) ? $sourcelist['sources'] : array();
         } else {
             $richie_news_sources = isset( $sourcelist['published'] ) ? $sourcelist['published'] : array();
@@ -83,11 +87,6 @@ class Richie_Public {
         $posts       = array();
         $found_ids   = array();
         $errors      = array();
-        $article_set = get_term_by( 'slug', $data['article_set'], 'richie_article_set' );
-
-        if ( empty( $article_set ) ) {
-            return new WP_Error( 'article_set_not_found', 'Article set not found', array( 'status' => 404 ) );
-        }
 
         $sources = array_filter(
             $richie_news_sources,
@@ -96,8 +95,7 @@ class Richie_Public {
             }
         );
 
-        $adslots_option = get_option( $this->plugin_name . '_adslots' );
-        $adslots        = isset( $adslots_option['slots'] ) && isset( $adslots_option['slots'][ $article_set->term_id ] ) ? $adslots_option['slots'][ $article_set->term_id ] : array();
+        $adslots = $this->get_ad_slots($article_set);
 
         foreach ( $sources as $source ) {
             $args = array(
@@ -311,6 +309,7 @@ class Richie_Public {
                 }
             }
         }
+
         $articles = array();
 
         foreach ( $posts as $key => $p ) {
@@ -335,14 +334,20 @@ class Richie_Public {
             $date         = ( new DateTime( $content_post->post_date_gmt ) )->format( 'c' );
             $updated_date = ( new DateTime( $content_post->post_modified_gmt ) )->format( 'c' );
 
+            $article = array(
+                'id'                 => strval( $content_post->ID ),
+                'fetch_id'           => $content_post->ID,
+                'last_updated'       => max( $date, $updated_date ),
+                'article_attributes' => $p['article_attributes'],
+            );
+
+            if ( $include_original ) {
+                $article['original_post'] = $content_post;
+            }
+
             array_push(
                 $articles,
-                array(
-                    'id'                 => strval($content_post->ID),
-                    'fetch_id'           => $content_post->ID,
-                    'last_updated'       => max( $date, $updated_date ),
-                    'article_attributes' => $p['article_attributes'],
-                )
+                $article
             );
         }
 
@@ -359,6 +364,27 @@ class Richie_Public {
                 );
             }
         }
+
+        return array( 'articles' => $articles, 'errors' => $errors );
+    }
+
+    public function feed_route_handler( $data ) {
+        $article_set = get_term_by( 'slug', $data['article_set'], 'richie_article_set' );
+
+        if ( empty( $article_set ) ) {
+            return new WP_Error( 'article_set_not_found', 'Article set not found', array( 'status' => 404 ) );
+        }
+
+        $params      = $data->get_query_params();
+        $unpublished = isset( $params['unpublished'] ) && '1' === $params['unpublished'];
+        $result      = $this->fetch_articles( $article_set, $unpublished );
+
+        if ( is_wp_error( $result ) ) {
+            return $result;
+        }
+
+        $articles = $result['articles'];
+        $errors   = $result['errors'];
 
         if ( ! headers_sent() ) {
             $etag = 'W/"' . md5( wp_json_encode( $articles ) ) . '"';
