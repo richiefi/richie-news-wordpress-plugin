@@ -46,14 +46,26 @@ class Richie_Article {
     private $assets;
 
     /**
+     * Adds scale_to_device_dimensions: true to photo assets
+     *
+     * @var bool
+     */
+    private $scale_image;
+
+    /**
      * Create instance of richie news article generator
      *
      * @param array $richie_options Richie plugin options.
      * @param array $assets Available asset items.
+     * @param int   $version Article version.
      */
-    public function __construct( $richie_options, $assets = [] ) {
+    public function __construct( $richie_options, $assets = [], $version = 1 ) {
         $this->news_options = $richie_options;
         $this->assets       = $assets;
+        $this->scale_images = false;
+        if ( $version > 1 ) {
+            $this->scale_images = true;
+        }
     }
 
     /**
@@ -192,7 +204,7 @@ class Richie_Article {
      * @param string $rendered_content Passed as reference, modifies content.
      * @return array
      */
-    public function generate_photos_array( $image_urls, &$rendered_content ) {
+    public function generate_photos_array( $image_urls, &$rendered_content, $scale_image = false ) {
         if ( empty( $image_urls ) ) {
             return [];
         }
@@ -201,7 +213,7 @@ class Richie_Article {
         $results          = [];
 
         foreach ( array_unique( $image_urls ) as $url ) {
-            $photo_asset = new Richie_Photo_Asset( $url, false );
+            $photo_asset = new Richie_Photo_Asset( $url, false, $scale_image );
             $results[]   = $photo_asset;
 
             $encoded_url = richie_encode_url_path( $url );
@@ -420,7 +432,7 @@ class Richie_Article {
                         $thumbnail_url = wp_get_attachment_image_url( $thumbnail_id, $size );
                     }
                     if ( false !== strpos( $rendered_content, $thumbnail_url ) ) {
-                        $photo_asset = new Richie_Photo_Asset( $remote_url, false );
+                        $photo_asset = new Richie_Photo_Asset( $remote_url, false, $this->scale_images);
                         $photo_asset->caption = get_the_post_thumbnail_caption( $my_post );
 
                         $rendered_content = str_replace( $thumbnail_url, $photo_asset->local_name, $rendered_content );
@@ -452,7 +464,7 @@ class Richie_Article {
                             }
                             $attachment_url = wp_get_attachment_url( $attachment->ID );
 
-                            $photo_asset          = new Richie_Photo_Asset( $attachment_url );
+                            $photo_asset          = new Richie_Photo_Asset( $attachment_url, false, $this->scale_images );
                             $photo_asset->caption = $attachment->post_excerpt;
 
                             $local_name   = $photo_asset->local_name;
@@ -491,7 +503,7 @@ class Richie_Article {
             }
 
             if ( $image_urls ) {
-                $img_list     = $this->generate_photos_array( $image_urls, $rendered_content, false );
+                $img_list     = $this->generate_photos_array( $image_urls, $rendered_content, $this->scale_images );
                 $main_gallery = array_merge( $main_gallery, $img_list );
             }
 
