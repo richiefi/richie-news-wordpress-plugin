@@ -2,6 +2,8 @@ version: "3.3"
 
 services:
   wordpress_phpunit:
+    depends_on:
+      - mysql_phpunit
     build: './docker/phpunit'
     environment:
       PHPUNIT_DB_HOST: "mysql_phpunit"
