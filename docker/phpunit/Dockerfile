@@ -1,10 +1,22 @@
-FROM phpunit/phpunit:6.5.3
+FROM php:7.3-cli
+
+RUN apt-get update && apt-get install -y mariadb-client libsqlite3-dev subversion wget git curl zip libzip-dev \
+    && docker-php-ext-install iconv \
+    && docker-php-ext-install zip \
+    && docker-php-ext-install mysqli
+
+#COMPOSER
+RUN curl -sS https://getcomposer.org/installer | php
+RUN mv composer.phar /usr/local/bin/composer
 
 
-RUN apk add --no-cache mariadb-client php7-mysqli php7-iconv sqlite-dev subversion wget
+WORKDIR /tmp
+RUN composer require --dev phpunit/phpunit:~6.5.3 --no-interaction
+RUN composer require --dev yoast/phpunit-polyfills --no-interaction
+RUN ln -s /tmp/vendor/bin/phpunit /usr/local/bin/phpunit
 
-RUN apk add gnu-libiconv --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ --allow-untrusted
-ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
+VOLUME ["/app"]
+WORKDIR /app
 
 ENTRYPOINT []
 
