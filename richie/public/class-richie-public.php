@@ -535,12 +535,24 @@ class Richie_Public {
             $assets = [];
         }
 
+        $article      = new Richie_Article( $this->richie_options, $assets, $version );
+        $post         = get_post( $data['id'] );
+        $last_updated = $post->post_modified_gmt ?? $post->post_date_gtm;
+
         if ( ! headers_sent() ) {
+            $etag = 'W/"' . md5( $post->ID . $last_updated ) . '"';
+            // if_none_match may contain slashes before ", so strip those.
+            $etag_header = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) : false;
+
+            header( "Etag: {$etag}" );
             header( 'Cache-Control: private, no-cache' );
+
+            if ( $etag_header === $etag ) {
+                header( $_SERVER['SERVER_PROTOCOL'] . ' 304 Not Modified' );
+                die(); // send response and exit.
+            }
         }
 
-        $article = new Richie_Article( $this->richie_options, $assets, $version );
-        $post    = get_post( $data['id'] );
         if ( empty( $post ) ) {
             return new WP_Error( 'no_id', 'Invalid article id', array( 'status' => 404 ) );
         } else {
