@@ -432,6 +432,9 @@ class Richie_Public {
             }
 
             foreach ( $generated_article as $key => $value ) {
+                if ( 'id' === $key || 'hash' === $key ) {
+                    continue;
+                }
                 $section_article[ $key ] = $value;
             }
 
