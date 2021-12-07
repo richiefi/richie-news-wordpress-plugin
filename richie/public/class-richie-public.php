@@ -431,6 +431,10 @@ class Richie_Public {
                 $section_article['list_group_title'] = $article['article_attributes']['list_group_title'];
             }
 
+            if ( isset( $article['article_attributes']['background_color' ] ) ) {
+                $section_article['background_color'] = $article['article_attributes']['background_color'];
+            }
+
             foreach ( $generated_article as $key => $value ) {
                 if ( 'id' === $key || 'hash' === $key ) {
                     continue;
