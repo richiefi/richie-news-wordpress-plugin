@@ -425,8 +425,6 @@ class Richie_Public {
                 $summary_disabled = true;
             }
 
-            $section_article['article_full_url'] = '../article/' . $article['id'];
-
             if ( isset( $article['article_attributes']['list_group_title'] ) ) {
                 $section_article['list_group_title'] = $article['article_attributes']['list_group_title'];
             }
