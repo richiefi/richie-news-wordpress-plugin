@@ -457,7 +457,7 @@ class Richie_Public {
         return array_filter( $section_article, function( $v ) { return ! is_null( $v ); } );
     }
 
-    public function feed_route_handler_v2( $data ) {
+    public function feed_route_handler_v3( $data ) {
         $article_set = get_term_by( 'slug', $data['article_set'], 'richie_article_set' );
 
         if ( empty( $article_set ) ) {
@@ -558,13 +558,13 @@ class Richie_Public {
         if ( empty( $post ) ) {
             return new WP_Error( 'no_id', 'Invalid article id', array( 'status' => 404 ) );
         } else {
-            $generated_article = $article->generate_article( $post, $version > 1 ? Richie_Article::EXCLUDE_METADATA : Richie_Article::EXCLUDE_NONE );
+            $generated_article = $article->generate_article( $post, $version >= 3 ? Richie_Article::EXCLUDE_METADATA : Richie_Article::EXCLUDE_NONE );
             return $generated_article;
         }
     }
 
-    public function article_route_handler_v2( $data ) {
-        return $this->article_route_handler( $data, 2 );
+    public function article_route_handler_v3( $data ) {
+        return $this->article_route_handler( $data, 3 );
     }
 
     public function check_permission( $request ) {
@@ -690,11 +690,11 @@ class Richie_Public {
         );
 
         register_rest_route(
-            'richie/v2',
+            'richie/v3',
             '/news(?:/(?P<article_set>\S+))',
             array(
                 'methods'             => 'GET',
-                'callback'            => array( $this, 'feed_route_handler_v2' ),
+                'callback'            => array( $this, 'feed_route_handler_v3' ),
                 'permission_callback' => array( $this, 'check_permission' ),
                 'args'                => array(
                     'article_set' => array(
@@ -732,11 +732,11 @@ class Richie_Public {
         );
 
         register_rest_route(
-            'richie/v2',
+            'richie/v3',
             '/article/(?P<id>\d+)',
             array(
                 'methods'             => 'GET',
-                'callback'            => array( $this, 'article_route_handler_v2' ),
+                'callback'            => array( $this, 'article_route_handler_v3' ),
                 'permission_callback' => array( $this, 'check_permission' ),
                 'args'                => array(
                     'id' => array(
