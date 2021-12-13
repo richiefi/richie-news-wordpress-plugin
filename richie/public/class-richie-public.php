@@ -732,6 +732,23 @@ class Richie_Public {
         );
 
         register_rest_route(
+            'richie/v2',
+            '/article/(?P<id>\d+)',
+            array(
+                'methods'             => 'GET',
+                'callback'            => array( $this, 'article_route_handler' ),
+                'permission_callback' => array( $this, 'check_permission' ),
+                'args'                => array(
+                    'id' => array(
+                        'validate_callback' => function( $param ) {
+                            return is_numeric( $param );
+                        },
+                    ),
+                ),
+            )
+        );
+
+        register_rest_route(
             'richie/v3',
             '/article/(?P<id>\d+)',
             array(
