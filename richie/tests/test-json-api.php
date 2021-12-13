@@ -146,7 +146,7 @@ class Test_JSON_API extends WP_UnitTestCase {
         $this->assertEquals( $id_list, array_slice( $posts, 0, 5 ) );
     }
 
-    public function test_get_v2_news_feed() {
+    public function test_get_v3_news_feed() {
         $term_id = $this->factory->term->create(
             array(
 				'name'     => 'Test set',
@@ -182,7 +182,7 @@ class Test_JSON_API extends WP_UnitTestCase {
         add_option( 'richienews_sources', array( 'published' => $sources ) );
 
         $posts   = $this->factory->post->create_many( 10 );
-        $request = new WP_REST_Request( 'GET', '/richie/v2/news/test-set' );
+        $request = new WP_REST_Request( 'GET', '/richie/v3/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
         $response = $this->server->dispatch( $request );
         $articles = $response->data['articles'];
@@ -376,7 +376,7 @@ class Test_JSON_API extends WP_UnitTestCase {
 
     }
 
-    public function test_get_single_v2_article_with_images() {
+    public function test_get_single_v3_article_with_images() {
         $id            = $this->factory()->post->create( array( 'post_content' => '<img src="//external.url/testing/image.jpg"/>' ) );
         $attachment_id = $this->factory->attachment->create_object(
             'richie.png',
@@ -391,7 +391,7 @@ class Test_JSON_API extends WP_UnitTestCase {
         $post = get_post( $id );
         set_post_thumbnail( $post, $attachment_id );
 
-        $request = new WP_REST_Request( 'GET', '/richie/v2/article/' . $id );
+        $request = new WP_REST_Request( 'GET', '/richie/v3/article/' . $id );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
 
         $response = $this->server->dispatch( $request );
