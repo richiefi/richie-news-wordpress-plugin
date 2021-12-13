@@ -24,7 +24,7 @@ Richie Platform plugin provides following features:
 
 == Changelog ==
 = WIP =
-* Implementation for v2 apis
+* Implementation for v3 apis
 
 = 1.5.1 (03.10.2021) =
 * Include `text_left_square_thumb_right` layout style
