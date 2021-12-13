@@ -63,7 +63,8 @@ class Richie_Article {
         $this->news_options = $richie_options;
         $this->assets       = $assets;
         $this->scale_images = false;
-        if ( $version > 1 ) {
+        $this->api_version = $version;
+        if ( $version >= 3 ) {
             $this->scale_images = true;
         }
     }
@@ -250,10 +251,15 @@ class Richie_Article {
         $post_id  = $my_post->ID;
         $category = get_the_category( $post_id );
 
+        if ( $this->api_version >= 3 ) {
+            $article->publisher_id = strval( $original_post->ID );
+        } else {
+            $article->id = strval( $original_post->ID );
+        }
+
         if ( ! $without_metadata ) {
             $article->hash = $hash;
 
-            $article->id    = strval( $original_post->ID );
             $article->title = $original_post->post_title;
 
             if ( $richie_post_type->supports_property( 'summary' ) ) {
