@@ -23,7 +23,7 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
-= WIP =
+= 1.6.0 =
 * Implementation for v3 apis
 
 = 1.5.1 (03.10.2021) =
