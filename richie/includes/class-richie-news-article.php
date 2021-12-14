@@ -257,10 +257,21 @@ class Richie_Article {
             $article->id = strval( $original_post->ID );
         }
 
+        $article->title = $original_post->post_title;
+
+        $revisions     = wp_get_post_revisions( $original_post );
+        $published_rev = array_pop( $revisions );
+
+        $article->analytics_data = array(
+            'wp_post_id'     => $original_post->ID,
+            'original_title' => isset( $published_rev->post_title ) ? $published_rev->post_title : $original_post->post_title,
+        );
+
+        $article->share_link_url = get_permalink( $post_id );
+
         if ( ! $without_metadata ) {
             $article->hash = $hash;
 
-            $article->title = $original_post->post_title;
 
             if ( $richie_post_type->supports_property( 'summary' ) ) {
                 $article->summary = $my_post->post_excerpt;
@@ -269,14 +280,6 @@ class Richie_Article {
             if ( $category && $richie_post_type->supports_property( 'kicker' ) ) {
                 $article->kicker = $category[0]->name;
             }
-
-            $revisions     = wp_get_post_revisions( $original_post );
-            $published_rev = array_pop( $revisions );
-
-            $article->analytics_data = array(
-                'wp_post_id'     => $original_post->ID,
-                'original_title' => isset( $published_rev->post_title ) ? $published_rev->post_title : $original_post->post_title,
-            );
 
             if ( $richie_post_type->supports_property( 'date' ) ) {
                 $date = new DateTime( $my_post->post_date_gmt );
@@ -293,8 +296,6 @@ class Richie_Article {
                     $article->updated_date = $updated_date->format( 'c' );
                 }
             }
-
-            $article->share_link_url = get_permalink( $post_id );
 
             $metered_id     = $this->news_options['metered_pmpro_level'];
             $member_only_id = $this->news_options['member_only_pmpro_level'];
