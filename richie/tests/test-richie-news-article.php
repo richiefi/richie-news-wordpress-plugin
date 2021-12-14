@@ -291,4 +291,30 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $article = $stub->generate_article( $post );
         $this->assertXmlStringEqualsXmlString($template, $article->content_html_document);
     }
+
+    public function test_article_without_metadata() {
+        $stub = $this->get_stub();
+
+        $postdate = '2010-01-01 12:00:00';
+        $updated  = '2010-01-01 12:05:00';
+
+        $post = $this->factory->post->create_and_get(
+            array(
+                'post_type'     => 'post',
+                'post_title'    => 'My Title',
+                'post_date'     => $postdate,
+                'post_date_gmt' => get_gmt_from_date( $postdate ),
+            )
+        );
+
+        $post->post_modified = $updated;
+        $post->post_modified_gmt = get_gmt_from_date( $updated );
+        $article = $stub->generate_article( $post, Richie_Article::EXCLUDE_METADATA );
+        $this->assertObjectNotHasAttribute( 'title', $article );
+        $this->assertObjectNotHasAttribute( 'date', $article );
+        $this->assertObjectNotHasAttribute( 'summary', $article );
+        $this->assertObjectHasAttribute( 'content_html_document', $article );
+        $this->assertObjectHasAttribute( 'assets', $article );
+        $this->assertObjectHasAttribute( 'photos', $article );
+    }
 }

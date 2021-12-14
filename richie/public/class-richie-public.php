@@ -69,12 +69,16 @@ class Richie_Public {
         $this->richie_options      = get_option( $plugin_name );
     }
 
-    public function feed_route_handler( $data ) {
+    public function get_ad_slots( $article_set ) {
+        $adslots_option = get_option( $this->plugin_name . '_adslots' );
+        return isset( $adslots_option['slots'] ) && isset( $adslots_option['slots'][ $article_set->term_id ] ) ? $adslots_option['slots'][ $article_set->term_id ] : array();
+    }
+
+    public function fetch_articles( $article_set, $unpublished, $include_original = false ) {
         // Get saved (and published) source list.
         $sourcelist = get_option( $this->plugin_name . 'news_sources' );
-        $params     = $data->get_query_params();
 
-        if ( isset( $params['unpublished'] ) && '1' === $params['unpublished'] ) {
+        if ( $unpublished ) {
             $richie_news_sources = isset( $sourcelist['sources'] ) ? $sourcelist['sources'] : array();
         } else {
             $richie_news_sources = isset( $sourcelist['published'] ) ? $sourcelist['published'] : array();
@@ -83,11 +87,6 @@ class Richie_Public {
         $posts       = array();
         $found_ids   = array();
         $errors      = array();
-        $article_set = get_term_by( 'slug', $data['article_set'], 'richie_article_set' );
-
-        if ( empty( $article_set ) ) {
-            return new WP_Error( 'article_set_not_found', 'Article set not found', array( 'status' => 404 ) );
-        }
 
         $sources = array_filter(
             $richie_news_sources,
@@ -96,8 +95,7 @@ class Richie_Public {
             }
         );
 
-        $adslots_option = get_option( $this->plugin_name . '_adslots' );
-        $adslots        = isset( $adslots_option['slots'] ) && isset( $adslots_option['slots'][ $article_set->term_id ] ) ? $adslots_option['slots'][ $article_set->term_id ] : array();
+        $adslots = $this->get_ad_slots($article_set);
 
         foreach ( $sources as $source ) {
             $args = array(
@@ -311,6 +309,7 @@ class Richie_Public {
                 }
             }
         }
+
         $articles = array();
 
         foreach ( $posts as $key => $p ) {
@@ -335,14 +334,20 @@ class Richie_Public {
             $date         = ( new DateTime( $content_post->post_date_gmt ) )->format( 'c' );
             $updated_date = ( new DateTime( $content_post->post_modified_gmt ) )->format( 'c' );
 
+            $article = array(
+                'id'                 => strval( $content_post->ID ),
+                'fetch_id'           => $content_post->ID,
+                'last_updated'       => max( $date, $updated_date ),
+                'article_attributes' => $p['article_attributes'],
+            );
+
+            if ( $include_original ) {
+                $article['original_post'] = $content_post;
+            }
+
             array_push(
                 $articles,
-                array(
-                    'id'                 => strval($content_post->ID),
-                    'fetch_id'           => $content_post->ID,
-                    'last_updated'       => max( $date, $updated_date ),
-                    'article_attributes' => $p['article_attributes'],
-                )
+                $article
             );
         }
 
@@ -359,6 +364,27 @@ class Richie_Public {
                 );
             }
         }
+
+        return array( 'articles' => $articles, 'errors' => $errors );
+    }
+
+    public function feed_route_handler( $data ) {
+        $article_set = get_term_by( 'slug', $data['article_set'], 'richie_article_set' );
+
+        if ( empty( $article_set ) ) {
+            return new WP_Error( 'article_set_not_found', 'Article set not found', array( 'status' => 404 ) );
+        }
+
+        $params      = $data->get_query_params();
+        $unpublished = isset( $params['unpublished'] ) && '1' === $params['unpublished'];
+        $result      = $this->fetch_articles( $article_set, $unpublished );
+
+        if ( is_wp_error( $result ) ) {
+            return $result;
+        }
+
+        $articles = $result['articles'];
+        $errors   = $result['errors'];
 
         if ( ! headers_sent() ) {
             $etag = 'W/"' . md5( wp_json_encode( $articles ) ) . '"';
@@ -380,6 +406,95 @@ class Richie_Public {
         }
 
         return $output;
+    }
+
+    public function get_section_article( $article ) {
+        $section_article = array(
+            'publisher_id'         => $article['id'],
+            'article_full_version' => $article['last_updated'],
+            'layout'               => $article['article_attributes']['list_layout_style'],
+        );
+
+        if ( 'ad' !== $article['article_attributes']['list_layout_style'] ) {
+            $post              = $article['original_post'];
+            $article_instance  = new Richie_Article( $this->richie_options );
+            $generated_article = $article_instance->generate_article( $post, Richie_Article::EXCLUDE_CONTENT );
+
+            $summary_disabled = false;
+            if ( array_key_exists( 'summary', $article['article_attributes'] ) && null === $article['article_attributes']['summary'] ) {
+                $summary_disabled = true;
+            }
+
+            if ( isset( $article['article_attributes']['list_group_title'] ) ) {
+                $section_article['list_group_title'] = $article['article_attributes']['list_group_title'];
+            }
+
+            if ( isset( $article['article_attributes']['background_color' ] ) ) {
+                $section_article['background_color'] = $article['article_attributes']['background_color'];
+            }
+
+            foreach ( $generated_article as $key => $value ) {
+                if ( 'id' === $key || 'hash' === $key ) {
+                    continue;
+                }
+                $section_article[ $key ] = $value;
+            }
+
+            if ( $summary_disabled ) {
+                // Exclude summary if disabled in settings.
+                unset( $section_article['summary'] );
+            }
+        } else {
+            $section_article = array_merge(
+                $section_article,
+                array(
+                    'ad_provider' => $article['article_attributes']['ad_provider'],
+                    'ad_data'     => $article['article_attributes']['ad_data'],
+                )
+            );
+        }
+
+        return array_filter( $section_article, function( $v ) { return ! is_null( $v ); } );
+    }
+
+    public function feed_route_handler_v3( $data ) {
+        $article_set = get_term_by( 'slug', $data['article_set'], 'richie_article_set' );
+
+        if ( empty( $article_set ) ) {
+            return new WP_Error( 'article_set_not_found', 'Article set not found', array( 'status' => 404 ) );
+        }
+
+        $params      = $data->get_query_params();
+        $unpublished = isset( $params['unpublished'] ) && '1' === $params['unpublished'];
+        $result      = $this->fetch_articles( $article_set, $unpublished, true );
+
+        if ( is_wp_error( $result ) ) {
+            return $result;
+        }
+
+        $articles = $result['articles'];
+        $errors = $result['errors'];
+
+        if ( ! headers_sent() ) {
+            $etag = 'W/"' . md5( wp_json_encode( $articles ) ) . '"';
+            // if_none_match may contain slashes before ", so strip those.
+            $etag_header = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) : false;
+
+            header( "Etag: {$etag}" );
+            header( 'Cache-Control: private, no-cache' );
+
+            if ( $etag_header === $etag ) {
+                header( $_SERVER['SERVER_PROTOCOL'] . ' 304 Not Modified' );
+                die(); // send response and exit.
+            }
+        }
+
+        return array(
+            'section'  => array(
+                'name' => $article_set->name,
+            ),
+            'articles' => array_map( array( $this, 'get_section_article' ), $articles ),
+        );
     }
 
     public function search_route_handler( $data ) {
@@ -407,7 +522,7 @@ class Richie_Public {
                 continue;
             }
 
-            $generated_article                    = $article->generate_article( $p, true );
+            $generated_article                    = $article->generate_article( $p, Richie_Article::EXCLUDE_CONTENT );
             $generated_article->list_layout_style = isset( $this->richie_options['search_list_layout_style'] ) ? $this->richie_options['search_list_layout_style'] : 'small';
             array_push( $posts, $generated_article );
         }
@@ -415,25 +530,41 @@ class Richie_Public {
         return array( 'articles' => $posts );
     }
 
-    public function article_route_handler( $data ) {
+    public function article_route_handler( $data, $version = 1 ) {
         $assets = $this->get_assets();
 
         if ( false === $assets ) {
             $assets = [];
         }
 
+        $article      = new Richie_Article( $this->richie_options, $assets, $version );
+        $post         = get_post( $data['id'] );
+        $last_updated = $post->post_modified_gmt ?? $post->post_date_gtm;
+
         if ( ! headers_sent() ) {
+            $etag = 'W/"' . md5( $post->ID . $last_updated ) . '"';
+            // if_none_match may contain slashes before ", so strip those.
+            $etag_header = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) : false;
+
+            header( "Etag: {$etag}" );
             header( 'Cache-Control: private, no-cache' );
+
+            if ( $etag_header === $etag ) {
+                header( $_SERVER['SERVER_PROTOCOL'] . ' 304 Not Modified' );
+                die(); // send response and exit.
+            }
         }
 
-        $article = new Richie_Article( $this->richie_options, $assets );
-        $post    = get_post( $data['id'] );
         if ( empty( $post ) ) {
             return new WP_Error( 'no_id', 'Invalid article id', array( 'status' => 404 ) );
         } else {
-            $generated_article = $article->generate_article( $post );
+            $generated_article = $article->generate_article( $post, $version >= 3 ? Richie_Article::EXCLUDE_METADATA : Richie_Article::EXCLUDE_NONE );
             return $generated_article;
         }
+    }
+
+    public function article_route_handler_v3( $data ) {
+        return $this->article_route_handler( $data, 3 );
     }
 
     public function check_permission( $request ) {
@@ -559,6 +690,21 @@ class Richie_Public {
         );
 
         register_rest_route(
+            'richie/v3',
+            '/news(?:/(?P<article_set>\S+))',
+            array(
+                'methods'             => 'GET',
+                'callback'            => array( $this, 'feed_route_handler_v3' ),
+                'permission_callback' => array( $this, 'check_permission' ),
+                'args'                => array(
+                    'article_set' => array(
+                        'sanitize_callback' => 'sanitize_title',
+                    ),
+                ),
+            )
+        );
+
+        register_rest_route(
             'richie/v1',
             '/search',
             array(
@@ -574,6 +720,40 @@ class Richie_Public {
             array(
                 'methods'             => 'GET',
                 'callback'            => array( $this, 'article_route_handler' ),
+                'permission_callback' => array( $this, 'check_permission' ),
+                'args'                => array(
+                    'id' => array(
+                        'validate_callback' => function( $param ) {
+                            return is_numeric( $param );
+                        },
+                    ),
+                ),
+            )
+        );
+
+        register_rest_route(
+            'richie/v2',
+            '/article/(?P<id>\d+)',
+            array(
+                'methods'             => 'GET',
+                'callback'            => array( $this, 'article_route_handler' ),
+                'permission_callback' => array( $this, 'check_permission' ),
+                'args'                => array(
+                    'id' => array(
+                        'validate_callback' => function( $param ) {
+                            return is_numeric( $param );
+                        },
+                    ),
+                ),
+            )
+        );
+
+        register_rest_route(
+            'richie/v3',
+            '/article/(?P<id>\d+)',
+            array(
+                'methods'             => 'GET',
+                'callback'            => array( $this, 'article_route_handler_v3' ),
                 'permission_callback' => array( $this, 'check_permission' ),
                 'args'                => array(
                     'id' => array(

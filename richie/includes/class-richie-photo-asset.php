@@ -4,8 +4,9 @@ class Richie_Photo_Asset implements JsonSerializable {
     public $local_name;
     public $remote_url;
     public $caption = null;
+    public $scale_to_device_dimensions = false;
 
-    function __construct( $url, $use_attachment = false ) {
+    function __construct( $url, $use_attachment = false, $scale_to_device = false ) {
 
         $local_name = richie_make_local_name( $url );
 
@@ -32,6 +33,10 @@ class Richie_Photo_Asset implements JsonSerializable {
 
         }
 
+        if ( true === $scale_to_device ) {
+            $this->scale_to_device_dimensions = true;
+        }
+
         $this->local_name = iconv( 'UTF-8', 'ASCII//TRANSLIT//IGNORE', $local_name );
         $this->remote_url = $this->append_wpp_shadow( $remote_url );
 
@@ -53,6 +58,10 @@ class Richie_Photo_Asset implements JsonSerializable {
 
         if ( $this->caption ) {
             $arr['caption'] = $this->caption;
+        }
+
+        if ( $this->scale_to_device_dimensions ) {
+            $arr['scale_to_device_dimensions'] = true;
         }
 
         return $arr;

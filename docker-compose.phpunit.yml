@@ -2,7 +2,10 @@ version: "3.3"
 
 services:
   wordpress_phpunit:
+    depends_on:
+      - mysql_phpunit
     build: './docker/phpunit'
+    restart: always
     environment:
       PHPUNIT_DB_HOST: "mysql_phpunit"
     volumes:
@@ -10,6 +13,7 @@ services:
       - "testsuite:/tmp"
   mysql_phpunit:
     image: "mysql:5.7"
+    restart: always
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: "wordpress_test"

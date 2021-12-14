@@ -27,6 +27,10 @@ class Richie_Article {
     const METERED_PAYWALL_METERED_VALUE   = 'metered';
     const METERED_PAYWALL_FREE_VALUE      = 'free';
 
+    const EXCLUDE_NONE     = 0b0001; // 1
+    const EXCLUDE_METADATA = 0b0010; // 2
+    const EXCLUDE_CONTENT  = 0b0100; // 4
+
     /**
      * Richie options
      *
@@ -42,14 +46,27 @@ class Richie_Article {
     private $assets;
 
     /**
+     * Adds scale_to_device_dimensions: true to photo assets
+     *
+     * @var bool
+     */
+    private $scale_image;
+
+    /**
      * Create instance of richie news article generator
      *
      * @param array $richie_options Richie plugin options.
      * @param array $assets Available asset items.
+     * @param int   $version Article version.
      */
-    public function __construct( $richie_options, $assets = [] ) {
+    public function __construct( $richie_options, $assets = [], $version = 1 ) {
         $this->news_options = $richie_options;
         $this->assets       = $assets;
+        $this->scale_images = false;
+        $this->api_version = $version;
+        if ( $version >= 3 ) {
+            $this->scale_images = true;
+        }
     }
 
     /**
@@ -188,7 +205,7 @@ class Richie_Article {
      * @param string $rendered_content Passed as reference, modifies content.
      * @return array
      */
-    public function generate_photos_array( $image_urls, &$rendered_content ) {
+    public function generate_photos_array( $image_urls, &$rendered_content, $scale_image = false ) {
         if ( empty( $image_urls ) ) {
             return [];
         }
@@ -197,7 +214,7 @@ class Richie_Article {
         $results          = [];
 
         foreach ( array_unique( $image_urls ) as $url ) {
-            $photo_asset = new Richie_Photo_Asset( $url, false );
+            $photo_asset = new Richie_Photo_Asset( $url, false, $scale_image );
             $results[]   = $photo_asset;
 
             $encoded_url = richie_encode_url_path( $url );
@@ -208,9 +225,20 @@ class Richie_Article {
         return $results;
     }
 
-    public function generate_article( $original_post, $without_content = false ) {
+    public function generate_article( $original_post, $exclude = self::EXCLUDE_NONE ) {
         if ( empty( $original_post ) ) {
             return new stdClass(); // Return empty object.
+        }
+
+        $without_content  = false;
+        $without_metadata = false;
+
+        if ( $exclude & self::EXCLUDE_CONTENT ) {
+            $without_content = true;
+        }
+
+        if ( $exclude & self::EXCLUDE_METADATA ) {
+            $without_metadata = true;
         }
 
         $richie_post_type = Richie_Post_Type::get_post_type( $original_post );
@@ -218,64 +246,81 @@ class Richie_Article {
 
         $hash          = md5( wp_json_encode( $my_post ) );
         $article       = new stdClass();
-        $article->hash = $hash;
 
         // Get metadata.
         $post_id  = $my_post->ID;
         $category = get_the_category( $post_id );
 
-        $article->id    = strval( $original_post->ID );
-        $article->title = $original_post->post_title;
-
-        if ( $richie_post_type->supports_property( 'summary' ) ) {
-            $article->summary = $my_post->post_excerpt;
-        }
-
-        if ( $category && $richie_post_type->supports_property( 'kicker' ) ) {
-            $article->kicker = $category[0]->name;
-        }
-
-        $revisions     = wp_get_post_revisions( $original_post );
-        $published_rev = array_pop( $revisions );
-
-        $article->analytics_data = array(
-            'wp_post_id'     => $original_post->ID,
-            'original_title' => isset( $published_rev->post_title ) ? $published_rev->post_title : $original_post->post_title,
-        );
-
-        if ( $richie_post_type->supports_property( 'date' ) ) {
-            $date = new DateTime( $my_post->post_date_gmt );
-        }
-
-        if ( $richie_post_type->supports_property( 'updated_date' ) ) {
-            $updated_date  = new DateTime( $my_post->post_modified_gmt );
-            $article->date = $date->format( 'c' );
-
-            $diff = $updated_date->getTimestamp() - $date->getTimestamp();
-
-            // Include updated_date if its at least 5 minutes after creation date.
-            if ( $diff >= 5 * MINUTE_IN_SECONDS ) {
-                $article->updated_date = $updated_date->format( 'c' );
-            }
-        }
-
-        $article->share_link_url = get_permalink( $post_id );
-
-        $metered_id     = $this->news_options['metered_pmpro_level'];
-        $member_only_id = $this->news_options['member_only_pmpro_level'];
-
-        // Get paywall type.
-        $levels = $this->get_pmpro_levels( $my_post );
-
-        $is_premium = in_array( $member_only_id, $levels );
-        $is_metered = in_array( $metered_id, $levels );
-
-        if ( $is_metered ) {
-            $article->metered_paywall = self::METERED_PAYWALL_METERED_VALUE;
-        } elseif ( $is_premium ) {
-            $article->metered_paywall = self::METERED_PAYWALL_NO_ACCESS_VALUE;
+        if ( $this->api_version >= 3 ) {
+            $article->publisher_id = strval( $original_post->ID );
         } else {
-            $article->metered_paywall = self::METERED_PAYWALL_FREE_VALUE;
+            $article->id = strval( $original_post->ID );
+        }
+
+        if ( ! $without_metadata ) {
+            $article->hash = $hash;
+
+            $article->title = $original_post->post_title;
+
+            if ( $richie_post_type->supports_property( 'summary' ) ) {
+                $article->summary = $my_post->post_excerpt;
+            }
+
+            if ( $category && $richie_post_type->supports_property( 'kicker' ) ) {
+                $article->kicker = $category[0]->name;
+            }
+
+            $revisions     = wp_get_post_revisions( $original_post );
+            $published_rev = array_pop( $revisions );
+
+            $article->analytics_data = array(
+                'wp_post_id'     => $original_post->ID,
+                'original_title' => isset( $published_rev->post_title ) ? $published_rev->post_title : $original_post->post_title,
+            );
+
+            if ( $richie_post_type->supports_property( 'date' ) ) {
+                $date = new DateTime( $my_post->post_date_gmt );
+            }
+
+            if ( $richie_post_type->supports_property( 'updated_date' ) ) {
+                $updated_date  = new DateTime( $my_post->post_modified_gmt );
+                $article->date = $date->format( 'c' );
+
+                $diff = $updated_date->getTimestamp() - $date->getTimestamp();
+
+                // Include updated_date if its at least 5 minutes after creation date.
+                if ( $diff >= 5 * MINUTE_IN_SECONDS ) {
+                    $article->updated_date = $updated_date->format( 'c' );
+                }
+            }
+
+            $article->share_link_url = get_permalink( $post_id );
+
+            $metered_id     = $this->news_options['metered_pmpro_level'];
+            $member_only_id = $this->news_options['member_only_pmpro_level'];
+
+            // Get paywall type.
+            $levels = $this->get_pmpro_levels( $my_post );
+
+            $is_premium = in_array( $member_only_id, $levels );
+            $is_metered = in_array( $metered_id, $levels );
+
+            if ( $is_metered ) {
+                $article->metered_paywall = self::METERED_PAYWALL_METERED_VALUE;
+            } elseif ( $is_premium ) {
+                $article->metered_paywall = self::METERED_PAYWALL_NO_ACCESS_VALUE;
+            } else {
+                $article->metered_paywall = self::METERED_PAYWALL_FREE_VALUE;
+            }
+
+            // Include the thumbnail if found.
+            $thumbnail_id = get_post_thumbnail_id( $my_post );
+
+            if ( $thumbnail_id ) {
+                $thumbnail          = wp_get_attachment_image_url( $thumbnail_id, 'full' );
+                $remote_url         = richie_make_link_absolute( $thumbnail );
+                $article->image_url = $this->append_wpp_shadow( $remote_url );
+            }
         }
 
         if ( ! $without_content ) {
@@ -381,9 +426,8 @@ class Richie_Article {
             $all_gallery_images = [];
 
             if ( $thumbnail_id ) {
-                $thumbnail          = wp_get_attachment_image_url( $thumbnail_id, 'full' );
-                $remote_url         = richie_make_link_absolute( $thumbnail );
-                $article->image_url = $this->append_wpp_shadow( $remote_url );
+                $thumbnail  = wp_get_attachment_image_url( $thumbnail_id, 'full' );
+                $remote_url = richie_make_link_absolute( $thumbnail );
 
                 foreach ( $all_sizes as $size ) {
                     $thumbnail_url = null;
@@ -394,7 +438,7 @@ class Richie_Article {
                         $thumbnail_url = wp_get_attachment_image_url( $thumbnail_id, $size );
                     }
                     if ( false !== strpos( $rendered_content, $thumbnail_url ) ) {
-                        $photo_asset = new Richie_Photo_Asset( $remote_url, false );
+                        $photo_asset = new Richie_Photo_Asset( $remote_url, false, $this->scale_images);
                         $photo_asset->caption = get_the_post_thumbnail_caption( $my_post );
 
                         $rendered_content = str_replace( $thumbnail_url, $photo_asset->local_name, $rendered_content );
@@ -426,7 +470,7 @@ class Richie_Article {
                             }
                             $attachment_url = wp_get_attachment_url( $attachment->ID );
 
-                            $photo_asset          = new Richie_Photo_Asset( $attachment_url );
+                            $photo_asset          = new Richie_Photo_Asset( $attachment_url, false, $this->scale_images );
                             $photo_asset->caption = $attachment->post_excerpt;
 
                             $local_name   = $photo_asset->local_name;
@@ -465,7 +509,7 @@ class Richie_Article {
             }
 
             if ( $image_urls ) {
-                $img_list     = $this->generate_photos_array( $image_urls, $rendered_content, false );
+                $img_list     = $this->generate_photos_array( $image_urls, $rendered_content, $this->scale_images );
                 $main_gallery = array_merge( $main_gallery, $img_list );
             }
 
@@ -493,15 +537,6 @@ class Richie_Article {
             $article->content_html_document = $rendered_content;
             $article->assets                = array_values( $local_assets );
             $article->photos                = $article_photos;
-        } else {
-            // Without content, just include the thumbnail if found.
-            $thumbnail_id = get_post_thumbnail_id( $my_post );
-
-            if ( $thumbnail_id ) {
-                $thumbnail          = wp_get_attachment_image_url( $thumbnail_id, 'full' );
-                $remote_url         = richie_make_link_absolute( $thumbnail );
-                $article->image_url = $this->append_wpp_shadow( $remote_url );
-            }
         }
 
         return $article;

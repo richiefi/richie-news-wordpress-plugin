@@ -146,6 +146,54 @@ class Test_JSON_API extends WP_UnitTestCase {
         $this->assertEquals( $id_list, array_slice( $posts, 0, 5 ) );
     }
 
+    public function test_get_v3_news_feed() {
+        $term_id = $this->factory->term->create(
+            array(
+				'name'     => 'Test set',
+				'taxonomy' => 'richie_article_set',
+				'slug'     => 'test-set',
+            )
+        );
+
+        $sources = array();
+
+        $sources[1] = array(
+            'id'                => 1,
+            'name'              => 'test source',
+            'number_of_posts'   => 2,
+            'order_by'          => 'date',
+            'order_direction'   => 'ASC',
+            'article_set'       => $term_id,
+            'list_layout_style' => 'small_group_item',
+            'list_group_title'  => 'group title',
+            'allow_duplicates'  => 0,
+        );
+
+        $sources[2] = array(
+            'id'                => 2,
+            'name'              => 'test source 2',
+            'number_of_posts'   => 3,
+            'order_by'          => 'date',
+            'order_direction'   => 'ASC',
+            'article_set'       => $term_id,
+            'list_layout_style' => 'small',
+        );
+
+        add_option( 'richienews_sources', array( 'published' => $sources ) );
+
+        $posts   = $this->factory->post->create_many( 10 );
+        $request = new WP_REST_Request( 'GET', '/richie/v3/news/test-set' );
+        $request->set_query_params( array( 'token' => 'testtoken' ) );
+        $response = $this->server->dispatch( $request );
+        $articles = $response->data['articles'];
+
+        $this->assertEquals( 200, $response->get_status() );
+        $this->assertEquals( count( $articles ), 5 );
+        $this->assertEquals( $response->data['section']['name'], 'Test set' );
+        $id_list = array_column( $articles, 'publisher_id' );
+        $this->assertEquals( $id_list, array_slice( $posts, 0, 5 ) );
+    }
+
     public function test_get_news_feed_items_with_duplicates() {
         $term_id = $this->factory->term->create(
             array(
@@ -324,6 +372,40 @@ class Test_JSON_API extends WP_UnitTestCase {
         $this->assertEquals( $article->photos[0][0]->caption, 'caption' );
         $this->assertEquals( $article->photos[0][1]->local_name, 'external.url/testing/image.jpg' );
         $this->assertEquals( $article->photos[0][1]->remote_url, 'https://external.url/testing/image.jpg' );
+        $this->assertContains( 'src="external.url/testing/image.jpg"', $article->content_html_document );
+
+    }
+
+    public function test_get_single_v3_article_with_images() {
+        $id            = $this->factory()->post->create( array( 'post_content' => '<img src="//external.url/testing/image.jpg"/>' ) );
+        $attachment_id = $this->factory->attachment->create_object(
+            'richie.png',
+            $id,
+            array(
+                'post_mime_type' => 'image/png',
+				'post_type'      => 'attachment',
+                'post_excerpt'   => 'caption',
+            )
+        );
+
+        $post = get_post( $id );
+        set_post_thumbnail( $post, $attachment_id );
+
+        $request = new WP_REST_Request( 'GET', '/richie/v3/article/' . $id );
+        $request->set_query_params( array( 'token' => 'testtoken' ) );
+
+        $response = $this->server->dispatch( $request );
+        $this->assertEquals( 200, $response->get_status() );
+        $article = $response->data;
+
+        $this->assertObjectNotHasAttribute( 'title', $article );
+        $this->assertEquals( $article->photos[0][0]->local_name, 'wp-content/uploads/richie.png' );
+        $this->assertEquals( $article->photos[0][0]->remote_url, 'http://example.org/wp-content/uploads/richie.png' );
+        $this->assertEquals( $article->photos[0][0]->caption, 'caption' );
+        $this->assertEquals( $article->photos[0][0]->scale_to_device_dimensions, true );
+        $this->assertEquals( $article->photos[0][1]->local_name, 'external.url/testing/image.jpg' );
+        $this->assertEquals( $article->photos[0][1]->remote_url, 'https://external.url/testing/image.jpg' );
+        $this->assertEquals( $article->photos[0][1]->scale_to_device_dimensions, true );
         $this->assertContains( 'src="external.url/testing/image.jpg"', $article->content_html_document );
 
     }
