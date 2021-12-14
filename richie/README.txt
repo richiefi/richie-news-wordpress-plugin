@@ -23,7 +23,10 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
-= 1.6.0 =
+= 1.6.1 (14.12.2021) =
+* Add required fields to v3 article api
+
+= 1.6.0 (14.12.2021) =
 * Implementation for v3 apis
 
 = 1.5.1 (03.10.2021) =
