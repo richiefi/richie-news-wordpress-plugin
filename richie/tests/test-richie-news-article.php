@@ -310,9 +310,9 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $post->post_modified = $updated;
         $post->post_modified_gmt = get_gmt_from_date( $updated );
         $article = $stub->generate_article( $post, Richie_Article::EXCLUDE_METADATA );
-        $this->assertObjectNotHasAttribute( 'title', $article );
         $this->assertObjectNotHasAttribute( 'date', $article );
         $this->assertObjectNotHasAttribute( 'summary', $article );
+        $this->assertObjectHasAttribute( 'title', $article );
         $this->assertObjectHasAttribute( 'content_html_document', $article );
         $this->assertObjectHasAttribute( 'assets', $article );
         $this->assertObjectHasAttribute( 'photos', $article );
