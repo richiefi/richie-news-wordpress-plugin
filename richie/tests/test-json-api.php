@@ -398,7 +398,7 @@ class Test_JSON_API extends WP_UnitTestCase {
         $this->assertEquals( 200, $response->get_status() );
         $article = $response->data;
 
-        $this->assertObjectNotHasAttribute( 'title', $article );
+        $this->assertEquals( $article->title, $post->post_title );
         $this->assertEquals( $article->photos[0][0]->local_name, 'wp-content/uploads/richie.png' );
         $this->assertEquals( $article->photos[0][0]->remote_url, 'http://example.org/wp-content/uploads/richie.png' );
         $this->assertEquals( $article->photos[0][0]->caption, 'caption' );

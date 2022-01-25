@@ -5,15 +5,13 @@ services:
     depends_on:
       - mysql_phpunit
     build: './docker/phpunit'
-    restart: always
     environment:
       PHPUNIT_DB_HOST: "mysql_phpunit"
     volumes:
       - "./richie:/app"
       - "testsuite:/tmp"
   mysql_phpunit:
-    image: "mysql:5.7"
-    restart: always
+    image: mariadb
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: "wordpress_test"
