@@ -150,20 +150,49 @@ class Richie_Article {
     }
 
     /**
-     * Parse html content and return all img tag source urls
+     * Parse html content and return dom object
      *
      * @param string  $content HTML string.
-     * @param boolean $include_links Detect images in a tags.
-     * @return array
+     * @return object
      */
-    public function get_article_images( $content, $include_links = false ) {
-        $image_urls = [];
-        $dom        = new IvoPetkov\HTML5DOMDocument();
-
+    public function parse_dom( $content ) {
+        $dom = new IvoPetkov\HTML5DOMDocument();
         $dom->substituteEntities = false;
         $dom->preserveWhiteSpace = false;
         libxml_use_internal_errors( true );
         $dom->loadHTML( $content, IvoPetkov\HTML5DOMDocument::ALLOW_DUPLICATE_IDS );
+        return $dom;
+    }
+
+    /**
+     * Append mraid.js script tag to head
+     *
+     * @param string  $content HTML string.
+     */
+    public function add_mraid_tag( $dom ) {
+        $head = $dom->querySelector('head');
+        $first_script = $head->getElementsByTagName('script')->item(0);
+        $mraid_tag = $dom->createElement('script');
+        $mraid_tag->setAttribute('src', 'mraid.js');
+        if ( $first_script ) {
+            // We have script in head, insert before it.
+            $head->insertBefore( $mraid_tag, $first_script );
+        } else {
+            // No other scripts in head, append tag to head element.
+            $head->appendChild( $mraid_tag );
+        }
+    }
+
+    /**
+     * Parse html content and return all img tag source urls
+     *
+     * @param object  $dom Dom object.
+     * @param boolean $include_links Detect images in a tags.
+     * @return array
+     */
+    public function get_article_images( $dom, $include_links = false ) {
+        $image_urls = [];
+
         // Get all the images.
         $images = $dom->querySelectorAll( 'body img' );
         // Loop the images.
@@ -415,7 +444,11 @@ class Richie_Article {
             $main_gallery = [];
             $thumbnail_id = get_post_thumbnail_id( $my_post );
 
-            $rendered_article_images = $this->get_article_images( $rendered_content );
+            $dom    = $this->parse_dom( $rendered_content );
+
+            $this->add_mraid_tag( $dom );
+
+            $rendered_article_images = $this->get_article_images( $dom );
             $image_urls              = $rendered_article_images['images'];
 
 
