@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= 1.6.2 (27.01.2022) =
+* Include mraid tag to content html
+
 = 1.6.1 (14.12.2021) =
 * Add required fields to v3 article api
 
