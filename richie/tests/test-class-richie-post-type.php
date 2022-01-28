@@ -66,7 +66,7 @@ class Test_Richie_Post_Type extends WP_UnitTestCase {
         $this->assertTrue( $is_valid );
     }
 
-    public function test_validate_post_featured_post_invalid_url() {
+    public function test_validate_post_featured_post_external_url() {
         $post = $this->factory->post->create_and_get(
             array(
                 'post_type'  => 'mb_featured_post',
@@ -75,7 +75,7 @@ class Test_Richie_Post_Type extends WP_UnitTestCase {
         );
         update_post_meta( $post->ID, 'featured_post_url', 'https://www.richie.fi' );
         $is_valid = Richie_Post_Type::validate_post( $post );
-        $this->assertFalse( $is_valid );
+        $this->assertEquals( $is_valid, 'https://www.richie.fi' );
     }
 
     public function test_check_featured_post_field_support_custom_type() {
