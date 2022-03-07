@@ -89,9 +89,10 @@ class Richie_Post_Type {
         if ( 'post' !== $post->post_type ) {
             // Custom post type.
             if ( 'mb_featured_post' === $post->post_type ) {
-                $target_url = get_post_meta( $post->ID, 'featured_post_url', true );
+                $target_url = $post->featured_post_url;
+                $hide_on_mobile = $post->hide_on_mobile;
 
-                if ( false === $target_url ) {
+                if ( empty( $target_url ) || $hide_on_mobile === '1' ) {
                     return false;
                 }
 

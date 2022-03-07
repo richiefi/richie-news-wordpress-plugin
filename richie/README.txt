@@ -23,6 +23,10 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= WIP =
+* Support external url in featured post
+* Support hide_on_mobile flag in featured post
+
 = 1.6.2 (27.01.2022) =
 * Include mraid tag to content html
 
