@@ -78,6 +78,19 @@ class Test_Richie_Post_Type extends WP_UnitTestCase {
         $this->assertEquals( $is_valid, 'https://www.richie.fi' );
     }
 
+    public function test_validate_featured_post_hide_on_mobile() {
+        $post = $this->factory->post->create_and_get(
+            array(
+                'post_type'  => 'mb_featured_post',
+                'post_title' => 'My Title',
+            )
+        );
+        update_post_meta( $post->ID, 'featured_post_url', 'https://www.richie.fi' );
+        update_post_meta( $post->ID, 'hide_on_mobile', '1' );
+        $is_valid = Richie_Post_Type::validate_post( $post );
+        $this->assertFalse( $is_valid ); // should not return if hide_on_mobile set
+    }
+
     public function test_check_featured_post_field_support_custom_type() {
         $post_type = new Richie_Post_Type( 'mb_featured_post' );
         $this->assertFalse( $post_type->supports_property( 'date' ) ); // Should hide dates for featured post
