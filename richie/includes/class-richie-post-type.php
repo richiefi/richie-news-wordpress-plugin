@@ -89,8 +89,10 @@ class Richie_Post_Type {
         if ( 'post' !== $post->post_type ) {
             // Custom post type.
             if ( 'mb_featured_post' === $post->post_type ) {
-                $target_url = get_post_meta( $post->ID, 'featured_post_url', true );
-                if ( false === $target_url ) {
+                $target_url = $post->featured_post_url;
+                $hide_on_mobile = $post->hide_on_mobile;
+
+                if ( empty( $target_url ) || $hide_on_mobile === '1' ) {
                     return false;
                 }
 
@@ -98,7 +100,14 @@ class Richie_Post_Type {
 
                 if ( 0 === $target_id ) {
                     // Target url not internal wordpress page.
-                    return false;
+                    return  $target_url;
+                }
+
+                $target_post = get_post( $target_id );
+
+                if ( isset( $target_post ) && 'page' === $target_post->post_type ) {
+                    // target url is page, return url
+                    return $target_url;
                 }
             }
         }

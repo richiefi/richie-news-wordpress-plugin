@@ -279,6 +279,13 @@ class Richie_Public {
                     continue;
                 }
 
+                if ( is_string( $is_valid ) ) {
+                    // we have external url
+                    $external_url = $is_valid;
+                } else {
+                    $external_url = null;
+                }
+
                 if ( $allow_duplicates || ! in_array( $p->ID, $found_ids, true ) ) {
                     if ( empty( $p->guid ) ) {
                         $errors[] = array(
@@ -295,6 +302,7 @@ class Richie_Public {
                             'id'                 => $p->ID,
                             'post_data'          => $p,
                             'article_attributes' => $article_attributes,
+                            'external_url'       => $external_url
                         )
                     );
 
@@ -343,6 +351,10 @@ class Richie_Public {
 
             if ( $include_original ) {
                 $article['original_post'] = $content_post;
+            }
+
+            if ( $p['external_url'] ) {
+                $article['external_url'] = $p['external_url'];
             }
 
             array_push(
@@ -433,6 +445,11 @@ class Richie_Public {
                 $section_article['background_color'] = $article['article_attributes']['background_color'];
             }
 
+            if ( isset( $article['external_url'] ) ) {
+                $section_article['external_browser_url'] = $article['external_url'];
+                $generated_article->share_link_url = $article['external_url'];
+            }
+
             foreach ( $generated_article as $key => $value ) {
                 if ( 'id' === $key || 'hash' === $key ) {
                     continue;
@@ -518,7 +535,7 @@ class Richie_Public {
         foreach ( $source_posts as $p ) {
             $is_valid = Richie_Post_Type::validate_post( $p );
 
-            if ( ! $is_valid ) {
+            if ( $is_valid !== true ) {
                 continue;
             }
 
