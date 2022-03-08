@@ -273,6 +273,10 @@ class Richie_Article {
         $richie_post_type = Richie_Post_Type::get_post_type( $original_post );
         $my_post          = $richie_post_type->get_post( $original_post );
 
+        if ( !isset ( $my_post->ID ) ) {
+            return new stdClass(); // didn't get post, return empty object
+        }
+
         $hash          = md5( wp_json_encode( $my_post ) );
         $article       = new stdClass();
 
