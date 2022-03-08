@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= 1.7.1 (08.03.2022) =
+* Bug Fix
+
 = 1.7.0 (07.03.2022) =
 * Support external url in featured post
 * Support hide_on_mobile flag in featured post
