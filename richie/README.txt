@@ -23,6 +23,9 @@ Richie Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= 1.7.2 (09.03.2022) =
+* Fix missing data from featured post with external url
+
 = 1.7.1 (08.03.2022) =
 * Bug Fix
 
