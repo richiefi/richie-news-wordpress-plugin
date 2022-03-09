@@ -270,19 +270,7 @@ class Richie_Article {
             $without_metadata = true;
         }
 
-        $richie_post_type = Richie_Post_Type::get_post_type( $original_post );
-        $my_post          = $richie_post_type->get_post( $original_post );
-
-        if ( !isset ( $my_post->ID ) ) {
-            return new stdClass(); // didn't get post, return empty object
-        }
-
-        $hash          = md5( wp_json_encode( $my_post ) );
         $article       = new stdClass();
-
-        // Get metadata.
-        $post_id  = $my_post->ID;
-        $category = get_the_category( $post_id );
 
         if ( $this->api_version >= 3 ) {
             $article->publisher_id = strval( $original_post->ID );
@@ -299,6 +287,19 @@ class Richie_Article {
             'wp_post_id'     => $original_post->ID,
             'original_title' => isset( $published_rev->post_title ) ? $published_rev->post_title : $original_post->post_title,
         );
+
+        $richie_post_type = Richie_Post_Type::get_post_type( $original_post );
+        $my_post          = $richie_post_type->get_post( $original_post );
+
+        if ( !isset ( $my_post->ID ) ) {
+            return $article; // didn't get post, return partial article (this might be because of featured post type, which points to external url)
+        }
+
+        $hash          = md5( wp_json_encode( $my_post ) );
+
+        // Get metadata.
+        $post_id  = $my_post->ID;
+        $category = get_the_category( $post_id );
 
         $article->share_link_url = get_permalink( $post_id );
 
