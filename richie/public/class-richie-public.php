@@ -281,9 +281,11 @@ class Richie_Public {
 
                 if ( is_string( $is_valid ) ) {
                     // we have external url
-                    $external_url = $is_valid;
+                    $article_attributes['external_browser_url'] = $is_valid;
+                    $article_attributes['share_link_url'] = $is_valid;
                 } else {
-                    $external_url = null;
+                    unset($article_attributes['external_browser_url']);
+                    unset($article_attributes['share_link_url']);
                 }
 
                 if ( $allow_duplicates || ! in_array( $p->ID, $found_ids, true ) ) {
@@ -302,7 +304,6 @@ class Richie_Public {
                             'id'                 => $p->ID,
                             'post_data'          => $p,
                             'article_attributes' => $article_attributes,
-                            'external_url'       => $external_url
                         )
                     );
 
@@ -351,10 +352,6 @@ class Richie_Public {
 
             if ( $include_original ) {
                 $article['original_post'] = $content_post;
-            }
-
-            if ( $p['external_url'] ) {
-                $article['external_url'] = $p['external_url'];
             }
 
             array_push(
@@ -445,9 +442,9 @@ class Richie_Public {
                 $section_article['background_color'] = $article['article_attributes']['background_color'];
             }
 
-            if ( isset( $article['external_url'] ) ) {
-                $section_article['external_browser_url'] = $article['external_url'];
-                $generated_article->share_link_url = $article['external_url'];
+            if ( isset( $article['article_attributes']['external_browser_url'] ) ) {
+                $section_article['external_browser_url'] = $article['article_attributes']['external_browser_url'];
+                $generated_article->share_link_url = $article['article_attributes']['external_browser_url'];
             }
 
             foreach ( $generated_article as $key => $value ) {
