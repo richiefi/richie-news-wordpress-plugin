@@ -279,15 +279,6 @@ class Richie_Public {
                     continue;
                 }
 
-                if ( is_string( $is_valid ) ) {
-                    // we have external url
-                    $article_attributes['external_browser_url'] = $is_valid;
-                    $article_attributes['share_link_url'] = $is_valid;
-                } else {
-                    unset($article_attributes['external_browser_url']);
-                    unset($article_attributes['share_link_url']);
-                }
-
                 if ( $allow_duplicates || ! in_array( $p->ID, $found_ids, true ) ) {
                     if ( empty( $p->guid ) ) {
                         $errors[] = array(
@@ -440,11 +431,6 @@ class Richie_Public {
 
             if ( isset( $article['article_attributes']['background_color' ] ) ) {
                 $section_article['background_color'] = $article['article_attributes']['background_color'];
-            }
-
-            if ( isset( $article['article_attributes']['external_browser_url'] ) ) {
-                $section_article['external_browser_url'] = $article['article_attributes']['external_browser_url'];
-                $generated_article->share_link_url = $article['article_attributes']['external_browser_url'];
             }
 
             foreach ( $generated_article as $key => $value ) {

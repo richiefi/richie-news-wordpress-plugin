@@ -289,6 +289,13 @@ class Richie_Article {
         );
 
         $richie_post_type = Richie_Post_Type::get_post_type( $original_post );
+        $external         = Richie_Post_Type::validate_post( $original_post );
+
+        if ( $external && is_string( $external ) ) {
+            $article->external_browser_url = $external;
+            $article->share_link_url = $external;
+        }
+
         $my_post          = $richie_post_type->get_post( $original_post );
 
         if ( !isset ( $my_post->ID ) ) {
