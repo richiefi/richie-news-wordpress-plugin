@@ -1,6 +1,12 @@
 # Richie Wordpress Plugin
 
+## Richie News Plugin
+
 The actual plugin code is in `richie` folder.
+
+## Richie Edition Plugin
+
+Separate plugin for migrating richie editions e-papers to wordpress. The plugin is included as git submodule in richie-editions-wp folder.
 
 ## Setting up dev environment
 
