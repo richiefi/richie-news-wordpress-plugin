@@ -1,0 +1,3 @@
+[submodule "richie-editions-wp"]
+	path = richie-editions-wp
+	url = git@github.com:richiefi/richie-editions-wordpress.git

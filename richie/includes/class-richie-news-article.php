@@ -338,8 +338,13 @@ class Richie_Article {
                 }
             }
 
-            $metered_id     = $this->news_options['metered_pmpro_level'];
-            $member_only_id = $this->news_options['member_only_pmpro_level'];
+            $metered_id = null;
+            $member_only_id = null;
+
+            if ( is_array( $this->news_options ) ) {
+                $metered_id     = $this->news_options['metered_pmpro_level'];
+                $member_only_id = $this->news_options['member_only_pmpro_level'];
+            }
 
             // Get paywall type.
             $levels = $this->get_pmpro_levels( $my_post );
@@ -366,10 +371,16 @@ class Richie_Article {
         }
 
         if ( ! $without_content ) {
+            if ( is_array( $this->news_options ) ) {
+                $token = $this->news_options['access_token'];
+            } else {
+                $token = '';
+            }
+
             $content_url = add_query_arg(
                 array(
                     'richie_news' => 1,
-                    'token'       => $this->news_options['access_token'],
+                    'token'       => $token,
                 ),
                 get_permalink( $post_id )
             );

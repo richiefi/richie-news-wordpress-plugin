@@ -19,7 +19,7 @@ class Test_JSON_API extends WP_UnitTestCase {
 		global $wp_rest_server;
 		$this->server = $wp_rest_server = new \WP_REST_Server();
 		do_action( 'rest_api_init' );
-        update_option( 'richie', array( 'access_token' => 'testtoken' ) );
+        update_option( 'richie', array( 'access_token' => 'testtoken', 'metered_pmpro_level' => 0 ) );
     }
 
     public function tearDown() {

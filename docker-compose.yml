@@ -33,6 +33,7 @@ services:
       - wp:/var/www/html
       - ./wp-content:/var/www/html/wp-content
       - ./richie:/var/www/html/wp-content/plugins/richie
+      - ./richie-editions-wp:/var/www/html/wp-content/plugins/richie-editions-wp
       - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
     networks:
       - "front"
@@ -46,6 +47,7 @@ services:
     volumes:
       - wp:/var/www/html
       - ./richie:/var/www/html/wp-content/plugins/richie
+      - ./richie-editions-wp:/var/www/html/wp-content/plugins/richie-editions-wp
     networks:
       - "back"
 
