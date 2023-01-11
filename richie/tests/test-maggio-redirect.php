@@ -11,14 +11,14 @@
  * Maggio redirect tests.
  */
 class MaggioRedirectTest extends WP_UnitTestCase {
-    protected $host_name = 'https://test.hostname';
+    protected $hostname = 'https://test.hostname';
 
 	public function setUp() {
         parent::setUp();
         update_option(
             'richie',
             array(
-                'maggio_hostname' => $this->host_name,
+                'maggio_hostname' => $this->hostname,
                 'maggio_secret' => 'test-secret',
                 'maggio_required_pmpro_level' => 1,
             )

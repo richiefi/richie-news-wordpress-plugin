@@ -1,4 +1,4 @@
-FROM php:7.3-cli
+FROM php:7.4-cli
 
 RUN apt-get update && apt-get install -y mariadb-client libsqlite3-dev subversion wget git curl zip libzip-dev \
     && docker-php-ext-install iconv \
