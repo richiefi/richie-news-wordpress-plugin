@@ -1,6 +1,14 @@
-# Richie Wordpress Plugin
+# Richie Wordpress Plugins
 
+## Richie news
+
+Includes support for news feeds.
 The actual plugin code is in `richie` folder.
+
+## Richie Editions WP
+
+Allow integrating Richie Editions e-paper into wordpress. Doesn't contain news feed support.
+The plugin code is in `richie-editions-wp` folder.
 
 ## Setting up dev environment
 
@@ -30,7 +38,7 @@ docker-compose down
 ### Setting up wordpress
 
 Dockerized wordpress installation should now be available in `http://wordpress.local`. Visit the address and run wordpress
-setup. Activate Richie plugin in wordpress admin ui. Richie plugin currently depends on pmpro plugin, so that needs to be installed too.
+setup. Activate Richie plugins in wordpress admin ui. Richie News plugin currently depends on pmpro plugin, so that needs to be installed too. Richie Editions WP plugin doesn't have any dependencies.
 
 ### Access wordpress container
 
