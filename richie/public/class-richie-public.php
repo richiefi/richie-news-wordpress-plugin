@@ -879,7 +879,7 @@ class Richie_Public {
         $user_has_access      = richie_has_maggio_access( $required_pmpro_level );
 
         if ( false === $issues ) {
-            return sprintf( '<div>%s</div>', esc_html__( 'Failed to fetch issues', 'richie' ) );
+            return sprintf( '<div>%s</div>', esc_html__( 'No issues found', 'richie' ) );
         }
 
         $richie_template_loader = new Richie_Template_Loader();
