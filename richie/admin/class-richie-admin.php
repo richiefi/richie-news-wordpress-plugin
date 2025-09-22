@@ -85,6 +85,13 @@ class Richie_Admin {
     private $debug_sources;
 
     /**
+     * Option name for ad slots
+     *
+     * @var string
+     */
+    private $adslots_option_name;
+
+    /**
      * Initialize the class and set its properties.
      *
      * @since 1.0.0
@@ -181,7 +188,8 @@ class Richie_Admin {
             wp_enqueue_script( 'suggest' );
         }
 
-        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery' ), $this->get_version_id(), false );
+        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery', 'wp-color-picker' ), $this->get_version_id(), false );
+
         wp_localize_script(
             $this->plugin_name,
             'richie_ajax',
@@ -243,7 +251,7 @@ class Richie_Admin {
     /**
      * Function that will check if value is a valid HEX color.
      *
-     * @param array $value Hex color value
+     * @param string $value Hex color value
      * @return boolean
      */
     public function check_color( $value ) {
@@ -379,7 +387,7 @@ class Richie_Admin {
                 $source['allow_duplicates'] = true;
             }
 
-            if ( isset( $input['max_age'] ) && $input['max-age'] !== 'All time' ) {
+            if ( isset( $input['max_age'] ) && $input['max_age'] !== 'All time' ) {
                 $source['max_age'] = sanitize_text_field( $input['max_age'] );
             }
 
