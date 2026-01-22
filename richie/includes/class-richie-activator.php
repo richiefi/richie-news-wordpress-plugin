@@ -31,7 +31,6 @@ class Richie_Activator {
 	public static function activate() {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/functions.php';
 
-        richie_create_maggio_rewrite_rules( true );
 	}
 
 }

@@ -1,19 +1,17 @@
 === Richie ===
 Contributors: (this should be a list of wordpress.org userid's)
 Donate link: https://www.richie.fi
-Tags: rest, feed, api, shortcode
+Tags: rest, feed, api
 Requires at least: 4.0
 Tested up to: 5.5
 License: Copyright Richie Oy
 
-This plugin provides backend feeds and digital paper support for Richie Platform.
+This plugin provides backend feeds support for Richie News Platform.
 
 == Description ==
 
-Richie Platform plugin provides following features:
-- Shortcode for including list of Maggio issues
-- Redirection url which constructs signin url and provides access to the actual magazine
-- JSON feeds to be used in Richie Platform
+Richie News Platform plugin provides following features:
+- JSON feeds to be used in Richie News Platform
 - Supports paywall features (currently assuming PMPro plugin installed)
 
 == Installation ==

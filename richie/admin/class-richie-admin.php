@@ -9,7 +9,6 @@
  * @subpackage Richie/admin
  */
 
-require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-post-type.php';
 
 /**
@@ -277,22 +276,8 @@ class Richie_Admin {
         if ( isset( $input['access_token'] ) && ! empty( $input['access_token'] ) ) {
             $valid['access_token'] = sanitize_text_field( $input['access_token'] );
         }
-        $valid['maggio_secret']               = isset( $input['maggio_secret'] ) ? sanitize_text_field( $input['maggio_secret'] ) : '';
-        $valid['maggio_hostname']             = isset( $input['maggio_hostname'] ) ? esc_url_raw( $input['maggio_hostname'] ) : '';
-        $valid['maggio_organization']         = isset( $input['maggio_organization'] ) ? sanitize_text_field( $input['maggio_organization'] ) : '';
-        $valid['maggio_required_pmpro_level'] = isset( $input['maggio_required_pmpro_level'] ) ? intval( $input['maggio_required_pmpro_level'] ) : '';
-        $valid['maggio_index_range']          = isset( $input['maggio_index_range'] ) ? sanitize_text_field( $input['maggio_index_range'] ) : '';
+
         $valid['search_list_layout_style']    = in_array( $input['search_list_layout_style'], $this->available_layout_names, true ) ? sanitize_text_field( $input['search_list_layout_style'] ) : 'small';
-
-        $options          = get_option( $this->settings_option_name );
-        $current_hostname = isset( $options['maggio_hostname'] ) ? $options['maggio_hostname'] : '';
-        $current_index    = isset( $options['maggio_index_range'] ) ? $options['maggio_index_range'] : '';
-
-        if ( ! empty( $valid['maggio_hostname'] ) && ( $current_hostname !== $valid['maggio_hostname'] || $current_index !== $valid['maggio_index_range'] ) ) {
-            // Force cache refresh if hostname or index range changes.
-            $maggio_service = new Richie_Maggio_Service( $valid['maggio_hostname'], $valid['maggio_index_range'] );
-            $maggio_service->refresh_cached_response( true );
-        }
 
         return $valid;
     }
@@ -535,44 +520,8 @@ class Richie_Admin {
             <?php
         }
 
-        if ( $this->maggio_cache_updated() ) {
-            ?>
-            <div class="notice notice-success is-dismissible">
-            <p>
-                <strong>Richie: <?php esc_html_e( 'Maggio index cache updated.', 'richie' ); ?></strong>
-            </p>
-            </div>
-            <?php
-        }
     }
 
-    /**
-     * Check if maggio cache was updated recently.
-     *
-     * @param  int $threshold Optional. Compare age against threshold. Defaults to 5 seconds.
-     *
-     * @return boolean
-     */
-    public function maggio_cache_updated( $threshold = 5 ) {
-        $options         = get_option( $this->settings_option_name );
-        $maggio_hostname = isset( $options['maggio_hostname'] ) ? $options['maggio_hostname'] : '';
-        $maggio_index    = isset( $options['maggio_index_range'] ) ? $options['maggio_index_range'] : '';
-
-        if ( ! empty( $maggio_hostname ) ) {
-            // Check if cache was updated recently.
-            $maggio_service = new Richie_Maggio_Service( $maggio_hostname, $maggio_index );
-            $cache          = $maggio_service->get_cache();
-            if ( false !== $cache ) {
-                $timestamp = isset( $cache['timestamp'] ) ? intval( $cache['timestamp'] ) : 0;
-                $age       = time() - $timestamp;
-                if ( $age < $threshold ) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
 
     /**
      * Setup and register options using settings api
@@ -686,7 +635,6 @@ class Richie_Admin {
         $paywall_section_name = 'richie_paywall';
         $sources_section_name = 'richie_news_source';
         $assets_section_name  = 'richie_feed_assets';
-        $maggio_section_name  = 'richie_maggio';
         $search_section_name  = 'richie_search';
         $adslots_section_name = 'richie_ad_slot';
 
@@ -700,21 +648,6 @@ class Richie_Admin {
             $section->add_field( 'metered_pmpro_level', __( 'Metered level', 'richie' ), 'pmpro_level', array( 'value' => $options['metered_pmpro_level'] ) );
             $section->add_field( 'member_only_pmpro_level', __( 'Member only level', 'richie' ), 'pmpro_level', array( 'value' => $options['member_only_pmpro_level'] ) );
         }
-
-        // Create maggio section.
-        $section = new Richie_Settings_Section( $maggio_section_name, __( 'Maggio settings', 'richie' ), $this->settings_option_name );
-        $section->add_field( 'maggio_organization', __( 'Maggio organization', 'richie' ), 'input_field', array( 'value' => $options['maggio_organization'] ) );
-        $section->add_field( 'maggio_hostname', __( 'Maggio hostname', 'richie' ), 'input_field', array( 'value' => $options['maggio_hostname'] ) );
-        $section->add_field( 'maggio_secret', __( 'Maggio secret', 'richie' ), 'input_field', array( 'value' => $options['maggio_secret'] ) );
-
-        if ( richie_is_pmpro_active() ) {
-            $section->add_field( 'maggio_required_pmpro_level', __( 'Required membership level', 'richie' ), 'pmpro_level', array( 'value' => $options['maggio_required_pmpro_level'] ) );
-        }
-
-        // 'all' and 'latest' are available as default, other options can be updated.
-        $available_indexes = $this->get_available_indexes();
-        $selected = isset( $options['maggio_index_range'] ) ? $options['maggio_index_range'] : '/_data/index.json';
-        $section->add_field( 'maggio_index_range', __( 'Maggio index range', 'richie' ), 'select_field', array( 'options' => $available_indexes, 'selected' => $selected, 'description' => 'Select index to use. "All" contains all issues, other options contain issues from specific range. To get available options, save Maggio Hostname setting first.' ) );
 
         // Create search settings section.
         $section  = new Richie_Settings_Section( $search_section_name, __( 'Search API settings', 'richie' ), $this->settings_option_name );
@@ -772,48 +705,6 @@ class Richie_Admin {
         $section->add_field( 'richie_news_assets', __( 'Assets', 'richie' ), 'asset_editor' );
     }
 
-    public function get_available_indexes() {
-        $options = get_option( $this->settings_option_name );
-
-        $available_indexes = array();
-
-        if ( isset( $options['maggio_hostname'] ) ) {
-            // We have hostname set, fetch available from the server.
-            $url      = $options['maggio_hostname'] . '/_data/server_config.json';
-            $response = wp_remote_get( $url );
-            $body     = wp_remote_retrieve_body( $response );
-
-            if ( ! empty( $body ) ) {
-                $config = json_decode( $body, true );
-                if ( JSON_ERROR_NONE === json_last_error() ) {
-                    $indexes = $config['indexes'];
-
-                    $available_indexes = array_map(
-                        function( $index ) {
-                            return array(
-                                'title' => $index['range'],
-                                'value' => $index['path'],
-                            );
-                        },
-                        $indexes
-                    );
-                }
-            }
-        } else {
-            // 'all' and 'latest' are available as default, other options can be updated.
-            $available_indexes = array(
-                array(
-                    'title' => 'all',
-                    'value' => '_data/index.json',
-                ),
-                array(
-                    'title' => 'latest',
-                    'value' => '_data/latest.json',
-                ),
-            );
-        }
-        return $available_indexes;
-    }
     /**
      * Ajax hook for ordering news source list.
      * Sends json response
