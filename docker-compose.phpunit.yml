@@ -1,5 +1,3 @@
-version: "3.3"
-
 services:
   wordpress_phpunit:
     depends_on:
@@ -10,6 +8,7 @@ services:
       PHPUNIT_DB_HOST: "mysql_phpunit"
     volumes:
       - "./richie:/app"
+      - ./richie-editions-wp:/app-editions
       - "testsuite:/tmp"
   mysql_phpunit:
     image: mariadb
