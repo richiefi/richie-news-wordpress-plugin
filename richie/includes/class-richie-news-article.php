@@ -92,12 +92,6 @@ class Richie_Article {
         $post = $post_obj; //phpcs:ignore
         $wp_query->setup_postdata( $post_obj );
 
-        if ( $this->is_pmpro_active() ) {
-            // Add pmpro filter which overrides access and always returns true.
-            // This way it won't filter the content and always returns full content.
-            add_filter( 'pmpro_has_membership_access_filter', '__return_true', 20, 4 );
-        }
-
         // Modify urls to have scheme.
         add_filter( 'script_loader_src', 'richie_force_url_scheme' );
         add_filter( 'style_loader_src', 'richie_force_url_scheme' );
@@ -118,30 +112,6 @@ class Richie_Article {
         } else {
             return $url;
         }
-    }
-
-    /**
-     * Check if pmpro plugin is active.
-     */
-    public function is_pmpro_active() {
-        return richie_is_pmpro_active();
-    }
-
-    /**
-     * Get available pmpro plugin levels.
-     *
-     * @param [WP_POST] $my_post WP post object.
-     * @return array
-     */
-    public function get_pmpro_levels( $my_post ) {
-        if ( $this->is_pmpro_active() ) {
-            global $wpdb;
-            $post_membership_levels = $wpdb->get_results( $wpdb->prepare( "SELECT mp.membership_id as id FROM $wpdb->pmpro_memberships_pages mp WHERE mp.page_id = %d", $my_post->ID ) );
-            $levels                 = array_column( $post_membership_levels, 'id' );
-
-            return $levels;
-        }
-        return [];
     }
 
     public function get_article_assets() {
@@ -338,23 +308,10 @@ class Richie_Article {
                 }
             }
 
-            $metered_id = null;
-            $member_only_id = null;
+            // TODO: Provide a way to set premium status per article.
+            $is_premium = false;
 
-            if ( is_array( $this->news_options ) ) {
-                $metered_id     = $this->news_options['metered_pmpro_level'];
-                $member_only_id = $this->news_options['member_only_pmpro_level'];
-            }
-
-            // Get paywall type.
-            $levels = $this->get_pmpro_levels( $my_post );
-
-            $is_premium = in_array( $member_only_id, $levels );
-            $is_metered = in_array( $metered_id, $levels );
-
-            if ( $is_metered ) {
-                $article->metered_paywall = self::METERED_PAYWALL_METERED_VALUE;
-            } elseif ( $is_premium ) {
+            if ( $is_premium ) {
                 $article->metered_paywall = self::METERED_PAYWALL_NO_ACCESS_VALUE;
             } else {
                 $article->metered_paywall = self::METERED_PAYWALL_FREE_VALUE;

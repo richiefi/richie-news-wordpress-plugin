@@ -15,8 +15,6 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
     public function setUp() {
         parent::setUp();
         $this->options = array(
-            'metered_pmpro_level' => null,
-            'member_only_pmpro_level' => 1,
             'access_token' => '1234',
         );
         $this->assets = array();
@@ -29,12 +27,8 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
     private function get_stub() {
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $this->assets ) )
-        ->setMethods( array( 'get_pmpro_levels', 'render_template', 'get_article_assets' ) )
+        ->setMethods( array( 'render_template', 'get_article_assets' ) )
         ->getMock();
-
-        // Configure the stub.
-        $stub->method( 'get_pmpro_levels' )
-            ->willReturn( array() );
 
         $stub->method( 'get_article_assets' )
             ->willReturn( array() );
@@ -92,16 +86,14 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
     }
 
     public function test_article_metered_paywall() {
+        $this->markTestSkipped('There is no support for metered paywall for now.');
         global $wpdb;
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $this->assets ) )
-        ->setMethods( array( 'is_pmpro_active', 'render_template', 'get_article_assets' ) )
+        ->setMethods( array( 'render_template', 'get_article_assets' ) )
         ->getMock();
 
         // Configure the stub.
-        $stub->method( 'is_pmpro_active' )
-            ->willReturn( true );
-
         $stub->method( 'get_article_assets' )
             ->willReturn( array() );
 
@@ -115,14 +107,14 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
             )
         );
 
-        $wpdb->pmpro_memberships_pages = 'TEST_DB';
+        //$wpdb->pmpro_memberships_pages = 'TEST_DB';
 
-        add_filter( 'query', function( $query ) {
-            if ( strpos( $query, 'TEST_DB' ) !== false ) {
-                return 'SELECT 1 as id'; // We have set member only level to 1 in options, return that.
-            }
-            return $query;
-        });
+        // add_filter( 'query', function( $query ) {
+        //     if ( strpos( $query, 'TEST_DB' ) !== false ) {
+        //         return 'SELECT 1 as id'; // We have set member only level to 1 in options, return that.
+        //     }
+        //     return $query;
+        // });
 
         $article = $stub->generate_article( $post );
         $this->assertEquals( $article->title, 'My Title' );
@@ -153,11 +145,8 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
 
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $general_assets ) )
-        ->setMethods( array( 'get_pmpro_levels') )
+        ->setMethods( array('') )
         ->getMock();
-
-        $stub->method( 'get_pmpro_levels' )
-        ->willReturn( array() );
 
         $postdate = '2010-01-01 12:00:00';
         $updated  = '2010-01-01 12:05:00';
@@ -197,12 +186,10 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         global $wpdb;
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $this->assets ) )
-        ->setMethods( array( 'get_pmpro_levels', 'render_template', 'get_article_assets' ) )
+        ->setMethods( array( 'render_template', 'get_article_assets' ) )
         ->getMock();
 
         // Configure the stub.
-        $stub->method( 'get_pmpro_levels' )
-            ->willReturn( array() );
 
         $stub->method( 'get_article_assets' )
             ->willReturn( array() );
@@ -249,12 +236,10 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         global $wpdb;
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $this->assets ) )
-        ->setMethods( array( 'get_pmpro_levels', 'render_template', 'get_article_assets' ) )
+        ->setMethods( array( 'render_template', 'get_article_assets' ) )
         ->getMock();
 
         // Configure the stub.
-        $stub->method( 'get_pmpro_levels' )
-            ->willReturn( array() );
 
         $stub->method( 'get_article_assets' )
             ->willReturn( array() );
@@ -310,12 +295,10 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         global $wpdb;
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $this->assets ) )
-        ->setMethods( array( 'get_pmpro_levels', 'render_template', 'get_article_assets' ) )
+        ->setMethods( array( 'render_template', 'get_article_assets' ) )
         ->getMock();
 
         // Configure the stub.
-        $stub->method( 'get_pmpro_levels' )
-            ->willReturn( array() );
 
         $stub->method( 'get_article_assets' )
             ->willReturn( array() );

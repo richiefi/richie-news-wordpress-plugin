@@ -270,9 +270,6 @@ class Richie_Admin {
     public function validate_settings( $input ) {
         $valid = array();
 
-        // Paywall.
-        $valid['metered_pmpro_level']     = isset( $input['metered_pmpro_level'] ) ? intval( $input['metered_pmpro_level'] ) : 0;
-        $valid['member_only_pmpro_level'] = isset( $input['member_only_pmpro_level'] ) ? intval( $input['member_only_pmpro_level'] ) : 0;
         if ( isset( $input['access_token'] ) && ! empty( $input['access_token'] ) ) {
             $valid['access_token'] = sanitize_text_field( $input['access_token'] );
         }
@@ -641,13 +638,6 @@ class Richie_Admin {
         // Create general section.
         $section = new Richie_Settings_Section( $general_section_name, __( 'General settings', 'richie' ), $this->settings_option_name );
         $section->add_field( 'access_token', __( 'Access token', 'richie' ), 'input_field', array( 'value' => $options['access_token'] ) );
-
-        if ( richie_is_pmpro_active() ) {
-            // Create paywall section.
-            $section = new Richie_Settings_Section( $paywall_section_name, __( 'Paywall', 'richie' ), $this->settings_option_name );
-            $section->add_field( 'metered_pmpro_level', __( 'Metered level', 'richie' ), 'pmpro_level', array( 'value' => $options['metered_pmpro_level'] ) );
-            $section->add_field( 'member_only_pmpro_level', __( 'Member only level', 'richie' ), 'pmpro_level', array( 'value' => $options['member_only_pmpro_level'] ) );
-        }
 
         // Create search settings section.
         $section  = new Richie_Settings_Section( $search_section_name, __( 'Search API settings', 'richie' ), $this->settings_option_name );

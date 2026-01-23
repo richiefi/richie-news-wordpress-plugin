@@ -152,40 +152,6 @@ class Richie_Admin_Components {
     }
 
     /**
-     * Render select box for pmpro levels
-     *
-     * @param array $args  Rendering options.
-     *
-     * Rendering options (in args):
-     *  string value: Current level.
-     *
-     * @return void
-     */
-    public function pmpro_level( array $args ) {
-        if ( false === richie_is_pmpro_active() ) {
-            return;
-        }
-
-        $option_name   = $args['option_name'];
-        $id            = $args['id'];
-        $name          = $option_name . '[' . $id . ']';
-        $current_level = isset( $args['value'] ) ? $args['value'] : '';
-        $pmpro_levels  = pmpro_getAllLevels();
-
-        ?>
-        <select name="<?php echo esc_attr( $name ); ?>" id="<?php echo esc_attr( $id ); ?>">
-            <option value="0"><?php esc_attr_e( 'Not used', 'richie' ); ?></option>
-            <?php
-            foreach ( $pmpro_levels as $level ) {
-                $selected = selected( $current_level, $level->id, false );
-                printf( "<option value='%s' %s>%s</option>", esc_attr( $level->id ), esc_attr( $selected ), esc_attr( $level->name ) );
-            }
-            ?>
-        </select>
-        <?php
-    }
-
-    /**
      * Render select box for article sets
      *
      * @param array $args  Rendering options.

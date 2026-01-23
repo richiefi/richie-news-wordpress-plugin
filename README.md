@@ -10,7 +10,7 @@ Separate plugin for migrating richie editions e-papers to wordpress. The plugin 
 
 ## Setting up dev environment
 
-Expecting docker and podman-compose to be installed.
+Expecting podman and podman-compose to be installed.
 
 ### Start containers
 
@@ -36,7 +36,7 @@ podman-compose down
 ### Setting up wordpress
 
 Dockerized wordpress installation should now be available in `http://wordpress.local:8234`. Visit the address and run wordpress
-setup. Activate Richie plugin in wordpress admin ui. Richie plugin currently depends on pmpro plugin, so that needs to be installed too.
+setup. Activate Richie plugin in wordpress admin ui.
 
 You can also do core install with cli:
 
