@@ -1,27 +1,27 @@
-version: '3.3'
-
 services:
   db:
-    image: mysql/mysql-server:8.0.23
+    image: docker.io/library/mariadb:10.6.4-focal
+    command: '--default-authentication-plugin=mysql_native_password'
     volumes:
       - db_data:/var/lib/mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: somewordpress
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: wordpress
-      MYSQL_PASSWORD: wordpress
-    networks:
-      - "back"
+      MARIADB_ROOT_PASSWORD: somewordpress
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: wordpress
+
 
   wordpress:
     depends_on:
       - db
-    image: wordpress:php7.4
+    image: docker.io/library/wordpress:latest
     restart: always
+    ports:
+      - "8234:80"
     environment:
-      VIRTUAL_HOST: "${DOCKER_DEV_DOMAIN:-wordpress.local}"
-      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: wordpress
       WORDPRESS_DB_USER: wordpress
       WORDPRESS_DB_PASSWORD: wordpress
       WORDPRESS_DEBUG: 1
@@ -29,40 +29,31 @@ services:
         define( 'WP_CACHE', false );
         define( 'WP_DEBUG_LOG', true );
         define( 'WP_DEBUG_DISPLAY', true );
+        define( 'WP_HOME', 'http://wordpress.local:8234' );
+        define( 'WP_SITEURL', 'http://wordpress.local:8234' );
     volumes:
       - wp:/var/www/html
       - ./wp-content:/var/www/html/wp-content
       - ./richie:/var/www/html/wp-content/plugins/richie
       - ./richie-editions-wp:/var/www/html/wp-content/plugins/richie-editions-wp
       - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
-    networks:
-      - "front"
-      - "back"
+
 
   cli:
     depends_on:
       - db
       - wordpress
     image: wordpress:cli
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
     volumes:
       - wp:/var/www/html
       - ./richie:/var/www/html/wp-content/plugins/richie
       - ./richie-editions-wp:/var/www/html/wp-content/plugins/richie-editions-wp
-    networks:
-      - "back"
 
-  proxy:
-    image: "jwilder/nginx-proxy:alpine"
-    restart: always
-    ports:
-      - "80:80"
-    networks:
-      front:
-        aliases:
-          - "${DOCKER_DEV_DOMAIN:-wordpress.local}"
-    volumes:
-      - "/var/run/docker.sock:/tmp/docker.sock:ro"
-      - ./custom-nginx.conf:/etc/nginx/conf.d/custom_proxy_settings.conf
 
   composer:
     depends_on:
@@ -73,12 +64,6 @@ services:
     volumes:
       - wp:/var/www/html
       - ./richie:/var/www/html/wp-content/plugins/richie
-    networks:
-      - "back"
-
-networks:
-  front: {}
-  back: {}
 
 volumes:
     db_data: {}
