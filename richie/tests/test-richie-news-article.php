@@ -143,10 +143,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
             }
         }
 
-        $stub = $this->getMockBuilder( Richie_Article::class )
-        ->setConstructorArgs( array( $this->options, $general_assets ) )
-        ->setMethods( array('') )
-        ->getMock();
+        $service = new Richie_Article( $this->options, $general_assets );
 
         $postdate = '2010-01-01 12:00:00';
         $updated  = '2010-01-01 12:05:00';
@@ -165,7 +162,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
 
         $post->post_modified = $updated;
         $post->post_modified_gmt = get_gmt_from_date( $updated );
-        $article = $stub->generate_article( $post );
+        $article = $service->generate_article( $post );
         $this->assertEquals( $article->title, 'My Title' );
 
         $assets = $article->assets;
