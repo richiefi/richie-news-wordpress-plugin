@@ -372,7 +372,7 @@ class Test_JSON_API extends WP_UnitTestCase {
         $this->assertEquals( $article->photos[0][0]->caption, 'caption' );
         $this->assertEquals( $article->photos[0][1]->local_name, 'external.url/testing/image.jpg' );
         $this->assertEquals( $article->photos[0][1]->remote_url, 'https://external.url/testing/image.jpg' );
-        $this->assertContains( 'src="external.url/testing/image.jpg"', $article->content_html_document );
+        $this->assertStringContainsString( 'src="external.url/testing/image.jpg"', $article->content_html_document );
 
     }
 
@@ -406,7 +406,7 @@ class Test_JSON_API extends WP_UnitTestCase {
         $this->assertEquals( $article->photos[0][1]->local_name, 'external.url/testing/image.jpg' );
         $this->assertEquals( $article->photos[0][1]->remote_url, 'https://external.url/testing/image.jpg' );
         $this->assertEquals( $article->photos[0][1]->scale_to_device_dimensions, true );
-        $this->assertContains( 'src="external.url/testing/image.jpg"', $article->content_html_document );
+        $this->assertStringContainsString( 'src="external.url/testing/image.jpg"', $article->content_html_document );
 
     }
 

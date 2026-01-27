@@ -50,7 +50,14 @@ class Richie_Article {
      *
      * @var bool
      */
-    private $scale_image;
+    private $scale_images;
+
+    /**
+     * API version
+     *
+     * @var int
+     */
+    private $api_version;
 
     /**
      * Create instance of richie news article generator

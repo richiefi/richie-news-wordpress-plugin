@@ -1,46 +1,54 @@
-[
-    {
-        "name": "ivopetkov/html5-dom-document-php",
-        "version": "v2.2.4",
-        "version_normalized": "2.2.4.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/ivopetkov/html5-dom-document-php.git",
-            "reference": "1b105b8682aaa62ec7fc149ab1484274e2bb94c0"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/ivopetkov/html5-dom-document-php/zipball/1b105b8682aaa62ec7fc149ab1484274e2bb94c0",
-            "reference": "1b105b8682aaa62ec7fc149ab1484274e2bb94c0",
-            "shasum": ""
-        },
-        "require": {
-            "ext-dom": "*",
-            "php": ">=7.0.0"
-        },
-        "require-dev": {
-            "ivopetkov/docs-generator": "0.2.*",
-            "phpunit/phpunit": "6.*"
-        },
-        "time": "2020-04-02T07:19:34+00:00",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "files": [
-                "autoload.php"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
+{
+        "packages": [
+                {
+                        "name": "ivopetkov/html5-dom-document-php",
+                        "version": "v2.7.0",
+                        "version_normalized": "2.7.0.0",
+                        "source": {
+                                "type": "git",
+                                "url": "https://github.com/ivopetkov/html5-dom-document-php.git",
+                                "reference": "cbbe2d5d03acc020ec78c72fdb20302cb3cdc872"
+                        },
+                        "dist": {
+                                "type": "zip",
+                                "url": "https://api.github.com/repos/ivopetkov/html5-dom-document-php/zipball/cbbe2d5d03acc020ec78c72fdb20302cb3cdc872",
+                                "reference": "cbbe2d5d03acc020ec78c72fdb20302cb3cdc872",
+                                "shasum": ""
+                        },
+                        "require": {
+                                "ext-dom": "*",
+                                "php": "7.0.*|7.1.*|7.2.*|7.3.*|7.4.*|8.0.*|8.1.*|8.2.*|8.3.*"
+                        },
+                        "require-dev": {
+                                "ivopetkov/docs-generator": "1.*"
+                        },
+                        "time": "2023-11-24T17:25:06+00:00",
+                        "type": "library",
+                        "installation-source": "dist",
+                        "autoload": {
+                                "files": [
+                                        "autoload.php"
+                                ]
+                        },
+                        "notification-url": "https://packagist.org/downloads/",
+                        "license": [
+                                "MIT"
+                        ],
+                        "authors": [
+                                {
+                                        "name": "Ivo Petkov",
+                                        "email": "ivo@ivopetkov.com",
+                                        "homepage": "http://ivopetkov.com"
+                                }
+                        ],
+                        "description": "HTML5 DOMDocument PHP library (extends DOMDocument)",
+                        "support": {
+                                "issues": "https://github.com/ivopetkov/html5-dom-document-php/issues",
+                                "source": "https://github.com/ivopetkov/html5-dom-document-php/tree/v2.7.0"
+                        },
+                        "install-path": "../ivopetkov/html5-dom-document-php"
+                }
         ],
-        "authors": [
-            {
-                "name": "Ivo Petkov",
-                "email": "ivo@ivopetkov.com",
-                "homepage": "http://ivopetkov.com"
-            }
-        ],
-        "description": "HTML5 DOMDocument PHP library (extends DOMDocument)"
-    }
-]
+        "dev": true,
+        "dev-package-names": []
+}

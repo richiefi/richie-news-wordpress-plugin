@@ -175,8 +175,8 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $this->assertEquals( $locals['www.richie.fi/js/script.js']->remote_url, 'http://www.richie.fi/js/script.js?ver=1.1' );
         $this->assertEquals( $locals['styles/style.css']->remote_url, 'http://example.org/styles/style.css?ver=1' );
 
-        $this->assertContains( '"www.richie.fi/js/script.js"', $article->content_html_document );
-        $this->assertContains( '"styles/style.css"', $article->content_html_document);
+        $this->assertStringContainsString( '"www.richie.fi/js/script.js"', $article->content_html_document );
+        $this->assertStringContainsString( '"styles/style.css"', $article->content_html_document);
     }
 
     public function test_article_handles_images() {
@@ -225,7 +225,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $photos  = $article->photos[0];
 
         // Url changed, srcset removed.
-        $this->assertContains( '<img src="img/included.jpg">', $article->content_html_document );
+        $this->assertStringContainsString( '<img src="img/included.jpg">', $article->content_html_document );
         $this->assertEquals( count( $photos ), 1 ); // One image should be included.
     }
 
@@ -363,11 +363,11 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $post->post_modified = $updated;
         $post->post_modified_gmt = get_gmt_from_date( $updated );
         $article = $stub->generate_article( $post, Richie_Article::EXCLUDE_METADATA );
-        $this->assertObjectNotHasAttribute( 'date', $article );
-        $this->assertObjectNotHasAttribute( 'summary', $article );
-        $this->assertObjectHasAttribute( 'title', $article );
-        $this->assertObjectHasAttribute( 'content_html_document', $article );
-        $this->assertObjectHasAttribute( 'assets', $article );
-        $this->assertObjectHasAttribute( 'photos', $article );
+        $this->assertObjectNotHasProperty( 'date', $article );
+        $this->assertObjectNotHasProperty( 'summary', $article );
+        $this->assertObjectHasProperty( 'title', $article );
+        $this->assertObjectHasProperty( 'content_html_document', $article );
+        $this->assertObjectHasProperty( 'assets', $article );
+        $this->assertObjectHasProperty( 'photos', $article );
     }
 }
