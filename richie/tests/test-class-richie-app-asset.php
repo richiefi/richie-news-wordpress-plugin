@@ -13,7 +13,7 @@
  */
 class Test_Richie_App_Asset extends WP_UnitTestCase {
 
-    public function setUp() {
+    public function setUp(): void {
         parent::setUp();
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-app-asset.php';
     }

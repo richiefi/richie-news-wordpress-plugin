@@ -12,7 +12,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
     protected $options;
     protected $assets;
 
-    public function setUp() {
+    public function setUp(): void {
         parent::setUp();
         $this->options = array(
             'access_token' => '1234',
@@ -20,14 +20,14 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $this->assets = array();
 
     }
-    public function tearDown() {
+    public function tearDown(): void {
         parent::tearDown();
     }
 
     private function get_stub() {
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $this->assets ) )
-        ->setMethods( array( 'render_template', 'get_article_assets' ) )
+        ->onlyMethods( array( 'render_template', 'get_article_assets' ) )
         ->getMock();
 
         $stub->method( 'get_article_assets' )
@@ -90,7 +90,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         global $wpdb;
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $this->assets ) )
-        ->setMethods( array( 'render_template', 'get_article_assets' ) )
+        ->onlyMethods( array( 'render_template', 'get_article_assets' ) )
         ->getMock();
 
         // Configure the stub.
@@ -183,7 +183,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         global $wpdb;
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $this->assets ) )
-        ->setMethods( array( 'render_template', 'get_article_assets' ) )
+        ->onlyMethods( array( 'render_template', 'get_article_assets' ) )
         ->getMock();
 
         // Configure the stub.
@@ -233,7 +233,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         global $wpdb;
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $this->assets ) )
-        ->setMethods( array( 'render_template', 'get_article_assets' ) )
+        ->onlyMethods( array( 'render_template', 'get_article_assets' ) )
         ->getMock();
 
         // Configure the stub.
@@ -292,7 +292,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         global $wpdb;
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $this->assets ) )
-        ->setMethods( array( 'render_template', 'get_article_assets' ) )
+        ->onlyMethods( array( 'render_template', 'get_article_assets' ) )
         ->getMock();
 
         // Configure the stub.

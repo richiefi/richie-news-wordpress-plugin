@@ -13,7 +13,7 @@ class Test_JSON_API extends WP_UnitTestCase {
 
     protected $namespaced_route = 'richie/v1';
 
-	public function setUp() {
+	public function setUp(): void {
         parent::setUp();
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
@@ -22,7 +22,7 @@ class Test_JSON_API extends WP_UnitTestCase {
         update_option( 'richie', array( 'access_token' => 'testtoken' ) );
     }
 
-    public function tearDown() {
+    public function tearDown(): void {
         delete_option( 'richie' );
         parent::tearDown();
     }
