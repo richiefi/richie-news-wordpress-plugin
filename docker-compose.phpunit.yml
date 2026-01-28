@@ -1,21 +1,44 @@
+# Extension field for shared phpunit service configuration
+x-phpunit-common: &phpunit-common
+  depends_on:
+    - mysql_phpunit
+  network_mode: slirp4netns
+  environment:
+    PHPUNIT_DB_HOST: "mysql_phpunit"
+  volumes:
+    - "./richie:/app"
+    - ./richie-editions-wp:/app-editions
+    - "testsuite:/tmp"
+
 services:
-  wordpress_phpunit:
-    depends_on:
-      - mysql_phpunit
-    build: './docker/phpunit'
-    network_mode: pasta
-    environment:
-      PHPUNIT_DB_HOST: "mysql_phpunit"
-    volumes:
-      - "./richie:/app"
-      - ./richie-editions-wp:/app-editions
-      - "testsuite:/tmp"
+  wordpress_phpunit_7_4:
+    <<: *phpunit-common
+    build:
+      context: './docker/phpunit'
+      args:
+        PHP_VERSION: "7.4"
+
+  wordpress_phpunit_8_0:
+    <<: *phpunit-common
+    build:
+      context: './docker/phpunit'
+      args:
+        PHP_VERSION: "8.0"
+
+  wordpress_phpunit_8_4:
+    <<: *phpunit-common
+    build:
+      context: './docker/phpunit'
+      args:
+        PHP_VERSION: "8.4"
+
   mysql_phpunit:
+    container_name: mysql_phpunit
     image: docker.io/library/mariadb:10.6.4-focal
     command: '--default-authentication-plugin=mysql_native_password'
-    network_mode: pasta
+    #network_mode: slirp4netns
     ports:
-    - "3306:3306"
+      - "3306:3306"
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: "wordpress_test"

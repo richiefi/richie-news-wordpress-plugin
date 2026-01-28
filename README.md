@@ -58,14 +58,14 @@ Test suite was setup using wp cli scaffold. No need to run this again, but docum
 podman compose run --rm cli wp scaffold plugin-tests richie
 ```
 
-The testing environment is provided by a separate Docker Compose file (docker-compose.phpunit.yml) to ensure isolation. To use it, you must first start it, then manually run your test installation script.
+The testing environment is provided by a separate Docker Compose file (docker-compose.phpunit.yml) to ensure isolation. To use it, you must first start it, then manually run your test installation script. Test Compose file defines multiple wordpress_phpunit services for different PHP versions; you can choose the desired version by specifying the appropriate service name. There is also a shell script `run_tests.sh` that runs all tests for all defined PHP versions.
 
 ```shell
 podman compose -f docker-compose.yml -f docker-compose.phpunit.yml up -d
 ```
 
 ```shell
-podman compose -f docker-compose.phpunit.yml run --rm wordpress_phpunit /app/bin/install-wp-tests.sh wordpress_test root '' mysql_phpunit latest true
+podman compose -f docker-compose.phpunit.yml run --rm wordpress_phpunit_8_0 /app/bin/install-wp-tests.sh wordpress_test root '' mysql_phpunit latest true
 ```
 
 This installs wordpress and tests into an isolated container. Plugin code is mapped under `/app`.
@@ -73,7 +73,7 @@ This installs wordpress and tests into an isolated container. Plugin code is map
 ### Running tests
 
 ```shell
-podman compose -f docker-compose.phpunit.yml run --rm wordpress_phpunit phpunit
+podman compose -f docker-compose.phpunit.yml run --rm wordpress_phpunit_8_0 phpunit
 ```
 
 ## Troubleshooting
