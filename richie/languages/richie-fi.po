@@ -10,30 +10,26 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2020-04-01T12:11:10+00:00\n"
-"PO-Revision-Date: 2023-01-18 08:21+0000\n"
+"PO-Revision-Date: 2026-01-28 15:19+0000\n"
 "X-Generator: Loco https://localise.biz/\n"
 "X-Domain: richie\n"
 "Language: fi\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Loco-Version: 2.3.1; wp-5.4"
 
-#: public/class-richie-public.php:861
-msgid "\"product\" attribute is required"
-msgstr "\"product\" parametri on vaadittu"
-
-#: includes/class-richie-admin-components.php:370
+#: includes/class-richie-admin-components.php:336
 msgid "1 year"
 msgstr "1 vuosi"
 
-#: admin/class-richie-admin.php:687
+#: admin/class-richie-admin.php:623
 msgid "Access token"
 msgstr "Pääsyavain"
 
-#: admin/class-richie-admin.php:760
+#: admin/class-richie-admin.php:661
 msgid "Ad data"
 msgstr "Mainostiedot"
 
-#: admin/class-richie-admin.php:759
+#: admin/class-richie-admin.php:660
 msgid "Ad provider"
 msgstr "Mainospalvelu"
 
@@ -46,7 +42,7 @@ msgstr "Mainospaikat"
 msgid "Add ad slot"
 msgstr "Lisää mainospaikka"
 
-#: admin/class-richie-admin.php:754
+#: admin/class-richie-admin.php:655
 msgid "Add new ad slot"
 msgstr "Lisää uusi mainospaikka"
 
@@ -66,157 +62,154 @@ msgstr "Lisää uutislähde"
 msgid "All Article sets"
 msgstr "Kaikki artikkelikokoelmat"
 
-#: includes/class-richie-admin-components.php:371
+#: includes/class-richie-admin-components.php:337
 msgid "All time"
 msgstr "Kaikki"
 
-#: admin/class-richie-admin.php:748
+#: admin/class-richie-admin.php:649
 msgid "Allow duplicate articles in this source"
 msgstr "Salli duplikaattiartikkelit tässä lähteessä"
 
-#: admin/class-richie-admin.php:748
+#: admin/class-richie-admin.php:649
 msgid "Allow duplicates"
 msgstr "Salli duplikaatit"
 
-#: admin/class-richie-admin.php:719 admin/class-richie-admin.php:755
+#: admin/class-richie-admin.php:633 admin/class-richie-admin.php:656
 #: includes/class-richie-custom-taxonomies.php:49
 msgid "Article set"
 msgstr "Artikkelikokoelma"
 
-#: includes/class-richie-admin-components.php:309
+#: includes/class-richie-admin-components.php:275
 msgid "ASC"
 msgstr "Nouseva järjestys"
 
-#: admin/class-richie-admin.php:763
+#: admin/class-richie-admin.php:664
 msgid "Asset feed"
 msgstr "Asset-syöte"
 
-#: admin/class-richie-admin.php:764
+#: admin/class-richie-admin.php:665
 msgid "Assets"
 msgstr "Assetit"
 
-#: admin/class-richie-admin.php:747
+#: admin/class-richie-admin.php:648
 msgid "Background color"
 msgstr ""
 
-#: admin/class-richie-admin.php:747
+#: admin/class-richie-admin.php:648
 msgid ""
 "Background color to be used with layout types. Not all layout types support "
 "this."
 msgstr ""
 
-#: admin/class-richie-admin.php:717
+#: admin/class-richie-admin.php:631
 msgid "Basic data"
 msgstr "Perustiedot"
 
-#: admin/class-richie-admin.php:738
+#: admin/class-richie-admin.php:639
 msgid "Categories"
 msgstr "Kategoriat"
 
-#: admin/class-richie-admin.php:1083 admin/class-richie-admin.php:1174
+#: admin/class-richie-admin.php:942 admin/class-richie-admin.php:1024
 msgctxt "column name"
 msgid "Actions"
 msgstr "Toiminnot"
 
-#: admin/class-richie-admin.php:1173
+#: admin/class-richie-admin.php:1023
 msgctxt "column name"
 msgid "Ad data"
 msgstr "Tiedot"
 
-#: admin/class-richie-admin.php:1172
+#: admin/class-richie-admin.php:1022
 msgctxt "column name"
 msgid "Ad provider"
 msgstr "Palvelu"
 
-#: admin/class-richie-admin.php:1082
+#: admin/class-richie-admin.php:941
 msgctxt "column name"
 msgid "Allow duplicates"
 msgstr "Salli duplikaatit"
 
-#: admin/class-richie-admin.php:1072 admin/class-richie-admin.php:1169
+#: admin/class-richie-admin.php:931 admin/class-richie-admin.php:1019
 msgctxt "column name"
 msgid "Article Set"
 msgstr "Artikkelikokoelma"
 
-#: admin/class-richie-admin.php:1080
+#: admin/class-richie-admin.php:939
 msgctxt "column name"
 msgid "Background"
 msgstr ""
+"Taustaväri\n"
 
-#: admin/class-richie-admin.php:1075
+#: admin/class-richie-admin.php:934
 msgctxt "column name"
 msgid "Categories"
 msgstr "Kategoriat"
 
-#: admin/class-richie-admin.php:1081
+#: admin/class-richie-admin.php:940
 msgctxt "column name"
 msgid "Disable summary"
 msgstr "Piilota yhteenveto"
 
-#: admin/class-richie-admin.php:1071 admin/class-richie-admin.php:1171
+#: admin/class-richie-admin.php:930 admin/class-richie-admin.php:1021
 msgctxt "column name"
 msgid "ID"
 msgstr "ID"
 
-#: admin/class-richie-admin.php:1170
+#: admin/class-richie-admin.php:1020
 msgctxt "column name"
 msgid "Index"
 msgstr "Järjestysnumero"
 
-#: admin/class-richie-admin.php:1079
+#: admin/class-richie-admin.php:938
 msgctxt "column name"
 msgid "List layout"
 msgstr "Muoto"
 
-#: admin/class-richie-admin.php:1078
+#: admin/class-richie-admin.php:937
 msgctxt "column name"
 msgid "Max age"
 msgstr "Artikkelin ikä"
 
-#: admin/class-richie-admin.php:1073
+#: admin/class-richie-admin.php:932
 msgctxt "column name"
 msgid "Name"
 msgstr "Nimi"
 
-#: admin/class-richie-admin.php:1077
+#: admin/class-richie-admin.php:936
 msgctxt "column name"
 msgid "Order"
 msgstr "Järjestys"
 
-#: admin/class-richie-admin.php:1074
+#: admin/class-richie-admin.php:933
 msgctxt "column name"
 msgid "Post type"
-msgstr ""
+msgstr "Artikkelityyppi"
 
-#: admin/class-richie-admin.php:1076
+#: admin/class-richie-admin.php:935
 msgctxt "column name"
 msgid "Posts"
 msgstr "Lukumäärä"
 
-#: admin/class-richie-admin.php:1200
+#: admin/class-richie-admin.php:1050
 msgid "Copy to form"
 msgstr "Kopioi lomakkeelle"
 
-#: admin/class-richie-admin.php:728
-msgid "Current front page id is"
-msgstr "Nykyinen etusivun artikkeli-id on"
-
-#: includes/class-richie-admin-components.php:363
-#: includes/class-richie-admin-components.php:364
+#: includes/class-richie-admin-components.php:329
+#: includes/class-richie-admin-components.php:330
 msgid "day"
 msgid_plural "days"
 msgstr[0] "päivä"
 msgstr[1] "päivää"
 
-#: includes/class-richie-admin-components.php:308
+#: includes/class-richie-admin-components.php:274
 msgid "DESC"
 msgstr "Laskeva järjestys"
 
-#: admin/class-richie-admin.php:749
+#: admin/class-richie-admin.php:650
 msgid "Disable article summary"
 msgstr "Piilota artikkelin yhteenveto"
 
-#: admin/class-richie-admin.php:749
+#: admin/class-richie-admin.php:650
 msgid "Do not show summary text in news list"
 msgstr "Älä näytä artikkelin yhteenvetoa uutislistauksessa"
 
@@ -224,49 +217,39 @@ msgstr "Älä näytä artikkelin yhteenvetoa uutislistauksessa"
 msgid "Edit Article set"
 msgstr "Muokkaa artikkelikokoelmaa"
 
-#: includes/class-richie-admin-components.php:209
+#: includes/class-richie-admin-components.php:175
 msgid "Edit Article sets"
 msgstr "Muokkaa artikkelikokoelmia"
 
-#: public/class-richie-public.php:874 public/class-richie-public.php:964
-msgid "Failed to fetch issues"
-msgstr "Näköislehtien lataus epäonnistui"
-
-#: includes/class-richie-news-article.php:421
+#: includes/class-richie-news-article.php:385
 msgid "Failed to get content"
 msgstr "Sisällön lataus epäonnistui"
 
 #. translators: %s is replaced with the error
-#: admin/class-richie-admin.php:436
+#: admin/class-richie-admin.php:409
+#, php-format
 msgid "Failed to parse json, unable to save: %s"
 msgstr "JSON-tiedon käsittely epäonnistui, tallennus ei onnistu: %s"
 
 #. translators: %s is replaced with the error
-#: admin/class-richie-admin.php:483
+#: admin/class-richie-admin.php:456
+#, php-format
 msgid "Failed to save adslot, validation failed: %s"
 msgstr "Mainospaikan tallennus epäonnistui: %s"
 
-#: admin/class-richie-admin.php:725
-msgid ""
-"Fetch posts from herald modules of this page id. Rest of filters will be "
-"ignored."
-msgstr ""
-"Käytä artikkeleita annetun sivun herald-teeman moduuleista. Loput "
-"suodattimista jätetään huomioimatta."
-
-#: admin/class-richie-admin.php:737
+#: admin/class-richie-admin.php:638
 msgid "Filters"
 msgstr "Suodattimet"
 
-#: admin/class-richie-admin.php:686
+#: admin/class-richie-admin.php:622
 msgid "General settings"
 msgstr "Yleiset asetukset"
 
-#: admin/class-richie-admin.php:347
+#: admin/class-richie-admin.php:327
 msgid "Given post type not supported"
-msgstr ""
+msgstr "Annettu artikkelityyppi ei ole tuettu"
 
-#: admin/class-richie-admin.php:746
+#: admin/class-richie-admin.php:647
 msgid ""
 "Header to display before the story, useful on the first small_group_item of "
 "a group"
@@ -274,115 +257,40 @@ msgstr ""
 "Otsikko, joka näytetään ennen artikkelia. Hyödyllinen käytettäessä "
 "small_group_item muotoa."
 
-#: admin/class-richie-admin.php:723
-msgid "Herald featured module"
-msgstr "Herald-teeman nostot"
-
-#: admin/class-richie-admin.php:335
-msgid "Herald module name given but post id was empty"
-msgstr "Herald-teeman moduuliotsikko annettu, mutta artikkeli id on tyhjä."
-
-#: admin/class-richie-admin.php:732
-msgid "Herald module title"
-msgstr "Herald moduulin otsikko"
-
-#: admin/class-richie-admin.php:731
-msgid "Herald page ID"
-msgstr "Herald sivu ID"
-
 #. Plugin URI of the plugin
+#: richie.php
 msgid "https://www.richie.fi"
 msgstr "https://www.richie.fi"
 
-#: includes/class-richie-admin-components.php:383
+#: includes/class-richie-admin-components.php:349
 msgid "Include posts that are not older than specific time range"
 msgstr "Ota mukaan artikkelit, jotka eivät ole määriteltyä arvoa vanhempia."
 
-#: public/class-richie-public.php:847
-msgid "Invalid configuration, missing hostname in settings"
-msgstr "Virheelliset asetukset, verkko-osoite puuttuu"
-
-#: includes/functions.php:95
-msgid "Invalid issue uuid"
-msgstr "Virheellinen lehden tunniste"
-
-#: public/class-richie-public.php:865
-msgid "Invalid organization"
-msgstr "Virheellinen organisaatio"
-
-#: includes/functions.php:99
-msgid "Invalid timestamp, it must be an integer"
-msgstr "Virheellinen aikaleima, pitää olla kokonaisluku"
-
-#: admin/class-richie-admin.php:1065
+#: admin/class-richie-admin.php:924
 msgid "Last publish time:"
 msgstr "Viimeksi julkaistu:"
 
-#: admin/class-richie-admin.php:746
+#: admin/class-richie-admin.php:647
 msgid "List group title"
 msgstr "Ryhmän otsikko"
 
-#: admin/class-richie-admin.php:745
+#: admin/class-richie-admin.php:646
 msgid "List layout"
 msgstr "Listauksen muoto"
 
-#: admin/class-richie-admin.php:699
-msgid "Maggio hostname"
-msgstr "Maggio verkko-osoite"
-
-#: admin/class-richie-admin.php:534
-msgid "Maggio index cache updated."
-msgstr "Maggio indeksin välimuisti päivitetty."
-
-#: admin/class-richie-admin.php:709
-msgid "Maggio index range"
-msgstr "Maggio indeksi"
-
-#: admin/class-richie-admin.php:698
-msgid "Maggio organization"
-msgstr "Maggio organisaatio"
-
-#: admin/class-richie-admin.php:700
-msgid "Maggio secret"
-msgstr "Maggio salausavain"
-
-#: admin/class-richie-admin.php:697
-msgid "Maggio settings"
-msgstr "Maggio-asetukset"
-
-#: admin/class-richie-admin.php:693
-msgid "Member only level"
-msgstr "Ainoastaan tilaajille -taso"
-
-#: admin/class-richie-admin.php:692
-msgid "Metered level"
-msgstr "Mittaroitu taso"
-
-#: includes/functions.php:91
-msgid "Missing secret"
-msgstr "Puuttuva salausavain"
-
-#: admin/class-richie-admin.php:732
-msgid ""
-"Module title from the given page to be used as a source. If empty, defaults "
-"to first featured type module."
-msgstr ""
-"Lähteenä käytetään moduulia, jolla on annettu otsikko. Jos tyhjä, lähteenä "
-"käytetään ensimmäistä 'featured'-tyyppistä moduulia."
-
-#: includes/class-richie-admin-components.php:367
-#: includes/class-richie-admin-components.php:368
-#: includes/class-richie-admin-components.php:369
+#: includes/class-richie-admin-components.php:333
+#: includes/class-richie-admin-components.php:334
+#: includes/class-richie-admin-components.php:335
 msgid "month"
 msgid_plural "months"
 msgstr[0] "kuukausi"
 msgstr[1] "kuukautta"
 
-#: admin/class-richie-admin.php:718
+#: admin/class-richie-admin.php:632
 msgid "Name"
 msgstr "Nimi"
 
-#: admin/class-richie-admin.php:401
+#: admin/class-richie-admin.php:374
 msgid "Name and number of posts are required"
 msgstr "Nimi ja artikkelien lukumäärä ovat vaadittuja"
 
@@ -399,156 +307,144 @@ msgstr "Uutis-assetit"
 msgid "News sources"
 msgstr "Uutislähteet"
 
-#: admin/class-richie-admin.php:520
+#: admin/class-richie-admin.php:493
 msgid "News sources have unpublished changes."
 msgstr "Uutislähteissä on julkaisemattomia muutoksia."
 
-#: admin/class-richie-admin.php:422
+#: admin/class-richie-admin.php:395
 msgid "No data found"
 msgstr "Tiedot puuttuvat"
 
-#: public/class-richie-public.php:882
-msgid "No issues found"
-msgstr "Lehtiä ei löytynyt"
-
-#: admin/class-richie-admin.php:1212
+#: admin/class-richie-admin.php:1062
 msgid "No slots configured. Add ad slots with the form below."
 msgstr "Ei luotuja mainospaikkoja. Lisää mainospaikka alapuolen lomakkeella."
 
-#: admin/class-richie-admin.php:1153
+#: admin/class-richie-admin.php:1003
 msgid "No sources configured. Add news feed sources with the form below."
 msgstr "Ei luotuja uutislähteitä. Lisää uusi lähde alapuolen lomakkeella."
 
-#: includes/class-richie-admin-components.php:177
-msgid "Not used"
-msgstr "Ei käytössä"
-
-#: admin/class-richie-admin.php:720
+#: admin/class-richie-admin.php:634
 msgid "Number of posts"
 msgstr "Artikkelien lukumäärä"
 
-#: admin/class-richie-admin.php:720
+#: admin/class-richie-admin.php:634
 msgid "Number of posts included in the feed"
 msgstr "Syötteeseen mukaanotettavien artikkelien määrä"
 
-#: admin/class-richie-admin.php:744
+#: admin/class-richie-admin.php:645
 msgid "Options"
 msgstr "Lisävalinnat"
 
-#: admin/class-richie-admin.php:740
+#: admin/class-richie-admin.php:641
 msgid "Order by"
 msgstr "Järjestä"
 
-#: admin/class-richie-admin.php:741
+#: admin/class-richie-admin.php:642
 msgid "Order direction"
 msgstr "Järjestyksen suunta"
 
-#: admin/class-richie-admin.php:691
-msgid "Paywall"
-msgstr "Maksumuuri"
-
-#: includes/class-richie-admin-components.php:285
+#: includes/class-richie-admin-components.php:251
 msgid "Popular posts (24 hours)"
 msgstr "Suosituimmat (24 tuntia)"
 
-#: includes/class-richie-admin-components.php:287
+#: includes/class-richie-admin-components.php:253
 msgid "Popular posts (month)"
 msgstr "Suosituimmat (kuukausi)"
 
-#: includes/class-richie-admin-components.php:286
+#: includes/class-richie-admin-components.php:252
 msgid "Popular posts (week)"
 msgstr "Suosituimmat (viikko)"
 
-#: includes/class-richie-admin-components.php:278
+#: includes/class-richie-admin-components.php:244
 msgid "Post author"
 msgstr "Artikkelin tekijä"
 
-#: includes/class-richie-admin-components.php:275
+#: includes/class-richie-admin-components.php:241
 msgid "Post date"
 msgstr "Artikkelin päiväys"
 
-#: includes/class-richie-admin-components.php:279
+#: includes/class-richie-admin-components.php:245
 msgid "Post ID"
 msgstr "Artikkelin ID"
 
-#: admin/class-richie-admin.php:742
+#: admin/class-richie-admin.php:643
 msgid "Post max age"
 msgstr "Artikkelin ikä korkeintaan"
 
-#: includes/class-richie-admin-components.php:276
+#: includes/class-richie-admin-components.php:242
 msgid "Post modified time"
 msgstr "Artikkelin muokkausaika"
 
-#: includes/class-richie-admin-components.php:277
+#: includes/class-richie-admin-components.php:243
 msgid "Post title"
 msgstr "Artikkelin otsikko"
 
-#: admin/class-richie-admin.php:735
+#: admin/class-richie-admin.php:636
 msgid "Post type"
-msgstr ""
+msgstr "Artikkelityyppi"
 
-#: includes/class-richie-admin-components.php:269
+#: includes/class-richie-admin-components.php:235
 msgid "Post views"
 msgstr "Artikkelinäytöt"
 
-#: admin/class-richie-admin.php:1067
+#: admin/class-richie-admin.php:926
 msgid "Publish"
 msgstr "Julkaise"
 
-#: admin/class-richie-admin.php:522
+#: admin/class-richie-admin.php:495
 msgid "Publish now"
 msgstr "Julkaise nyt"
 
-#: admin/class-richie-admin.php:1143 admin/class-richie-admin.php:1201
+#: admin/class-richie-admin.php:993 admin/class-richie-admin.php:1051
 msgid "Remove"
 msgstr "Poista"
 
-#: admin/class-richie-admin.php:703
-msgid "Required membership level"
-msgstr "Vaadittu käyttäjätaso"
-
-#: admin/class-richie-admin.php:523
+#: admin/class-richie-admin.php:496
 msgid "Revert changes"
 msgstr "Peruuta muutokset"
 
 #. Plugin Name of the plugin
-msgid "Richie"
-msgstr "Richie"
-
-#. Author of the plugin
-msgid "Richie Oy"
-msgstr "Richie OY"
+#: richie.php
+msgid "Richie News"
+msgstr "Richie News"
 
 #. Description of the plugin
-msgid "Richie platform plugin"
-msgstr "Richie platform plugin"
+#: richie.php
+msgid "Richie news platform plugin. Provides news API for native applications."
+msgstr ""
+"Richie News plugin. Tarjoaa Richie News-rajapinnan sovelluksien käyttöön."
+
+#. Author of the plugin
+#: richie.php
+msgid "Richie Oy"
+msgstr "Richie OY"
 
 #: admin/partials/richie-admin-display.php:39
 #: admin/partials/richie-admin-display.php:72
 msgid "Save all changes"
 msgstr "Tallenna muutokset"
 
-#: admin/class-richie-admin.php:712
+#: admin/class-richie-admin.php:626
 msgid "Search API settings"
-msgstr ""
+msgstr "Hakurajapinnan asetukset"
 
 #: includes/class-richie-custom-taxonomies.php:43
 msgid "Search Article sets"
 msgstr "Etsi artikkelikokoelmaa"
 
-#: admin/class-richie-admin.php:714
+#: admin/class-richie-admin.php:628
 msgid "Search list layout"
-msgstr ""
+msgstr "Hakurajapinnan listamuoto"
 
-#: admin/class-richie-admin.php:223 admin/partials/richie-admin-display.php:25
+#: admin/class-richie-admin.php:230 admin/partials/richie-admin-display.php:25
 msgid "Settings"
 msgstr "Asetukset"
 
-#: admin/class-richie-admin.php:756
+#: admin/class-richie-admin.php:657
 msgid "Slot position"
 msgstr "Mainospaikan järjestysnumero"
 
-#: admin/class-richie-admin.php:752
+#: admin/class-richie-admin.php:653
 msgid ""
 "Specify an index number for the ad slot placement in the article set feed. 1-"
 "based index, so 1 means the first item on the feed. Existing index for the "
@@ -559,9 +455,9 @@ msgstr ""
 "Olemassa oleva järjestysnumero artikkelikokoelmassa korvataan tallennuksen "
 "yhteydessä."
 
-#: admin/class-richie-admin.php:739
+#: admin/class-richie-admin.php:640
 msgid "Tags"
-msgstr ""
+msgstr "Asiasanat"
 
 #: includes/class-richie-custom-taxonomies.php:41
 msgctxt "taxonomy general name"
@@ -577,17 +473,9 @@ msgstr "Artikkelikokoelma"
 msgid "Update Article set"
 msgstr "Päivitä artikkelikokoelma"
 
-#: includes/class-richie-admin-components.php:365
-#: includes/class-richie-admin-components.php:366
+#: includes/class-richie-admin-components.php:331
+#: includes/class-richie-admin-components.php:332
 msgid "week"
 msgid_plural "weeks"
 msgstr[0] "viikko"
 msgstr[1] "viikkoa"
-
-#: templates/richie-maggio-index.php:31
-msgid ""
-"You need to be logged in and have an active subscription to access these "
-"issues"
-msgstr ""
-"Sinun tulee olla kirjautuneena ja sinulla pitää olla aktiivinen tilaus "
-"lukeaksesi näitä lehtiä."
