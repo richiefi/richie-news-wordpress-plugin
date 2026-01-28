@@ -6,6 +6,9 @@ RUN apt-get update && apt-get install -y mariadb-client libsqlite3-dev subversio
     && docker-php-ext-install zip \
     && docker-php-ext-install mysqli
 
+# Install PCOV for code coverage
+RUN pecl install pcov && docker-php-ext-enable pcov
+
 #COMPOSER
 RUN curl -sS https://getcomposer.org/installer | php
 RUN mv composer.phar /usr/local/bin/composer
