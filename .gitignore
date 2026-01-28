@@ -5,4 +5,4 @@ vendor/**
 
 package-lock.json
 *.zip
-*.phpunit.result.cache
+.phpunit.result.cache
