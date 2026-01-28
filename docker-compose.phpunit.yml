@@ -1,10 +1,12 @@
 # Extension field for shared phpunit service configuration
+# Note: With slirp4netns, containers can't communicate directly
+# Solution: MySQL publishes port, containers connect via host.containers.internal
 x-phpunit-common: &phpunit-common
   depends_on:
     - mysql_phpunit
   network_mode: slirp4netns
   environment:
-    PHPUNIT_DB_HOST: "mysql_phpunit"
+    PHPUNIT_DB_HOST: "host.containers.internal"
   volumes:
     - "./richie:/app"
     - ./richie-editions-wp:/app-editions
@@ -36,14 +38,13 @@ services:
     container_name: mysql_phpunit
     image: docker.io/library/mariadb:10.6.4-focal
     command: '--default-authentication-plugin=mysql_native_password'
-    #network_mode: slirp4netns
+    network_mode: slirp4netns
     ports:
       - "3306:3306"
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: "wordpress_test"
       MYSQL_ROOT_PASSWORD: ""
-
 
 volumes:
   testsuite: {}
