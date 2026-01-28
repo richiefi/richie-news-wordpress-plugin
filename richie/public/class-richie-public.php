@@ -109,144 +109,72 @@ class Richie_Public {
                 $args['post__not_in'] = $found_ids;
             }
 
-            if ( isset( $source['herald_featured_post_id'] ) ) {
-                if ( ! defined( 'HERALD_THEME_VERSION' ) ) {
-                    // Herald not active, ignore source.
-                    continue;
-                }
 
-                // Use herald featured module.
-                $page_id      = (int) isset( $source['herald_featured_post_id'] ) ? $source['herald_featured_post_id'] : null;
-                $module_title = isset( $source['herald_featured_module_title'] ) ? $source['herald_featured_module_title'] : null;
-                $meta         = get_post_meta( $page_id, '_herald_meta', true );
+            if ( isset( $source['categories'] ) && ! empty( $source['categories'] ) ) {
+                $args['cat'] = $source['categories'];
+            }
 
-                if ( empty( $meta ) ) {
-                    // No metadata found.
-                    continue;
-                }
+            if ( isset( $source['tags'] ) && ! empty( $source['tags'] ) ) {
+                $args['tag_slug__in'] = $source['tags'];
+            }
 
-                if ( isset( $meta['sections'] ) && ! empty( $meta['sections'] ) ) {
-                    $module = null;
-                    foreach ( $meta['sections'] as $sec ) {
-                        if ( $module ) {
-                            break;
-                        }
-                        if ( isset( $sec['modules'] ) && ! empty( $sec['modules'] ) ) {
-                            $support_modules = array( 'posts', 'featured' );
-                            foreach ( $sec['modules'] as $mod ) {
-                                if ( ! in_array( $mod['type'], $support_modules ) ) {
-                                    // Module not supported (yet).
-                                    continue;
-                                }
+            if ( isset( $source['order_by'] ) && ! empty( $source['order_by'] ) ) {
+                $order_by   = 'date';
+                $is_metakey = strpos( $source['order_by'], 'metakey:' ) === 0;
+                $is_popular = strpos( $source['order_by'], 'popular:' ) === 0;
 
-                                if ( isset( $module_title ) ) {
-                                    if ( $mod['title'] === $module_title && true === (bool) $mod['active'] ) {
-                                        $module = $mod;
-                                        break;
-                                    }
-                                } elseif ( 'featured' === $mod['type'] && true === (bool) $mod['active'] ) {
-                                    // Use first featured item if no title given.
-                                    $module = $mod;
-                                    break;
-                                }
-                            }
+                if ( true === $is_metakey ) {
+                    $meta = explode( ':', $source['order_by'] );
+                    if ( count( $meta ) === 3 ) {
+                        if ( isset( $meta[1] ) && isset( $meta[2] ) && ! empty( $meta[1] ) && ! empty( $meta[2] ) ) {
+                            $args['meta_key'] = $meta[1];
+                            $order_by         = $meta[2] . ' ID';
                         }
                     }
-
-                    if ( null !== $module ) {
-                        if ( isset( $module['manual'] ) && ! empty( $module['manual'] ) ) {
-                            $args['post__in']            = array_diff( $module['manual'], $found_ids ); // post__not_in is ignored if post__in used, so use diff.
-                            $args['ignore_sticky_posts'] = true;  // https://developer.wordpress.org/reference/classes/wp_query/parse_query/ .
-                            $args['orderby']             = 'post__in';
-
-                            if ( empty( $args['post__in'] ) ) {
-                                // No more manual posts found, continue to next source.
-                                continue;
-                            }
-                        } else {
-                            $args['orderby'] = $module['order'];
-                            $args['order']   = 'ASC' === $module['sort'] ? 'ASC' : 'DESC';
-                            if ( isset( $module['cat'] ) ) {
-                                $args['cat'] = $module['cat'];
-                            }
-
-                            if ( isset( $module['exclude_by_id'] ) && ! empty( $module['exclude_by_id'] ) ) {
-                                $args['post__not_in'] = array_merge( $args['post__not_in'], $module['exclude_by_id'] );
-                            }
-                        }
-                    } else {
-                        continue; // No module found, continue to next source.
+                } elseif ( true === $is_popular ) {
+                    if ( ! class_exists( 'WPP_query' ) ) {
+                        continue; // No plugin found, ignore source.
                     }
-                } else {
-                    continue;
-                }
-            } else {
-                if ( isset( $source['categories'] ) && ! empty( $source['categories'] ) ) {
-                    $args['cat'] = $source['categories'];
-                }
-
-                if ( isset( $source['tags'] ) && ! empty( $source['tags'] ) ) {
-                    $args['tag_slug__in'] = $source['tags'];
-                }
-
-                if ( isset( $source['order_by'] ) && ! empty( $source['order_by'] ) ) {
-                    $order_by   = 'date';
-                    $is_metakey = strpos( $source['order_by'], 'metakey:' ) === 0;
-                    $is_popular = strpos( $source['order_by'], 'popular:' ) === 0;
-
-                    if ( true === $is_metakey ) {
-                        $meta = explode( ':', $source['order_by'] );
-                        if ( count( $meta ) === 3 ) {
-                            if ( isset( $meta[1] ) && isset( $meta[2] ) && ! empty( $meta[1] ) && ! empty( $meta[2] ) ) {
-                                $args['meta_key'] = $meta[1];
-                                $order_by         = $meta[2] . ' ID';
-                            }
-                        }
-                    } elseif ( true === $is_popular ) {
-                        if ( ! class_exists( 'WPP_query' ) ) {
-                            continue; // No plugin found, ignore source.
-                        }
-                        // popular:<unit>.
-                        $popular_settings = explode( ':', $source['order_by'] );
-                        if ( 2 !== count( $popular_settings ) ) {
-                            continue; // Invalid configuration, ignore source.
-                        }
-
-                        $popular_range = $popular_settings[1];
-
-                        $popular_args = array(
-                            'range'     => $popular_range,
-                            'limit'     => (int) $source['number_of_posts'],
-                            'post_type' => 'post',
-                        );
-
-                        if ( ! $allow_duplicates ) {
-                            $popular_args['pid'] = implode( ',', $found_ids );
-                        }
-
-                        if ( isset( $source['categories'] ) && ! empty( $source['categories'] ) ) {
-                            $popular_args['cat'] = $source['categories'];
-                        }
-                        $popular_query               = new WPP_query( $popular_args );
-                        $popular_posts               = array_column( $popular_query->get_posts(), 'id' );
-                        $args['post__in']            = $popular_posts;
-                        $args['ignore_sticky_posts'] = true;
-                        $order_by                    = 'post__in';
-                    } else {
-                        $order_by = $source['order_by'];
+                    // popular:<unit>.
+                    $popular_settings = explode( ':', $source['order_by'] );
+                    if ( 2 !== count( $popular_settings ) ) {
+                        continue; // Invalid configuration, ignore source.
                     }
 
-                    $args['orderby'] = $order_by;
-                    $args['order']   = isset( $source['order_direction'] ) ? $source['order_direction'] : 'DESC';
-                }
+                    $popular_range = $popular_settings[1];
 
-                if ( isset( $source['max_age'] ) && ! empty( $source['max_age'] ) ) {
-                    $args['date_query'] = array(
-                        array(
-                            'after' => sprintf( '%s ago', $source['max_age'] ),
-                        ),
+                    $popular_args = array(
+                        'range'     => $popular_range,
+                        'limit'     => (int) $source['number_of_posts'],
+                        'post_type' => 'post',
                     );
+
+                    if ( ! $allow_duplicates ) {
+                        $popular_args['pid'] = implode( ',', $found_ids );
+                    }
+
+                    if ( isset( $source['categories'] ) && ! empty( $source['categories'] ) ) {
+                        $popular_args['cat'] = $source['categories'];
+                    }
+                    $popular_query               = new WPP_query( $popular_args );
+                    $popular_posts               = array_column( $popular_query->get_posts(), 'id' );
+                    $args['post__in']            = $popular_posts;
+                    $args['ignore_sticky_posts'] = true;
+                    $order_by                    = 'post__in';
+                } else {
+                    $order_by = $source['order_by'];
                 }
+
+                $args['orderby'] = $order_by;
+                $args['order']   = isset( $source['order_direction'] ) ? $source['order_direction'] : 'DESC';
+            }
+
+            if ( isset( $source['max_age'] ) && ! empty( $source['max_age'] ) ) {
+                $args['date_query'] = array(
+                    array(
+                        'after' => sprintf( '%s ago', $source['max_age'] ),
+                    ),
+                );
             }
 
             if ( ! empty( $source['post_type'] ) ) {

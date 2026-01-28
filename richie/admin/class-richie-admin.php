@@ -318,16 +318,6 @@ class Richie_Admin {
                 'article_set'     => intval( $input['article_set'] ),
             );
 
-            if ( ! empty( $input['herald_featured_module_title'] ) && empty( $input['herald_featured_post_id'] ) ) {
-                add_settings_error(
-                    $this->sources_option_name,
-                    esc_attr( 'sources_error' ),
-                    __( 'Herald module name given but post id was empty', 'richie' ),
-                    'error'
-                );
-                $error = true;
-            }
-
             if ( in_array( $input['post_type'], $available_types, true ) ) {
                 $source['post_type'] = $input['post_type'];
             } else {
@@ -338,13 +328,6 @@ class Richie_Admin {
                     'error'
                 );
                 $error = true;
-            }
-
-            if ( isset( $input['herald_featured_post_id'] ) && ! empty( $input['herald_featured_post_id'] ) ) {
-                $source['herald_featured_post_id'] = intval( $input['herald_featured_post_id'] );
-                if ( ! empty( $input['herald_featured_module_title'] ) ) {
-                    $source['herald_featured_module_title'] = strval( $input['herald_featured_module_title'] );
-                }
             }
 
             if ( isset( $input['source_categories'] ) && ! empty( $input['source_categories'] ) ) {
@@ -649,19 +632,6 @@ class Richie_Admin {
         $source_section->add_field( 'source_name', __( 'Name', 'richie' ), 'input_field' );
         $source_section->add_field( 'richie_article_set', __( 'Article set', 'richie' ), 'article_set' );
         $source_section->add_field( 'number_of_posts', __( 'Number of posts', 'richie' ), 'input_field', array( 'type' => 'number', 'class' => 'small-text', 'description' => __( 'Number of posts included in the feed', 'richie' ) ) );
-
-        if ( defined( 'HERALD_THEME_VERSION' ) ) {
-            $source_herald_section = new Richie_Settings_Section( $sources_section_name . 'herald', __( 'Herald featured module', 'richie' ), $this->sources_option_name );
-            $front_page            = (int) get_option( 'page_on_front' );
-            $description           = __( 'Fetch posts from herald modules of this page id. Rest of filters will be ignored.', 'richie' );
-
-            if ( $front_page > 0 ) {
-                $description = sprintf( '%s %s %u.', $description, __( 'Current front page id is', 'richie' ), $front_page );
-            }
-
-            $source_herald_section->add_field( 'herald_featured_post_id', __( 'Herald page ID', 'richie' ), 'input_field', array( 'description' => $description, 'class' => '' ) );
-            $source_herald_section->add_field( 'herald_featured_module_title', __( 'Herald module title', 'richie' ), 'input_field', array( 'description' => __('Module title from the given page to be used as a source. If empty, defaults to first featured type module.', 'richie'), 'class' => '' ) );
-        }
 
         $source_section->add_field( 'post_type', __( 'Post type', 'richie' ), 'select_field', array( 'options' => Richie_Post_Type::available_post_types( 'object' ), 'required' => true ) );
 
@@ -989,16 +959,7 @@ class Richie_Admin {
                     }
 
                     $article_set     = get_term( $source['article_set'] );
-                    $herald_featured = isset( $source['herald_featured_post_id'] );
 
-                    if ( $herald_featured ) {
-                        $herald_category_name = 'Herald module';
-                        if ( isset( $source['herald_featured_module_title'] ) ) {
-                            $herald_category_name = $herald_category_name . ': ' . $source['herald_featured_module_title'];
-                        } else {
-                            $herald_category_name = 'Herald featured module';
-                        }
-                    }
 
                     $post_type = isset( $source['post_type'] ) ? $source['post_type'] : 'post';
 
@@ -1011,14 +972,14 @@ class Richie_Admin {
                         <td><?php echo esc_html( $post_type ); ?></td>
                         <td>
                             <?php
-                            echo ! $herald_featured ? esc_html( implode( ', ', $category_names ) ) : esc_html($herald_category_name);
+                            echo esc_html( implode( ', ', $category_names ) );
                             if ( ! empty( $source['tags'] ) ) {
                                 echo '<br/>Tags: ' . esc_html( implode( ', ', $source['tags'] ) );
                             }
                             ?>
                         </td>
                         <td><?php echo esc_html( $source['number_of_posts'] ); ?></td>
-                        <td><?php echo isset( $source['order_by'] ) && ! $herald_featured ? esc_html( "{$source['order_by']} {$source['order_direction']}" ) : ''; ?> </td>
+                        <td><?php echo isset( $source['order_by'] ) && esc_html( "{$source['order_by']} {$source['order_direction']}" ); ?> </td>
                         <td><?php echo isset( $source['max_age'] ) ? esc_html( $source['max_age'] ) : 'All time'; ?></td>
                         <td><?php echo isset( $source['list_layout_style'] ) ? esc_html( $source['list_layout_style'] ) : 'none'; ?></td>
                         <td><div style="display:block; height: 20px; width: 20px; margin: 0 auto; background-color: #<?php echo isset( $source['background_color'] ) ? esc_html( $source['background_color'] ) : 'transparent'; ?>" /></td>
