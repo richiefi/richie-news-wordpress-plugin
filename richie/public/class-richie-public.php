@@ -448,12 +448,18 @@ class Richie_Public {
             }
         }
 
-        return array(
+        $output = array(
             'section'  => array(
                 'name' => $article_set->name,
             ),
             'articles' => array_map( array( $this, 'get_section_article' ), $articles ),
         );
+
+        if ( ! empty( $errors ) ) {
+            $output['errors'] = $errors;
+        }
+
+        return $output;
     }
 
     public function search_route_handler( $data ) {

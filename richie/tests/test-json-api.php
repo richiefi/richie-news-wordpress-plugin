@@ -88,11 +88,11 @@ class Test_JSON_API extends WP_UnitTestCase {
         $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
         $response = $this->server->dispatch( $request );
-        $articles = $response->data['article_ids'];
+        $articles = $response->data['articles'];
 
         $this->assertEquals( 200, $response->get_status() );
         $this->assertEquals( count( $articles ), 2 ); // Should not include item with empty guid.
-        $id_list = array_column( $articles, 'fetch_id' );
+        $id_list = array_column( $articles, 'publisher_id' );
         $this->assertEquals( $id_list, array_slice( $posts, 1 ) );
 
         $this->assertEquals( $response->data['errors'][0]['description'], 'Missing guid' );
@@ -138,15 +138,15 @@ class Test_JSON_API extends WP_UnitTestCase {
         $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
         $response = $this->server->dispatch( $request );
-        $articles = $response->data['article_ids'];
+        $articles = $response->data['articles'];
 
         $this->assertEquals( 200, $response->get_status() );
         $this->assertEquals( count( $articles ), 5 );
-        $id_list = array_column( $articles, 'fetch_id' );
+        $id_list = array_column( $articles, 'publisher_id' );
         $this->assertEquals( $id_list, array_slice( $posts, 0, 5 ) );
     }
 
-    public function test_get_v3_news_feed() {
+    public function test_get_v1_news_feed() {
         $term_id = $this->factory->term->create(
             array(
 				'name'     => 'Test set',
@@ -182,7 +182,7 @@ class Test_JSON_API extends WP_UnitTestCase {
         add_option( 'richienews_sources', array( 'published' => $sources ) );
 
         $posts   = $this->factory->post->create_many( 10 );
-        $request = new WP_REST_Request( 'GET', '/richie/v3/news/test-set' );
+        $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
         $response = $this->server->dispatch( $request );
         $articles = $response->data['articles'];
@@ -244,11 +244,11 @@ class Test_JSON_API extends WP_UnitTestCase {
         $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
         $response = $this->server->dispatch( $request );
-        $articles = $response->data['article_ids'];
+        $articles = $response->data['articles'];
 
         $this->assertEquals( 200, $response->get_status() );
         $this->assertEquals( count( $articles ), 8 );
-        $id_list = array_column( $articles, 'fetch_id' );
+        $id_list = array_column( $articles, 'publisher_id' );
         // expects posts (indexes) [ 0, 1, 0, 1, 2, 2, 3, 4]
         // first two in order, then three same order, allowing duplicates,
         // last three shouldn't contain duplicates from first section,
@@ -335,18 +335,18 @@ class Test_JSON_API extends WP_UnitTestCase {
         $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
         $response = $this->server->dispatch( $request );
-        $articles = $response->data['article_ids'];
+        $articles = $response->data['articles'];
 
         $this->assertEquals( 200, $response->get_status() );
         $this->assertEquals( count( $articles ), 2 );
-        $id_list = array_column( $articles, 'fetch_id' );
+        $id_list = array_column( $articles, 'publisher_id' );
         // it should have second posts module posts, since first one isn't active
         $this->assertEquals( $id_list, array_slice( $post_ids, 3, 2 ) );
     }
 
     public function test_get_single_article_with_images() {
         $id            = $this->factory()->post->create( array( 'post_content' => '<img src="//external.url/testing/image.jpg"/>' ) );
-        $attachment_id = $this->factory->attachment->create_object(
+        $attachment_id = $this->factory()->attachment->create_object(
             'richie.png',
             $id,
             array(
@@ -365,7 +365,7 @@ class Test_JSON_API extends WP_UnitTestCase {
         $response = $this->server->dispatch( $request );
         $this->assertEquals( 200, $response->get_status() );
         $article = $response->data;
-        $this->assertEquals( $article->id, $id );
+        $this->assertEquals( $article->publisher_id, $id );
         $this->assertEquals( $article->title, $post->post_title );
         $this->assertEquals( $article->photos[0][0]->local_name, 'wp-content/uploads/richie.png' );
         $this->assertEquals( $article->photos[0][0]->remote_url, 'http://example.org/wp-content/uploads/richie.png' );
@@ -376,7 +376,7 @@ class Test_JSON_API extends WP_UnitTestCase {
 
     }
 
-    public function test_get_single_v3_article_with_images() {
+    public function test_get_single_v1_article_with_images() {
         $id            = $this->factory()->post->create( array( 'post_content' => '<img src="//external.url/testing/image.jpg"/>' ) );
         $attachment_id = $this->factory->attachment->create_object(
             'richie.png',
@@ -391,7 +391,7 @@ class Test_JSON_API extends WP_UnitTestCase {
         $post = get_post( $id );
         set_post_thumbnail( $post, $attachment_id );
 
-        $request = new WP_REST_Request( 'GET', '/richie/v3/article/' . $id );
+        $request = new WP_REST_Request( 'GET', '/richie/v1/article/' . $id );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
 
         $response = $this->server->dispatch( $request );
@@ -489,11 +489,11 @@ class Test_JSON_API extends WP_UnitTestCase {
         $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
         $response = $this->server->dispatch( $request );
-        $articles = $response->data['article_ids'];
+        $articles = $response->data['articles'];
 
         $this->assertEquals( 200, $response->get_status() );
         $this->assertEquals( 4, count( $articles ) );
-        $id_list = array_column( $articles, 'fetch_id' );
+        $id_list = array_column( $articles, 'publisher_id' );
         // Should include 3 posts from first source (including tag1 or tag2) and one from second (having tag3)
         // tag_2_2 should not be in returned list
         $this->assertEquals( $id_list, array( $both_tags, $tag_1, $tag_2, $tag_3 ) );
