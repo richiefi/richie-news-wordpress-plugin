@@ -367,46 +367,6 @@ class Richie_Public {
         return array( 'articles' => $articles, 'errors' => $errors );
     }
 
-    public function feed_route_handler( $data ) {
-        $article_set = get_term_by( 'slug', $data['article_set'], 'richie_article_set' );
-
-        if ( empty( $article_set ) ) {
-            return new WP_Error( 'article_set_not_found', 'Article set not found', array( 'status' => 404 ) );
-        }
-
-        $params      = $data->get_query_params();
-        $unpublished = isset( $params['unpublished'] ) && '1' === $params['unpublished'];
-        $result      = $this->fetch_articles( $article_set, $unpublished );
-
-        if ( is_wp_error( $result ) ) {
-            return $result;
-        }
-
-        $articles = $result['articles'];
-        $errors   = $result['errors'];
-
-        if ( ! headers_sent() ) {
-            $etag = 'W/"' . md5( wp_json_encode( $articles ) ) . '"';
-            // if_none_match may contain slashes before ", so strip those.
-            $etag_header = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) : false;
-
-            header( "Etag: {$etag}" );
-            header( 'Cache-Control: private, no-cache' );
-
-            if ( $etag_header === $etag ) {
-                header( $_SERVER['SERVER_PROTOCOL'] . ' 304 Not Modified' );
-                die(); // send response and exit.
-            }
-        }
-
-        $output = array( 'article_ids' => $articles );
-        if ( ! empty( $errors ) ) {
-            $output['errors'] = $errors;
-        }
-
-        return $output;
-    }
-
     public function get_section_article( $article ) {
         $section_article = array(
             'publisher_id'         => $article['id'],
@@ -456,7 +416,7 @@ class Richie_Public {
         return array_filter( $section_article, function( $v ) { return ! is_null( $v ); } );
     }
 
-    public function feed_route_handler_v3( $data ) {
+    public function feed_route_handler( $data ) {
         $article_set = get_term_by( 'slug', $data['article_set'], 'richie_article_set' );
 
         if ( empty( $article_set ) ) {
@@ -689,21 +649,6 @@ class Richie_Public {
         );
 
         register_rest_route(
-            'richie/v3',
-            '/news(?:/(?P<article_set>\S+))',
-            array(
-                'methods'             => 'GET',
-                'callback'            => array( $this, 'feed_route_handler_v3' ),
-                'permission_callback' => array( $this, 'check_permission' ),
-                'args'                => array(
-                    'article_set' => array(
-                        'sanitize_callback' => 'sanitize_title',
-                    ),
-                ),
-            )
-        );
-
-        register_rest_route(
             'richie/v1',
             '/search',
             array(
@@ -715,40 +660,6 @@ class Richie_Public {
 
         register_rest_route(
             'richie/v1',
-            '/article/(?P<id>\d+)',
-            array(
-                'methods'             => 'GET',
-                'callback'            => array( $this, 'article_route_handler' ),
-                'permission_callback' => array( $this, 'check_permission' ),
-                'args'                => array(
-                    'id' => array(
-                        'validate_callback' => function( $param ) {
-                            return is_numeric( $param );
-                        },
-                    ),
-                ),
-            )
-        );
-
-        register_rest_route(
-            'richie/v2',
-            '/article/(?P<id>\d+)',
-            array(
-                'methods'             => 'GET',
-                'callback'            => array( $this, 'article_route_handler' ),
-                'permission_callback' => array( $this, 'check_permission' ),
-                'args'                => array(
-                    'id' => array(
-                        'validate_callback' => function( $param ) {
-                            return is_numeric( $param );
-                        },
-                    ),
-                ),
-            )
-        );
-
-        register_rest_route(
-            'richie/v3',
             '/article/(?P<id>\d+)',
             array(
                 'methods'             => 'GET',
