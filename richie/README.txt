@@ -1,18 +1,18 @@
-=== Richie ===
-Contributors: (this should be a list of wordpress.org userid's)
-Donate link: https://www.richie.fi
+=== Richie News Platform ===
 Tags: rest, feed, api
 Requires at least: 4.0
-Tested up to: 5.5
+Tested up to: 6.9
 License: Copyright Richie Oy
 
 This plugin provides backend feeds support for Richie News Platform.
 
 == Description ==
 
-Richie News Platform plugin provides following features:
-- JSON feeds to be used in Richie News Platform
-- Supports paywall features (currently assuming PMPro plugin installed)
+Richie News Platform plugin provides JSON feeds to be used in Richie News Platform:
+
+- News feed for article sets
+- Article details feed
+- Assets feed
 
 == Installation ==
 
@@ -21,6 +21,12 @@ Richie News Platform plugin provides following features:
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
+= WIP =
+* support php 8.3 and wp 6.9
+* consolidated api versioning to v1 only
+* removed pmpro plugin support (we don't want to maintain custom plugins, we will provide own solution later)
+* removed all maggio support (Richie Editions), since it's now provided by separate plugin
+
 = 1.7.3 (21.03.2022) =
 * Fix external url in v1 api
 
@@ -156,15 +162,7 @@ Richie News Platform plugin provides following features:
 
 1. `Access token` - Random string to be used as authentication for Richie feeds.
     NOTE: with token, full content of the article can be accessed despite of pmpro configuration.
-2. `Paywall` - Map PMPro levels to levels used in news feed.
-    - `Metered` - Level which marks articles to be readable by anyone, but amount of article reads is limited
-    - `Premium` - Level which marks articles to be access only by users having this levels
-
-3. `Maggio settings`
-    1. `Maggio organization` - Organization which includes maggio products.
-    2. `Maggio hostname` - Full hostname to the Maggio HTML5 server, can be https://<client>.ap.richiefi.net or configured cname
-    3. `Maggio secret` - Provided secret which is used to calculate signature hash for signin urls
-    4. `Required membership level` - If set, user must have that level to access Maggio issues
+2. `Search list layout` - Layout style to be used in search results.
 
 = News sources =
 
@@ -178,29 +176,13 @@ Richie News Platform plugin provides following features:
 
 JSON array of assets required in articles. These will be available offline.
 
-== Shortcode ==
-
-Plugin provides `[maggio]` shortcode, which may be used to show grid of available issues.
-Shortcode supports two attributes:
-  - `product` (required): Maggio product id
-  - `organization` (optional): Maggio organization, default value can be set in settings.
-  - `number_of_issues` (optional): Amount of issues to be shown. If omitted, shows all issues.
-
-Example:
-```
-[maggio id="main" number_of_issues="10]
-```
-
-Short code renders a template, which the theme may overwrite.
-This can be done by placing `richie-maggio-index.php` inside `<theme_path>/richie` folder.
-A basic template as a base can be found inside plugin's templates folder.
-
 == News feed ==
 
 Plugin provides following rest apis:
 `/wp-json/richie/v1/news/<article_set_name>?token=<configured_token>`
 `/wp-json/richie/v1/article/<article_id>?token=<configured_token>`
 `/wp-json/richie/v1/assets`
+`/wp-json/richie/v1/search?q=<search_query>&token=<configured_token>`
 
 `news` endpoint returns an array of articles for the specific article set, using configured sources.
 `article` endpoint returns details for specific article, including rendered html content
