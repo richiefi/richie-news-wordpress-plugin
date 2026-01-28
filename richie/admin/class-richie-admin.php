@@ -213,7 +213,7 @@ class Richie_Admin {
          *        Administration Menus: http://codex.wordpress.org/Administration_Menus
          *
          */
-        add_options_page( 'Richie Settings', 'Richie', 'manage_options', $this->settings_page_slug, array( $this, 'load_admin_page_content' ) );
+        add_options_page( 'Richie News Settings', 'Richie News', 'manage_options', $this->settings_page_slug, array( $this, 'load_admin_page_content' ) );
     }
 
     /**
