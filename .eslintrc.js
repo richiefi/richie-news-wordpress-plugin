@@ -1,10 +1,15 @@
 module.exports = {
-	env: {
-		node: true,
-		es6: true
-	},
-  extends: "wordpress",
+  extends: ["plugin:@wordpress/eslint-plugin/recommended"],
   rules: {
-    "space-in-parens": 0
-  }
+    "space-in-parens": 0,
+  },
+  overrides: [
+    {
+      files: ["scripts/**/*.mjs"],
+      parserOptions: {
+        sourceType: "module",
+        ecmaVersion: 2022,
+      },
+    },
+  ],
 };

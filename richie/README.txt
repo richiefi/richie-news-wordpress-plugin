@@ -2,6 +2,7 @@
 Tags: rest, feed, api
 Requires at least: 4.0
 Tested up to: 6.9
+Stable tag: 1.7.3
 License: Copyright Richie Oy
 
 This plugin provides backend feeds support for Richie News Platform.
