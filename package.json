@@ -1,24 +1,17 @@
 {
-	"name": "linter-sniffer-pretty-printer",
+	"name": "@richie/richie-plugins",
 	"version": "1.0.0",
-	"description": "Sniffer, Linter, Pretty Printer for WordPress Projects",
+	"description": "Richie Platform WordPress Plugins",
+	"private": true,
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"release": "release-it",
 		"release:minor": "release-it minor",
 		"release:major": "release-it major",
-		"plugin-zip": "cd richie && wp-scripts plugin-zip"
+		"plugin-zip": "zip -r richie.zip richie -x 'richie/.*' -x 'richie/tests/*' -x 'richie/bin/*' -x 'richie/.circleci/*' -x 'richie/phpunit.xml.dist*' -x 'richie/runtests.sh' -x '*.po~' -x '*.zip'"
 	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/christophherr/linter-sniffer-pretty-printer.git"
-	},
-	"author": "Christoph Herr",
+	"author": "Richie Oy",
 	"license": "GPL-2.0-or-later",
-	"bugs": {
-		"url": "https://github.com/christophherr/linter-sniffer-pretty-printer/issues"
-	},
-	"homepage": "https://github.com/christophherr/linter-sniffer-pretty-printer#readme",
 	"devDependencies": {
 		"@release-it/bumper": "7.0.5",
 		"@release-it/conventional-changelog": "10.0.4",

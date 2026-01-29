@@ -1,13 +1,12 @@
 module.exports = {
+  // Don't use package.json for version
+  npm: false,
   git: {
     commitMessage: "chore: release richie v${version}",
     tagName: "richie-v${version}",
     tagAnnotation: "Release richie ${version}",
     requireCleanWorkingDir: true,
     push: true,
-  },
-  npm: {
-    publish: false,
   },
   github: {
     release: true,
@@ -17,13 +16,21 @@ module.exports = {
   plugins: {
     "@release-it/bumper": {
       in: {
-        file: "richie/richie.php",
-        type: "text/php",
+        file: "richie/composer.json",
+        type: "application/json",
+        path: "version",
       },
       out: [
         {
+          file: "richie/composer.json",
+          type: "application/json",
+          path: "version",
+        },
+        {
           file: "richie/richie.php",
-          type: "text/php",
+          type: "text/plain",
+          search: "(Version:\\s*)([0-9.]+)",
+          replace: "$1{{version}}",
         },
       ],
     },
@@ -32,16 +39,15 @@ module.exports = {
       infile: "richie/CHANGELOG.md",
       header: "# Changelog\n",
       writerOpts: {
-        headerPartial: "## {{version}} ({{date}})\n\n",
-        commitPartial: "* {{type}}: {{subject}}\n",
-        groupBy: null,
-        commitsSort: null,
+        headerPartial: "\n## {{version}} ({{date}})\n",
+        commitPartial: "* {{header}}\n",
+        groupBy: false,
+        commitsSort: ["subject"],
       },
     },
   },
   hooks: {
-    "after:bump": "node scripts/sync-wp-version.mjs richie ${version}",
     "before:release":
-      "npm run plugin-zip && mkdir -p releases && mv richie/richie.zip releases/richie-${version}.zip",
+      "node scripts/sync-wp-version.mjs richie ${version} && npm run plugin-zip && mkdir -p releases && mv richie.zip releases/richie-${version}.zip",
   },
 };

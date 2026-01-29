@@ -676,6 +676,10 @@ class Richie_Admin {
             wp_send_json_error( 'Invalid security token sent.' );
         }
 
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
+        }
+
         if ( ! isset( $_POST['source_items'] ) ) {
             echo 'Missing source list';
             wp_die();
@@ -718,6 +722,10 @@ class Richie_Admin {
             wp_send_json_error( 'Invalid security token sent.' );
         }
 
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
+        }
+
         if ( ! isset( $_POST['source_id'] ) ) {
             echo 'Missing source id';
             wp_die();
@@ -751,6 +759,10 @@ class Richie_Admin {
     public function set_checkbox_field() {
         if ( ! check_ajax_referer( 'richie-security-nonce', 'security', false ) ) {
             wp_send_json_error( 'Invalid security token sent.' );
+        }
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
         }
 
         if ( ! isset( $_POST['source_id'] ) ) {
@@ -798,6 +810,10 @@ class Richie_Admin {
             wp_send_json_error( 'Invalid security token sent.' );
         }
 
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
+        }
+
         $option                 = get_option( $this->sources_option_name );
         $sources                = ! empty( $option['sources'] ) ? $option['sources'] : array();
         $option['published']    = $sources;
@@ -817,6 +833,10 @@ class Richie_Admin {
     public function revert_source_changes() {
         if ( ! check_ajax_referer( 'richie-security-nonce', 'security', false ) ) {
             wp_send_json_error( 'Invalid security token sent.' );
+        }
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
         }
 
         $option            = get_option( $this->sources_option_name );
@@ -855,6 +875,10 @@ class Richie_Admin {
             wp_send_json_error( 'Invalid security token sent.' );
         }
 
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
+        }
+
         if ( ! isset( $_POST['index'] ) || ! isset( $_POST['article_set_id'] ) ) {
             wp_send_json_error( 'Missing arguments', 400 );
         }
@@ -888,6 +912,10 @@ class Richie_Admin {
     public function get_adslot_data() {
         if ( ! check_ajax_referer( 'richie-security-nonce', 'security', false ) ) {
             wp_send_json_error( 'Invalid security token sent.' );
+        }
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
         }
 
         if ( ! isset( $_POST['index'] ) || ! isset( $_POST['article_set_id'] ) ) {

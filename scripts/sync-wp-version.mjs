@@ -74,14 +74,27 @@ if (fs.existsSync(changelogPath)) {
   if (versionMatch) {
     const section = versionMatch[0];
 
-    // Parse entries: * type: subject
-    const entries = section.match(/^\* (\w+): (.+)$/gm) || [];
+    // Parse entries: * type: subject (handles "fix:", "fix(scope):", "Bug Fixes:" formats)
+    const entries = section.match(/^\* .+$/gm) || [];
     wpChangelogEntries = entries.map((entry) => {
-      const match = entry.match(/^\* (\w+): (.+)$/);
+      // Match: * fix: msg OR * fix(scope): msg OR * Bug Fixes: msg
+      const match = entry.match(/^\* ([\w\s]+)(?:\([^)]+\))?: (.+)$/);
       if (match) {
-        const [, type, subject] = match;
-        // Capitalize type for WordPress format
-        const wpType = type.charAt(0).toUpperCase() + type.slice(1);
+        const [, rawType, subject] = match;
+        // Normalize type for WordPress format
+        const typeMap = {
+          fix: "Fix",
+          feat: "Feature",
+          "bug fixes": "Fix",
+          features: "Feature",
+          chore: "Chore",
+          docs: "Docs",
+          refactor: "Refactor",
+          revert: "Revert",
+          reverts: "Revert",
+        };
+        const normalizedType = rawType.toLowerCase().trim();
+        const wpType = typeMap[normalizedType] || rawType;
         return `* ${wpType}: ${subject}`;
       }
       return entry;

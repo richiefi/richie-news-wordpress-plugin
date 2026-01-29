@@ -432,7 +432,7 @@ class Richie_Public {
     public function check_permission( $request ) {
         $options = get_option( $this->plugin_name );
         $params  = $request->get_query_params();
-        if ( isset( $params['token'] ) && ! empty( $options['access_token'] ) && $options['access_token'] === $params['token'] ) {
+        if ( isset( $params['token'] ) && ! empty( $options['access_token'] ) && hash_equals( $options['access_token'], $params['token'] ) ) {
             return true;
         }
         return false;
@@ -592,7 +592,7 @@ class Richie_Public {
     }
 
     public function richie_template( $template ) {
-        if ( isset( $_GET['token'] ) && $this->richie_options['access_token'] === $_GET['token'] ) {
+        if ( isset( $_GET['token'] ) && ! empty( $this->richie_options['access_token'] ) && hash_equals( $this->richie_options['access_token'], sanitize_text_field( wp_unslash( $_GET['token'] ) ) ) ) {
             if ( isset( $_GET['richie_news'] ) ) {
 
                 $name = 'article';

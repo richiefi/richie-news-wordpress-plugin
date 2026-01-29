@@ -1,4 +1,5 @@
 {
+    "version": "1.7.3",
     "require": {
         "ivopetkov/html5-dom-document-php": "2.*"
     }
