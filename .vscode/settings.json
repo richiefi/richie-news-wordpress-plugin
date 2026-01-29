@@ -12,17 +12,6 @@
   ],
   "phpcbf.standard": "WordPress",
   "phpcbf.executablePath": "./vendor/bin/phpcbf",
-  "intelephense.stubs": [
-    "Core",
-    "standard",
-    "wordpress",
-    "wordpress-globals",
-    "phpunit",
-    "date",
-    "pcre",
-    "json",
-    "SPL"
-  ],
   "intelephense.environment.includePaths": [
     "./vendor/giacocorsiglia/wordpress-stubs",
     "./vendor/php-stubs/wordpress-tests-stubs",
