@@ -246,13 +246,6 @@ class Richie_Admin_Components {
                 <?php foreach ( $metakeys as $metakey ) : ?>
                     <option value="metakey:<?php echo esc_attr( $metakey['key'] ); ?>:<?php echo esc_attr( $metakey['orderby'] ); ?>"><?php echo esc_html( $metakey['title'] ); ?></option>
                 <?php endforeach; ?>
-                <?php
-                if ( class_exists( 'WPP_query' ) ) {
-                    printf( '<option value="popular:last24hours">%s</option>', esc_html__( 'Popular posts (24 hours)', 'richie' ) );
-                    printf( '<option value="popular:last7days">%s</option>', esc_html__( 'Popular posts (week)', 'richie' ) );
-                    printf( '<option value="popular:last30days">%s</option>', esc_html__( 'Popular posts (month)', 'richie' ) );
-                }
-                ?>
             </select>
         <?php
     }

@@ -121,7 +121,6 @@ class Richie_Public {
             if ( isset( $source['order_by'] ) && ! empty( $source['order_by'] ) ) {
                 $order_by   = 'date';
                 $is_metakey = strpos( $source['order_by'], 'metakey:' ) === 0;
-                $is_popular = strpos( $source['order_by'], 'popular:' ) === 0;
 
                 if ( true === $is_metakey ) {
                     $meta = explode( ':', $source['order_by'] );
@@ -131,36 +130,6 @@ class Richie_Public {
                             $order_by         = $meta[2] . ' ID';
                         }
                     }
-                } elseif ( true === $is_popular ) {
-                    if ( ! class_exists( 'WPP_query' ) ) {
-                        continue; // No plugin found, ignore source.
-                    }
-                    // popular:<unit>.
-                    $popular_settings = explode( ':', $source['order_by'] );
-                    if ( 2 !== count( $popular_settings ) ) {
-                        continue; // Invalid configuration, ignore source.
-                    }
-
-                    $popular_range = $popular_settings[1];
-
-                    $popular_args = array(
-                        'range'     => $popular_range,
-                        'limit'     => (int) $source['number_of_posts'],
-                        'post_type' => 'post',
-                    );
-
-                    if ( ! $allow_duplicates ) {
-                        $popular_args['pid'] = implode( ',', $found_ids );
-                    }
-
-                    if ( isset( $source['categories'] ) && ! empty( $source['categories'] ) ) {
-                        $popular_args['cat'] = $source['categories'];
-                    }
-                    $popular_query               = new WPP_query( $popular_args );
-                    $popular_posts               = array_column( $popular_query->get_posts(), 'id' );
-                    $args['post__in']            = $popular_posts;
-                    $args['ignore_sticky_posts'] = true;
-                    $order_by                    = 'post__in';
                 } else {
                     $order_by = $source['order_by'];
                 }
