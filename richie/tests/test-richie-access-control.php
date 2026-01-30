@@ -167,4 +167,59 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 
 		$this->assertObjectNotHasProperty( 'access_entitlements', $result );
 	}
+
+	/**
+	 * Test that default_entitlement overrides category name.
+	 */
+	public function test_default_entitlement_overrides_category_name() {
+		$category_id = $this->factory->category->create( array( 'name' => 'Premium' ) );
+		update_option(
+			'richie',
+			array(
+				'premium_categories'  => array( $category_id ),
+				'default_entitlement' => 'all_access',
+			)
+		);
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_category' => array( $category_id ),
+			)
+		);
+
+		$article = new Richie_Article( array( 'access_token' => 'test' ) );
+		$result  = $article->generate_article( get_post( $post_id ) );
+
+		$this->assertObjectHasProperty( 'access_entitlements', $result );
+		// Should use default_entitlement, not category name.
+		$this->assertEquals( array( 'all_access' ), $result->access_entitlements );
+		$this->assertNotContains( 'PREMIUM', $result->access_entitlements );
+	}
+
+	/**
+	 * Test that empty default_entitlement falls back to category name.
+	 */
+	public function test_empty_default_entitlement_uses_category_name() {
+		$category_id = $this->factory->category->create( array( 'name' => 'Premium' ) );
+		update_option(
+			'richie',
+			array(
+				'premium_categories'  => array( $category_id ),
+				'default_entitlement' => '',
+			)
+		);
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_category' => array( $category_id ),
+			)
+		);
+
+		$article = new Richie_Article( array( 'access_token' => 'test' ) );
+		$result  = $article->generate_article( get_post( $post_id ) );
+
+		$this->assertObjectHasProperty( 'access_entitlements', $result );
+		// Should fall back to category name.
+		$this->assertEquals( array( 'PREMIUM' ), $result->access_entitlements );
+	}
 }

@@ -328,13 +328,22 @@ class Richie_Article {
             $post_categories       = wp_get_post_categories( $my_post->ID );
             $matching_premium_cats = array_intersect( $post_categories, $premium_categories );
 
-            $access_entitlements = array();
-            foreach ( $matching_premium_cats as $cat_id ) {
-                $cat = get_category( $cat_id );
-                if ( $cat ) {
-                    // Convert category name to UPPER_SNAKE_CASE (e.g., "Premium Content" → "PREMIUM_CONTENT").
-                    $entitlement           = strtoupper( str_replace( array( ' ', '-' ), '_', $cat->name ) );
-                    $access_entitlements[] = $entitlement;
+            $access_entitlements   = array();
+            $default_entitlement   = isset( $richie_options['default_entitlement'] ) ? $richie_options['default_entitlement'] : '';
+
+            if ( ! empty( $matching_premium_cats ) ) {
+                if ( ! empty( $default_entitlement ) ) {
+                    // Use the configured default entitlement for all premium articles.
+                    $access_entitlements[] = $default_entitlement;
+                } else {
+                    // Fall back to category names converted to UPPER_SNAKE_CASE.
+                    foreach ( $matching_premium_cats as $cat_id ) {
+                        $cat = get_category( $cat_id );
+                        if ( $cat ) {
+                            $entitlement           = strtoupper( str_replace( array( ' ', '-' ), '_', $cat->name ) );
+                            $access_entitlements[] = $entitlement;
+                        }
+                    }
                 }
             }
 

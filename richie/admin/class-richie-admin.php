@@ -281,6 +281,11 @@ class Richie_Admin {
             $valid['premium_categories'] = array_map( 'absint', $input['premium_categories'] );
         }
 
+        $valid['default_entitlement'] = '';
+        if ( isset( $input['default_entitlement'] ) && ! empty( $input['default_entitlement'] ) ) {
+            $valid['default_entitlement'] = sanitize_text_field( $input['default_entitlement'] );
+        }
+
         return $valid;
     }
 
@@ -641,6 +646,15 @@ class Richie_Admin {
             array(
                 'selected'    => isset( $options['premium_categories'] ) ? $options['premium_categories'] : array(),
                 'description' => __( 'Articles in selected categories will include access entitlements in the API response.', 'richie' ),
+            )
+        );
+        $access_section->add_field(
+            'default_entitlement',
+            __( 'Default entitlement', 'richie' ),
+            'input_field',
+            array(
+                'value'       => isset( $options['default_entitlement'] ) ? $options['default_entitlement'] : 'all_access',
+                'description' => __( 'Entitlement value used for all premium articles. If empty, category name is used (converted to UPPER_SNAKE_CASE).', 'richie' ),
             )
         );
 
