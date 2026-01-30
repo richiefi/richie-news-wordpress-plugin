@@ -22,11 +22,6 @@ require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-pos
  */
 class Richie_Article {
 
-    // Values for metered_paywall.
-    const METERED_PAYWALL_NO_ACCESS_VALUE = 'no_access';
-    const METERED_PAYWALL_METERED_VALUE   = 'metered';
-    const METERED_PAYWALL_FREE_VALUE      = 'free';
-
     const EXCLUDE_NONE     = 0b0001; // 1
     const EXCLUDE_METADATA = 0b0010; // 2
     const EXCLUDE_CONTENT  = 0b0100; // 4
@@ -313,15 +308,6 @@ class Richie_Article {
                 if ( $diff >= 5 * MINUTE_IN_SECONDS ) {
                     $article->updated_date = $updated_date->format( 'c' );
                 }
-            }
-
-            // TODO: Provide a way to set premium status per article.
-            $is_premium = false;
-
-            if ( $is_premium ) {
-                $article->metered_paywall = self::METERED_PAYWALL_NO_ACCESS_VALUE;
-            } else {
-                $article->metered_paywall = self::METERED_PAYWALL_FREE_VALUE;
             }
 
             // Include the thumbnail if found.
