@@ -267,7 +267,7 @@ class Richie_Public {
     public function get_section_article( $article ) {
         $section_article = array(
             'publisher_id'         => $article['id'],
-            'article_full_version' => $article['last_updated'],
+            'article_full_version' => $article['last_updated'], // TODO: Undocumented field - verify if still needed.
             'layout'               => $article['article_attributes']['list_layout_style'],
         );
 

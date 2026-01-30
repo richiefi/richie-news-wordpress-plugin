@@ -288,7 +288,7 @@ class Richie_Article {
         $article->share_link_url = get_permalink( $post_id );
 
         if ( ! $without_metadata ) {
-            $article->hash = $hash;
+            $article->hash = $hash; // TODO: Undocumented field - verify if still needed.
 
 
             if ( $richie_post_type->supports_property( 'summary' ) ) {
@@ -380,15 +380,15 @@ class Richie_Article {
                     if ( is_array( $response ) && ! is_wp_error( $response ) ) {
                         $rendered_content = $response['body'];
                         set_transient( $transient_key, $rendered_content, 10 );
-                        $article->from_cache = false;
+                        $article->from_cache = false; // TODO: Undocumented field - verify if still needed.
                     } else {
                         $rendered_content = __( 'Failed to get content', 'richie' );
                         if ( is_wp_error( $response ) ) {
-                            $article->content_error = $response->get_error_message();
+                            $article->content_error = $response->get_error_message(); // TODO: Undocumented field - verify if still needed.
                         }
                     }
                 } else {
-                    $article->from_cache = true;
+                    $article->from_cache = true; // TODO: Undocumented field - verify if still needed.
                 }
             }
 
