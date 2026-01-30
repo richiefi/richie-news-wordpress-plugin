@@ -611,6 +611,11 @@ class Richie_Admin {
             update_option( $this->settings_option_name, $options );
         }
 
+        if ( ! isset( $options['default_entitlement'] ) ) {
+            $options['default_entitlement'] = 'all_access';
+            update_option( $this->settings_option_name, $options );
+        }
+
     }
 
     /**
@@ -653,7 +658,7 @@ class Richie_Admin {
             __( 'Default entitlement', 'richie' ),
             'input_field',
             array(
-                'value'       => isset( $options['default_entitlement'] ) ? $options['default_entitlement'] : 'all_access',
+                'value'       => $options['default_entitlement'],
                 'description' => __( 'Entitlement value used for all premium articles. If empty, category name is used (converted to UPPER_SNAKE_CASE).', 'richie' ),
             )
         );
