@@ -9,7 +9,6 @@
  * @subpackage Richie/admin
  */
 
-require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-maggio-service.php';
 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-post-type.php';
 
 /**
@@ -214,7 +213,7 @@ class Richie_Admin {
          *        Administration Menus: http://codex.wordpress.org/Administration_Menus
          *
          */
-        add_options_page( 'Richie Settings', 'Richie', 'manage_options', $this->settings_page_slug, array( $this, 'load_admin_page_content' ) );
+        add_options_page( 'Richie News Settings', 'Richie News', 'manage_options', $this->settings_page_slug, array( $this, 'load_admin_page_content' ) );
     }
 
     /**
@@ -271,28 +270,11 @@ class Richie_Admin {
     public function validate_settings( $input ) {
         $valid = array();
 
-        // Paywall.
-        $valid['metered_pmpro_level']     = isset( $input['metered_pmpro_level'] ) ? intval( $input['metered_pmpro_level'] ) : 0;
-        $valid['member_only_pmpro_level'] = isset( $input['member_only_pmpro_level'] ) ? intval( $input['member_only_pmpro_level'] ) : 0;
         if ( isset( $input['access_token'] ) && ! empty( $input['access_token'] ) ) {
             $valid['access_token'] = sanitize_text_field( $input['access_token'] );
         }
-        $valid['maggio_secret']               = isset( $input['maggio_secret'] ) ? sanitize_text_field( $input['maggio_secret'] ) : '';
-        $valid['maggio_hostname']             = isset( $input['maggio_hostname'] ) ? esc_url_raw( $input['maggio_hostname'] ) : '';
-        $valid['maggio_organization']         = isset( $input['maggio_organization'] ) ? sanitize_text_field( $input['maggio_organization'] ) : '';
-        $valid['maggio_required_pmpro_level'] = isset( $input['maggio_required_pmpro_level'] ) ? intval( $input['maggio_required_pmpro_level'] ) : '';
-        $valid['maggio_index_range']          = isset( $input['maggio_index_range'] ) ? sanitize_text_field( $input['maggio_index_range'] ) : '';
+
         $valid['search_list_layout_style']    = in_array( $input['search_list_layout_style'], $this->available_layout_names, true ) ? sanitize_text_field( $input['search_list_layout_style'] ) : 'small';
-
-        $options          = get_option( $this->settings_option_name );
-        $current_hostname = isset( $options['maggio_hostname'] ) ? $options['maggio_hostname'] : '';
-        $current_index    = isset( $options['maggio_index_range'] ) ? $options['maggio_index_range'] : '';
-
-        if ( ! empty( $valid['maggio_hostname'] ) && ( $current_hostname !== $valid['maggio_hostname'] || $current_index !== $valid['maggio_index_range'] ) ) {
-            // Force cache refresh if hostname or index range changes.
-            $maggio_service = new Richie_Maggio_Service( $valid['maggio_hostname'], $valid['maggio_index_range'] );
-            $maggio_service->refresh_cached_response( true );
-        }
 
         return $valid;
     }
@@ -336,16 +318,6 @@ class Richie_Admin {
                 'article_set'     => intval( $input['article_set'] ),
             );
 
-            if ( ! empty( $input['herald_featured_module_title'] ) && empty( $input['herald_featured_post_id'] ) ) {
-                add_settings_error(
-                    $this->sources_option_name,
-                    esc_attr( 'sources_error' ),
-                    __( 'Herald module name given but post id was empty', 'richie' ),
-                    'error'
-                );
-                $error = true;
-            }
-
             if ( in_array( $input['post_type'], $available_types, true ) ) {
                 $source['post_type'] = $input['post_type'];
             } else {
@@ -356,13 +328,6 @@ class Richie_Admin {
                     'error'
                 );
                 $error = true;
-            }
-
-            if ( isset( $input['herald_featured_post_id'] ) && ! empty( $input['herald_featured_post_id'] ) ) {
-                $source['herald_featured_post_id'] = intval( $input['herald_featured_post_id'] );
-                if ( ! empty( $input['herald_featured_module_title'] ) ) {
-                    $source['herald_featured_module_title'] = strval( $input['herald_featured_module_title'] );
-                }
             }
 
             if ( isset( $input['source_categories'] ) && ! empty( $input['source_categories'] ) ) {
@@ -535,44 +500,8 @@ class Richie_Admin {
             <?php
         }
 
-        if ( $this->maggio_cache_updated() ) {
-            ?>
-            <div class="notice notice-success is-dismissible">
-            <p>
-                <strong>Richie: <?php esc_html_e( 'Maggio index cache updated.', 'richie' ); ?></strong>
-            </p>
-            </div>
-            <?php
-        }
     }
 
-    /**
-     * Check if maggio cache was updated recently.
-     *
-     * @param  int $threshold Optional. Compare age against threshold. Defaults to 5 seconds.
-     *
-     * @return boolean
-     */
-    public function maggio_cache_updated( $threshold = 5 ) {
-        $options         = get_option( $this->settings_option_name );
-        $maggio_hostname = isset( $options['maggio_hostname'] ) ? $options['maggio_hostname'] : '';
-        $maggio_index    = isset( $options['maggio_index_range'] ) ? $options['maggio_index_range'] : '';
-
-        if ( ! empty( $maggio_hostname ) ) {
-            // Check if cache was updated recently.
-            $maggio_service = new Richie_Maggio_Service( $maggio_hostname, $maggio_index );
-            $cache          = $maggio_service->get_cache();
-            if ( false !== $cache ) {
-                $timestamp = isset( $cache['timestamp'] ) ? intval( $cache['timestamp'] ) : 0;
-                $age       = time() - $timestamp;
-                if ( $age < $threshold ) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
 
     /**
      * Setup and register options using settings api
@@ -686,35 +615,12 @@ class Richie_Admin {
         $paywall_section_name = 'richie_paywall';
         $sources_section_name = 'richie_news_source';
         $assets_section_name  = 'richie_feed_assets';
-        $maggio_section_name  = 'richie_maggio';
         $search_section_name  = 'richie_search';
         $adslots_section_name = 'richie_ad_slot';
 
         // Create general section.
         $section = new Richie_Settings_Section( $general_section_name, __( 'General settings', 'richie' ), $this->settings_option_name );
         $section->add_field( 'access_token', __( 'Access token', 'richie' ), 'input_field', array( 'value' => $options['access_token'] ) );
-
-        if ( richie_is_pmpro_active() ) {
-            // Create paywall section.
-            $section = new Richie_Settings_Section( $paywall_section_name, __( 'Paywall', 'richie' ), $this->settings_option_name );
-            $section->add_field( 'metered_pmpro_level', __( 'Metered level', 'richie' ), 'pmpro_level', array( 'value' => $options['metered_pmpro_level'] ) );
-            $section->add_field( 'member_only_pmpro_level', __( 'Member only level', 'richie' ), 'pmpro_level', array( 'value' => $options['member_only_pmpro_level'] ) );
-        }
-
-        // Create maggio section.
-        $section = new Richie_Settings_Section( $maggio_section_name, __( 'Maggio settings', 'richie' ), $this->settings_option_name );
-        $section->add_field( 'maggio_organization', __( 'Maggio organization', 'richie' ), 'input_field', array( 'value' => $options['maggio_organization'] ) );
-        $section->add_field( 'maggio_hostname', __( 'Maggio hostname', 'richie' ), 'input_field', array( 'value' => $options['maggio_hostname'] ) );
-        $section->add_field( 'maggio_secret', __( 'Maggio secret', 'richie' ), 'input_field', array( 'value' => $options['maggio_secret'] ) );
-
-        if ( richie_is_pmpro_active() ) {
-            $section->add_field( 'maggio_required_pmpro_level', __( 'Required membership level', 'richie' ), 'pmpro_level', array( 'value' => $options['maggio_required_pmpro_level'] ) );
-        }
-
-        // 'all' and 'latest' are available as default, other options can be updated.
-        $available_indexes = $this->get_available_indexes();
-        $selected = isset( $options['maggio_index_range'] ) ? $options['maggio_index_range'] : '/_data/index.json';
-        $section->add_field( 'maggio_index_range', __( 'Maggio index range', 'richie' ), 'select_field', array( 'options' => $available_indexes, 'selected' => $selected, 'description' => 'Select index to use. "All" contains all issues, other options contain issues from specific range. To get available options, save Maggio Hostname setting first.' ) );
 
         // Create search settings section.
         $section  = new Richie_Settings_Section( $search_section_name, __( 'Search API settings', 'richie' ), $this->settings_option_name );
@@ -726,19 +632,6 @@ class Richie_Admin {
         $source_section->add_field( 'source_name', __( 'Name', 'richie' ), 'input_field' );
         $source_section->add_field( 'richie_article_set', __( 'Article set', 'richie' ), 'article_set' );
         $source_section->add_field( 'number_of_posts', __( 'Number of posts', 'richie' ), 'input_field', array( 'type' => 'number', 'class' => 'small-text', 'description' => __( 'Number of posts included in the feed', 'richie' ) ) );
-
-        if ( defined( 'HERALD_THEME_VERSION' ) ) {
-            $source_herald_section = new Richie_Settings_Section( $sources_section_name . 'herald', __( 'Herald featured module', 'richie' ), $this->sources_option_name );
-            $front_page            = (int) get_option( 'page_on_front' );
-            $description           = __( 'Fetch posts from herald modules of this page id. Rest of filters will be ignored.', 'richie' );
-
-            if ( $front_page > 0 ) {
-                $description = sprintf( '%s %s %u.', $description, __( 'Current front page id is', 'richie' ), $front_page );
-            }
-
-            $source_herald_section->add_field( 'herald_featured_post_id', __( 'Herald page ID', 'richie' ), 'input_field', array( 'description' => $description, 'class' => '' ) );
-            $source_herald_section->add_field( 'herald_featured_module_title', __( 'Herald module title', 'richie' ), 'input_field', array( 'description' => __('Module title from the given page to be used as a source. If empty, defaults to first featured type module.', 'richie'), 'class' => '' ) );
-        }
 
         $source_section->add_field( 'post_type', __( 'Post type', 'richie' ), 'select_field', array( 'options' => Richie_Post_Type::available_post_types( 'object' ), 'required' => true ) );
 
@@ -772,48 +665,6 @@ class Richie_Admin {
         $section->add_field( 'richie_news_assets', __( 'Assets', 'richie' ), 'asset_editor' );
     }
 
-    public function get_available_indexes() {
-        $options = get_option( $this->settings_option_name );
-
-        $available_indexes = array();
-
-        if ( isset( $options['maggio_hostname'] ) ) {
-            // We have hostname set, fetch available from the server.
-            $url      = $options['maggio_hostname'] . '/_data/server_config.json';
-            $response = wp_remote_get( $url );
-            $body     = wp_remote_retrieve_body( $response );
-
-            if ( ! empty( $body ) ) {
-                $config = json_decode( $body, true );
-                if ( JSON_ERROR_NONE === json_last_error() ) {
-                    $indexes = $config['indexes'];
-
-                    $available_indexes = array_map(
-                        function( $index ) {
-                            return array(
-                                'title' => $index['range'],
-                                'value' => $index['path'],
-                            );
-                        },
-                        $indexes
-                    );
-                }
-            }
-        } else {
-            // 'all' and 'latest' are available as default, other options can be updated.
-            $available_indexes = array(
-                array(
-                    'title' => 'all',
-                    'value' => '_data/index.json',
-                ),
-                array(
-                    'title' => 'latest',
-                    'value' => '_data/latest.json',
-                ),
-            );
-        }
-        return $available_indexes;
-    }
     /**
      * Ajax hook for ordering news source list.
      * Sends json response
@@ -823,6 +674,10 @@ class Richie_Admin {
     public function order_source_list() {
         if ( ! check_ajax_referer( 'richie-security-nonce', 'security', false ) ) {
             wp_send_json_error( 'Invalid security token sent.' );
+        }
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
         }
 
         if ( ! isset( $_POST['source_items'] ) ) {
@@ -867,6 +722,10 @@ class Richie_Admin {
             wp_send_json_error( 'Invalid security token sent.' );
         }
 
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
+        }
+
         if ( ! isset( $_POST['source_id'] ) ) {
             echo 'Missing source id';
             wp_die();
@@ -900,6 +759,10 @@ class Richie_Admin {
     public function set_checkbox_field() {
         if ( ! check_ajax_referer( 'richie-security-nonce', 'security', false ) ) {
             wp_send_json_error( 'Invalid security token sent.' );
+        }
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
         }
 
         if ( ! isset( $_POST['source_id'] ) ) {
@@ -947,6 +810,10 @@ class Richie_Admin {
             wp_send_json_error( 'Invalid security token sent.' );
         }
 
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
+        }
+
         $option                 = get_option( $this->sources_option_name );
         $sources                = ! empty( $option['sources'] ) ? $option['sources'] : array();
         $option['published']    = $sources;
@@ -966,6 +833,10 @@ class Richie_Admin {
     public function revert_source_changes() {
         if ( ! check_ajax_referer( 'richie-security-nonce', 'security', false ) ) {
             wp_send_json_error( 'Invalid security token sent.' );
+        }
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
         }
 
         $option            = get_option( $this->sources_option_name );
@@ -1004,6 +875,10 @@ class Richie_Admin {
             wp_send_json_error( 'Invalid security token sent.' );
         }
 
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
+        }
+
         if ( ! isset( $_POST['index'] ) || ! isset( $_POST['article_set_id'] ) ) {
             wp_send_json_error( 'Missing arguments', 400 );
         }
@@ -1037,6 +912,10 @@ class Richie_Admin {
     public function get_adslot_data() {
         if ( ! check_ajax_referer( 'richie-security-nonce', 'security', false ) ) {
             wp_send_json_error( 'Invalid security token sent.' );
+        }
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
         }
 
         if ( ! isset( $_POST['index'] ) || ! isset( $_POST['article_set_id'] ) ) {
@@ -1108,16 +987,7 @@ class Richie_Admin {
                     }
 
                     $article_set     = get_term( $source['article_set'] );
-                    $herald_featured = isset( $source['herald_featured_post_id'] );
 
-                    if ( $herald_featured ) {
-                        $herald_category_name = 'Herald module';
-                        if ( isset( $source['herald_featured_module_title'] ) ) {
-                            $herald_category_name = $herald_category_name . ': ' . $source['herald_featured_module_title'];
-                        } else {
-                            $herald_category_name = 'Herald featured module';
-                        }
-                    }
 
                     $post_type = isset( $source['post_type'] ) ? $source['post_type'] : 'post';
 
@@ -1130,14 +1000,14 @@ class Richie_Admin {
                         <td><?php echo esc_html( $post_type ); ?></td>
                         <td>
                             <?php
-                            echo ! $herald_featured ? esc_html( implode( ', ', $category_names ) ) : esc_html($herald_category_name);
+                            echo esc_html( implode( ', ', $category_names ) );
                             if ( ! empty( $source['tags'] ) ) {
                                 echo '<br/>Tags: ' . esc_html( implode( ', ', $source['tags'] ) );
                             }
                             ?>
                         </td>
                         <td><?php echo esc_html( $source['number_of_posts'] ); ?></td>
-                        <td><?php echo isset( $source['order_by'] ) && ! $herald_featured ? esc_html( "{$source['order_by']} {$source['order_direction']}" ) : ''; ?> </td>
+                        <td><?php echo isset( $source['order_by'] ) && esc_html( "{$source['order_by']} {$source['order_direction']}" ); ?> </td>
                         <td><?php echo isset( $source['max_age'] ) ? esc_html( $source['max_age'] ) : 'All time'; ?></td>
                         <td><?php echo isset( $source['list_layout_style'] ) ? esc_html( $source['list_layout_style'] ) : 'none'; ?></td>
                         <td><div style="display:block; height: 20px; width: 20px; margin: 0 auto; background-color: #<?php echo isset( $source['background_color'] ) ? esc_html( $source['background_color'] ) : 'transparent'; ?>" /></td>

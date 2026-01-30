@@ -12,29 +12,23 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
     protected $options;
     protected $assets;
 
-    public function setUp() {
+    public function setUp(): void {
         parent::setUp();
         $this->options = array(
-            'metered_pmpro_level' => null,
-            'member_only_pmpro_level' => 1,
             'access_token' => '1234',
         );
         $this->assets = array();
 
     }
-    public function tearDown() {
+    public function tearDown(): void {
         parent::tearDown();
     }
 
     private function get_stub() {
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $this->assets ) )
-        ->setMethods( array( 'get_pmpro_levels', 'render_template', 'get_article_assets' ) )
+        ->onlyMethods( array( 'render_template', 'get_article_assets' ) )
         ->getMock();
-
-        // Configure the stub.
-        $stub->method( 'get_pmpro_levels' )
-            ->willReturn( array() );
 
         $stub->method( 'get_article_assets' )
             ->willReturn( array() );
@@ -92,16 +86,14 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
     }
 
     public function test_article_metered_paywall() {
+        $this->markTestSkipped('There is no support for metered paywall for now.');
         global $wpdb;
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $this->assets ) )
-        ->setMethods( array( 'is_pmpro_active', 'render_template', 'get_article_assets' ) )
+        ->onlyMethods( array( 'render_template', 'get_article_assets' ) )
         ->getMock();
 
         // Configure the stub.
-        $stub->method( 'is_pmpro_active' )
-            ->willReturn( true );
-
         $stub->method( 'get_article_assets' )
             ->willReturn( array() );
 
@@ -115,14 +107,14 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
             )
         );
 
-        $wpdb->pmpro_memberships_pages = 'TEST_DB';
+        //$wpdb->pmpro_memberships_pages = 'TEST_DB';
 
-        add_filter( 'query', function( $query ) {
-            if ( strpos( $query, 'TEST_DB' ) !== false ) {
-                return 'SELECT 1 as id'; // We have set member only level to 1 in options, return that.
-            }
-            return $query;
-        });
+        // add_filter( 'query', function( $query ) {
+        //     if ( strpos( $query, 'TEST_DB' ) !== false ) {
+        //         return 'SELECT 1 as id'; // We have set member only level to 1 in options, return that.
+        //     }
+        //     return $query;
+        // });
 
         $article = $stub->generate_article( $post );
         $this->assertEquals( $article->title, 'My Title' );
@@ -151,13 +143,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
             }
         }
 
-        $stub = $this->getMockBuilder( Richie_Article::class )
-        ->setConstructorArgs( array( $this->options, $general_assets ) )
-        ->setMethods( array( 'get_pmpro_levels') )
-        ->getMock();
-
-        $stub->method( 'get_pmpro_levels' )
-        ->willReturn( array() );
+        $service = new Richie_Article( $this->options, $general_assets );
 
         $postdate = '2010-01-01 12:00:00';
         $updated  = '2010-01-01 12:05:00';
@@ -176,7 +162,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
 
         $post->post_modified = $updated;
         $post->post_modified_gmt = get_gmt_from_date( $updated );
-        $article = $stub->generate_article( $post );
+        $article = $service->generate_article( $post );
         $this->assertEquals( $article->title, 'My Title' );
 
         $assets = $article->assets;
@@ -189,20 +175,18 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $this->assertEquals( $locals['www.richie.fi/js/script.js']->remote_url, 'http://www.richie.fi/js/script.js?ver=1.1' );
         $this->assertEquals( $locals['styles/style.css']->remote_url, 'http://example.org/styles/style.css?ver=1' );
 
-        $this->assertContains( '"www.richie.fi/js/script.js"', $article->content_html_document );
-        $this->assertContains( '"styles/style.css"', $article->content_html_document);
+        $this->assertStringContainsString( '"www.richie.fi/js/script.js"', $article->content_html_document );
+        $this->assertStringContainsString( '"styles/style.css"', $article->content_html_document);
     }
 
     public function test_article_handles_images() {
         global $wpdb;
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $this->assets ) )
-        ->setMethods( array( 'get_pmpro_levels', 'render_template', 'get_article_assets' ) )
+        ->onlyMethods( array( 'render_template', 'get_article_assets' ) )
         ->getMock();
 
         // Configure the stub.
-        $stub->method( 'get_pmpro_levels' )
-            ->willReturn( array() );
 
         $stub->method( 'get_article_assets' )
             ->willReturn( array() );
@@ -241,7 +225,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $photos  = $article->photos[0];
 
         // Url changed, srcset removed.
-        $this->assertContains( '<img src="img/included.jpg">', $article->content_html_document );
+        $this->assertStringContainsString( '<img src="img/included.jpg">', $article->content_html_document );
         $this->assertEquals( count( $photos ), 1 ); // One image should be included.
     }
 
@@ -249,12 +233,10 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         global $wpdb;
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $this->assets ) )
-        ->setMethods( array( 'get_pmpro_levels', 'render_template', 'get_article_assets' ) )
+        ->onlyMethods( array( 'render_template', 'get_article_assets' ) )
         ->getMock();
 
         // Configure the stub.
-        $stub->method( 'get_pmpro_levels' )
-            ->willReturn( array() );
 
         $stub->method( 'get_article_assets' )
             ->willReturn( array() );
@@ -310,12 +292,10 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         global $wpdb;
         $stub = $this->getMockBuilder( Richie_Article::class )
         ->setConstructorArgs( array( $this->options, $this->assets ) )
-        ->setMethods( array( 'get_pmpro_levels', 'render_template', 'get_article_assets' ) )
+        ->onlyMethods( array( 'render_template', 'get_article_assets' ) )
         ->getMock();
 
         // Configure the stub.
-        $stub->method( 'get_pmpro_levels' )
-            ->willReturn( array() );
 
         $stub->method( 'get_article_assets' )
             ->willReturn( array() );
@@ -383,11 +363,11 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $post->post_modified = $updated;
         $post->post_modified_gmt = get_gmt_from_date( $updated );
         $article = $stub->generate_article( $post, Richie_Article::EXCLUDE_METADATA );
-        $this->assertObjectNotHasAttribute( 'date', $article );
-        $this->assertObjectNotHasAttribute( 'summary', $article );
-        $this->assertObjectHasAttribute( 'title', $article );
-        $this->assertObjectHasAttribute( 'content_html_document', $article );
-        $this->assertObjectHasAttribute( 'assets', $article );
-        $this->assertObjectHasAttribute( 'photos', $article );
+        $this->assertObjectNotHasProperty( 'date', $article );
+        $this->assertObjectNotHasProperty( 'summary', $article );
+        $this->assertObjectHasProperty( 'title', $article );
+        $this->assertObjectHasProperty( 'content_html_document', $article );
+        $this->assertObjectHasProperty( 'assets', $article );
+        $this->assertObjectHasProperty( 'photos', $article );
     }
 }

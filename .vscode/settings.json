@@ -11,5 +11,10 @@
     "*/tmp/*"
   ],
   "phpcbf.standard": "WordPress",
-  "phpcbf.executablePath": "./vendor/bin/phpcbf"
+  "phpcbf.executablePath": "./vendor/bin/phpcbf",
+  "intelephense.environment.includePaths": [
+    "./vendor/giacocorsiglia/wordpress-stubs",
+    "./vendor/php-stubs/wordpress-tests-stubs",
+    "./vendor/phpunit/phpunit/src"
+  ]
 }

@@ -71,7 +71,7 @@ class Richie_Photo_Asset implements JsonSerializable {
         return json_encode( $this->get_data() );
     }
 
-    public function jsonSerialize() {
+    public function jsonSerialize(): mixed {
         return $this->get_data();
     }
 }

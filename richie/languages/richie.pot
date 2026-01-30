@@ -1,381 +1,319 @@
-# Copyright (C) 2023 Richie Oy
+# Copyright (C) 2026 Richie Oy
 # This file is distributed under the Richie Oy.
 msgid ""
 msgstr ""
-"Project-Id-Version: Richie 1.7.3\n"
+"Project-Id-Version: Richie News 1.7.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/richie\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-01-18T08:20:59+00:00\n"
+"POT-Creation-Date: 2026-01-28T15:12:21+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.5.0\n"
+"X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: richie\n"
 
 #. Plugin Name of the plugin
-msgid "Richie"
+#: richie.php
+msgid "Richie News"
 msgstr ""
 
 #. Plugin URI of the plugin
+#: richie.php
 msgid "https://www.richie.fi"
 msgstr ""
 
 #. Description of the plugin
-msgid "Richie platform plugin"
+#: richie.php
+msgid "Richie news platform plugin. Provides news API for native applications."
 msgstr ""
 
 #. Author of the plugin
+#: richie.php
 msgid "Richie Oy"
 msgstr ""
 
-#: admin/class-richie-admin.php:223
+#: admin/class-richie-admin.php:230
 #: admin/partials/richie-admin-display.php:25
 msgid "Settings"
 msgstr ""
 
-#: admin/class-richie-admin.php:335
-msgid "Herald module name given but post id was empty"
-msgstr ""
-
-#: admin/class-richie-admin.php:347
+#: admin/class-richie-admin.php:327
 msgid "Given post type not supported"
 msgstr ""
 
-#: admin/class-richie-admin.php:401
+#: admin/class-richie-admin.php:374
 msgid "Name and number of posts are required"
 msgstr ""
 
-#: admin/class-richie-admin.php:422
+#: admin/class-richie-admin.php:395
 msgid "No data found"
 msgstr ""
 
 #. translators: %s is replaced with the error
-#: admin/class-richie-admin.php:436
+#: admin/class-richie-admin.php:409
+#, php-format
 msgid "Failed to parse json, unable to save: %s"
 msgstr ""
 
 #. translators: %s is replaced with the error
-#: admin/class-richie-admin.php:483
+#: admin/class-richie-admin.php:456
+#, php-format
 msgid "Failed to save adslot, validation failed: %s"
 msgstr ""
 
-#: admin/class-richie-admin.php:520
+#: admin/class-richie-admin.php:493
 msgid "News sources have unpublished changes."
 msgstr ""
 
-#: admin/class-richie-admin.php:522
+#: admin/class-richie-admin.php:495
 msgid "Publish now"
 msgstr ""
 
-#: admin/class-richie-admin.php:523
+#: admin/class-richie-admin.php:496
 msgid "Revert changes"
 msgstr ""
 
-#: admin/class-richie-admin.php:534
-msgid "Maggio index cache updated."
-msgstr ""
-
-#: admin/class-richie-admin.php:686
+#: admin/class-richie-admin.php:622
 msgid "General settings"
 msgstr ""
 
-#: admin/class-richie-admin.php:687
+#: admin/class-richie-admin.php:623
 msgid "Access token"
 msgstr ""
 
-#: admin/class-richie-admin.php:691
-msgid "Paywall"
-msgstr ""
-
-#: admin/class-richie-admin.php:692
-msgid "Metered level"
-msgstr ""
-
-#: admin/class-richie-admin.php:693
-msgid "Member only level"
-msgstr ""
-
-#: admin/class-richie-admin.php:697
-msgid "Maggio settings"
-msgstr ""
-
-#: admin/class-richie-admin.php:698
-msgid "Maggio organization"
-msgstr ""
-
-#: admin/class-richie-admin.php:699
-msgid "Maggio hostname"
-msgstr ""
-
-#: admin/class-richie-admin.php:700
-msgid "Maggio secret"
-msgstr ""
-
-#: admin/class-richie-admin.php:703
-msgid "Required membership level"
-msgstr ""
-
-#: admin/class-richie-admin.php:709
-msgid "Maggio index range"
-msgstr ""
-
-#: admin/class-richie-admin.php:712
+#: admin/class-richie-admin.php:626
 msgid "Search API settings"
 msgstr ""
 
-#: admin/class-richie-admin.php:714
+#: admin/class-richie-admin.php:628
 msgid "Search list layout"
 msgstr ""
 
-#: admin/class-richie-admin.php:717
+#: admin/class-richie-admin.php:631
 msgid "Basic data"
 msgstr ""
 
-#: admin/class-richie-admin.php:718
+#: admin/class-richie-admin.php:632
 msgid "Name"
 msgstr ""
 
-#: admin/class-richie-admin.php:719
-#: admin/class-richie-admin.php:755
+#: admin/class-richie-admin.php:633
+#: admin/class-richie-admin.php:656
 #: includes/class-richie-custom-taxonomies.php:49
 msgid "Article set"
 msgstr ""
 
-#: admin/class-richie-admin.php:720
+#: admin/class-richie-admin.php:634
 msgid "Number of posts"
 msgstr ""
 
-#: admin/class-richie-admin.php:720
+#: admin/class-richie-admin.php:634
 msgid "Number of posts included in the feed"
 msgstr ""
 
-#: admin/class-richie-admin.php:723
-msgid "Herald featured module"
-msgstr ""
-
-#: admin/class-richie-admin.php:725
-msgid "Fetch posts from herald modules of this page id. Rest of filters will be ignored."
-msgstr ""
-
-#: admin/class-richie-admin.php:728
-msgid "Current front page id is"
-msgstr ""
-
-#: admin/class-richie-admin.php:731
-msgid "Herald page ID"
-msgstr ""
-
-#: admin/class-richie-admin.php:732
-msgid "Herald module title"
-msgstr ""
-
-#: admin/class-richie-admin.php:732
-msgid "Module title from the given page to be used as a source. If empty, defaults to first featured type module."
-msgstr ""
-
-#: admin/class-richie-admin.php:735
+#: admin/class-richie-admin.php:636
 msgid "Post type"
 msgstr ""
 
-#: admin/class-richie-admin.php:737
+#: admin/class-richie-admin.php:638
 msgid "Filters"
 msgstr ""
 
-#: admin/class-richie-admin.php:738
+#: admin/class-richie-admin.php:639
 msgid "Categories"
 msgstr ""
 
-#: admin/class-richie-admin.php:739
+#: admin/class-richie-admin.php:640
 msgid "Tags"
 msgstr ""
 
-#: admin/class-richie-admin.php:740
+#: admin/class-richie-admin.php:641
 msgid "Order by"
 msgstr ""
 
-#: admin/class-richie-admin.php:741
+#: admin/class-richie-admin.php:642
 msgid "Order direction"
 msgstr ""
 
-#: admin/class-richie-admin.php:742
+#: admin/class-richie-admin.php:643
 msgid "Post max age"
 msgstr ""
 
-#: admin/class-richie-admin.php:744
+#: admin/class-richie-admin.php:645
 msgid "Options"
 msgstr ""
 
-#: admin/class-richie-admin.php:745
+#: admin/class-richie-admin.php:646
 msgid "List layout"
 msgstr ""
 
-#: admin/class-richie-admin.php:746
+#: admin/class-richie-admin.php:647
 msgid "List group title"
 msgstr ""
 
-#: admin/class-richie-admin.php:746
+#: admin/class-richie-admin.php:647
 msgid "Header to display before the story, useful on the first small_group_item of a group"
 msgstr ""
 
-#: admin/class-richie-admin.php:747
+#: admin/class-richie-admin.php:648
 msgid "Background color"
 msgstr ""
 
-#: admin/class-richie-admin.php:747
+#: admin/class-richie-admin.php:648
 msgid "Background color to be used with layout types. Not all layout types support this."
 msgstr ""
 
-#: admin/class-richie-admin.php:748
+#: admin/class-richie-admin.php:649
 msgid "Allow duplicates"
 msgstr ""
 
-#: admin/class-richie-admin.php:748
+#: admin/class-richie-admin.php:649
 msgid "Allow duplicate articles in this source"
 msgstr ""
 
-#: admin/class-richie-admin.php:749
+#: admin/class-richie-admin.php:650
 msgid "Disable article summary"
 msgstr ""
 
-#: admin/class-richie-admin.php:749
+#: admin/class-richie-admin.php:650
 msgid "Do not show summary text in news list"
 msgstr ""
 
-#: admin/class-richie-admin.php:752
+#: admin/class-richie-admin.php:653
 msgid "Specify an index number for the ad slot placement in the article set feed. 1-based index, so 1 means the first item on the feed. Existing index for the article set is overwritten."
 msgstr ""
 
-#: admin/class-richie-admin.php:754
+#: admin/class-richie-admin.php:655
 msgid "Add new ad slot"
 msgstr ""
 
-#: admin/class-richie-admin.php:756
+#: admin/class-richie-admin.php:657
 msgid "Slot position"
 msgstr ""
 
-#: admin/class-richie-admin.php:759
+#: admin/class-richie-admin.php:660
 msgid "Ad provider"
 msgstr ""
 
-#: admin/class-richie-admin.php:760
+#: admin/class-richie-admin.php:661
 msgid "Ad data"
 msgstr ""
 
-#: admin/class-richie-admin.php:763
+#: admin/class-richie-admin.php:664
 msgid "Asset feed"
 msgstr ""
 
-#: admin/class-richie-admin.php:764
+#: admin/class-richie-admin.php:665
 msgid "Assets"
 msgstr ""
 
-#: admin/class-richie-admin.php:1065
+#: admin/class-richie-admin.php:924
 msgid "Last publish time:"
 msgstr ""
 
-#: admin/class-richie-admin.php:1067
+#: admin/class-richie-admin.php:926
 msgid "Publish"
 msgstr ""
 
-#: admin/class-richie-admin.php:1071
-#: admin/class-richie-admin.php:1171
+#: admin/class-richie-admin.php:930
+#: admin/class-richie-admin.php:1021
 msgctxt "column name"
 msgid "ID"
 msgstr ""
 
-#: admin/class-richie-admin.php:1072
-#: admin/class-richie-admin.php:1169
+#: admin/class-richie-admin.php:931
+#: admin/class-richie-admin.php:1019
 msgctxt "column name"
 msgid "Article Set"
 msgstr ""
 
-#: admin/class-richie-admin.php:1073
+#: admin/class-richie-admin.php:932
 msgctxt "column name"
 msgid "Name"
 msgstr ""
 
-#: admin/class-richie-admin.php:1074
+#: admin/class-richie-admin.php:933
 msgctxt "column name"
 msgid "Post type"
 msgstr ""
 
-#: admin/class-richie-admin.php:1075
+#: admin/class-richie-admin.php:934
 msgctxt "column name"
 msgid "Categories"
 msgstr ""
 
-#: admin/class-richie-admin.php:1076
+#: admin/class-richie-admin.php:935
 msgctxt "column name"
 msgid "Posts"
 msgstr ""
 
-#: admin/class-richie-admin.php:1077
+#: admin/class-richie-admin.php:936
 msgctxt "column name"
 msgid "Order"
 msgstr ""
 
-#: admin/class-richie-admin.php:1078
+#: admin/class-richie-admin.php:937
 msgctxt "column name"
 msgid "Max age"
 msgstr ""
 
-#: admin/class-richie-admin.php:1079
+#: admin/class-richie-admin.php:938
 msgctxt "column name"
 msgid "List layout"
 msgstr ""
 
-#: admin/class-richie-admin.php:1080
+#: admin/class-richie-admin.php:939
 msgctxt "column name"
 msgid "Background"
 msgstr ""
 
-#: admin/class-richie-admin.php:1081
+#: admin/class-richie-admin.php:940
 msgctxt "column name"
 msgid "Disable summary"
 msgstr ""
 
-#: admin/class-richie-admin.php:1082
+#: admin/class-richie-admin.php:941
 msgctxt "column name"
 msgid "Allow duplicates"
 msgstr ""
 
-#: admin/class-richie-admin.php:1083
-#: admin/class-richie-admin.php:1174
+#: admin/class-richie-admin.php:942
+#: admin/class-richie-admin.php:1024
 msgctxt "column name"
 msgid "Actions"
 msgstr ""
 
-#: admin/class-richie-admin.php:1143
-#: admin/class-richie-admin.php:1201
+#: admin/class-richie-admin.php:993
+#: admin/class-richie-admin.php:1051
 msgid "Remove"
 msgstr ""
 
-#: admin/class-richie-admin.php:1153
+#: admin/class-richie-admin.php:1003
 msgid "No sources configured. Add news feed sources with the form below."
 msgstr ""
 
-#: admin/class-richie-admin.php:1170
+#: admin/class-richie-admin.php:1020
 msgctxt "column name"
 msgid "Index"
 msgstr ""
 
-#: admin/class-richie-admin.php:1172
+#: admin/class-richie-admin.php:1022
 msgctxt "column name"
 msgid "Ad provider"
 msgstr ""
 
-#: admin/class-richie-admin.php:1173
+#: admin/class-richie-admin.php:1023
 msgctxt "column name"
 msgid "Ad data"
 msgstr ""
 
-#: admin/class-richie-admin.php:1200
+#: admin/class-richie-admin.php:1050
 msgid "Copy to form"
 msgstr ""
 
-#: admin/class-richie-admin.php:1212
+#: admin/class-richie-admin.php:1062
 msgid "No slots configured. Add ad slots with the form below."
 msgstr ""
 
@@ -410,89 +348,85 @@ msgstr ""
 msgid "Add ad slot"
 msgstr ""
 
-#: includes/class-richie-admin-components.php:177
-msgid "Not used"
-msgstr ""
-
-#: includes/class-richie-admin-components.php:209
+#: includes/class-richie-admin-components.php:175
 msgid "Edit Article sets"
 msgstr ""
 
-#: includes/class-richie-admin-components.php:269
+#: includes/class-richie-admin-components.php:235
 msgid "Post views"
 msgstr ""
 
-#: includes/class-richie-admin-components.php:275
+#: includes/class-richie-admin-components.php:241
 msgid "Post date"
 msgstr ""
 
-#: includes/class-richie-admin-components.php:276
+#: includes/class-richie-admin-components.php:242
 msgid "Post modified time"
 msgstr ""
 
-#: includes/class-richie-admin-components.php:277
+#: includes/class-richie-admin-components.php:243
 msgid "Post title"
 msgstr ""
 
-#: includes/class-richie-admin-components.php:278
+#: includes/class-richie-admin-components.php:244
 msgid "Post author"
 msgstr ""
 
-#: includes/class-richie-admin-components.php:279
+#: includes/class-richie-admin-components.php:245
 msgid "Post ID"
 msgstr ""
 
-#: includes/class-richie-admin-components.php:285
+#: includes/class-richie-admin-components.php:251
 msgid "Popular posts (24 hours)"
 msgstr ""
 
-#: includes/class-richie-admin-components.php:286
+#: includes/class-richie-admin-components.php:252
 msgid "Popular posts (week)"
 msgstr ""
 
-#: includes/class-richie-admin-components.php:287
+#: includes/class-richie-admin-components.php:253
 msgid "Popular posts (month)"
 msgstr ""
 
-#: includes/class-richie-admin-components.php:308
+#: includes/class-richie-admin-components.php:274
 msgid "DESC"
 msgstr ""
 
-#: includes/class-richie-admin-components.php:309
+#: includes/class-richie-admin-components.php:275
 msgid "ASC"
 msgstr ""
 
-#: includes/class-richie-admin-components.php:363
-#: includes/class-richie-admin-components.php:364
+#: includes/class-richie-admin-components.php:329
+#: includes/class-richie-admin-components.php:330
 msgid "day"
 msgid_plural "days"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-richie-admin-components.php:365
-#: includes/class-richie-admin-components.php:366
+#: includes/class-richie-admin-components.php:331
+#: includes/class-richie-admin-components.php:332
 msgid "week"
 msgid_plural "weeks"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-richie-admin-components.php:367
-#: includes/class-richie-admin-components.php:368
-#: includes/class-richie-admin-components.php:369
+#: includes/class-richie-admin-components.php:333
+#: includes/class-richie-admin-components.php:334
+#: includes/class-richie-admin-components.php:335
 msgid "month"
 msgid_plural "months"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-richie-admin-components.php:370
+#: includes/class-richie-admin-components.php:336
 msgid "1 year"
 msgstr ""
 
-#: includes/class-richie-admin-components.php:371
+#: includes/class-richie-admin-components.php:337
 msgid "All time"
 msgstr ""
 
-#: includes/class-richie-admin-components.php:383
+#: includes/class-richie-admin-components.php:349
 msgid "Include posts that are not older than specific time range"
 msgstr ""
 
@@ -530,43 +464,6 @@ msgstr ""
 msgid "New Article set Name"
 msgstr ""
 
-#: includes/class-richie-news-article.php:421
+#: includes/class-richie-news-article.php:385
 msgid "Failed to get content"
-msgstr ""
-
-#: includes/functions.php:91
-msgid "Missing secret"
-msgstr ""
-
-#: includes/functions.php:95
-msgid "Invalid issue uuid"
-msgstr ""
-
-#: includes/functions.php:99
-msgid "Invalid timestamp, it must be an integer"
-msgstr ""
-
-#: public/class-richie-public.php:847
-msgid "Invalid configuration, missing hostname in settings"
-msgstr ""
-
-#: public/class-richie-public.php:861
-msgid "\"product\" attribute is required"
-msgstr ""
-
-#: public/class-richie-public.php:865
-msgid "Invalid organization"
-msgstr ""
-
-#: public/class-richie-public.php:874
-#: public/class-richie-public.php:964
-msgid "Failed to fetch issues"
-msgstr ""
-
-#: public/class-richie-public.php:882
-msgid "No issues found"
-msgstr ""
-
-#: templates/richie-maggio-index.php:31
-msgid "You need to be logged in and have an active subscription to access these issues"
 msgstr ""

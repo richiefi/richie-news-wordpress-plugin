@@ -37,6 +37,13 @@ class Richie_Settings_Section {
     private $option_name;
 
     /**
+     * Admin components
+     *
+     * @var Richie_Admin_Components
+     */
+    private $admin_components;
+
+    /**
      * Create new section instance
      *
      * @param string $section_slug  Section slug.

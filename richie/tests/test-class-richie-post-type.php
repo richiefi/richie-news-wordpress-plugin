@@ -13,7 +13,7 @@
  */
 class Test_Richie_Post_Type extends WP_UnitTestCase {
 
-    public function setUp() {
+    public function setUp(): void {
         parent::setUp();
         $args = array(
             'labels'   => array(

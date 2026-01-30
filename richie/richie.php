@@ -13,9 +13,9 @@
  * @package           Richie
  *
  * @wordpress-plugin
- * Plugin Name:       Richie
+ * Plugin Name:       Richie News
  * Plugin URI:        https://www.richie.fi
- * Description:       Richie platform plugin
+ * Description:       Richie news platform plugin. Provides news API for native applications.
  * Version:           1.7.3
  * Author:            Richie Oy
  * License:           Richie Oy

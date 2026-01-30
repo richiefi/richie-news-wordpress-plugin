@@ -145,8 +145,8 @@ trait QuerySelectors
                     if ($element->attributes->length > 0) {
                         foreach ($attributeSelectors as $attributeSelector) {
                             $isMatch = false;
-                            $attributeValue = $element->getAttribute($attributeSelector['name']);
                             if (isset($attributeSelector['value'])) {
+                                $attributeValue = $element->getAttribute($attributeSelector['name']);
                                 $valueToMatch = $attributeSelector['value'];
                                 switch ($attributeSelector['operator']) {
                                     case '=':
@@ -186,8 +186,11 @@ trait QuerySelectors
                                         break;
                                 }
                             } else {
-                                if ($attributeValue !== '') {
-                                    $isMatch = true;
+                                foreach ($element->attributes as $elementAttributeName => $elementAttributeValue) {
+                                    if ($elementAttributeName === $attributeSelector['name']) {
+                                        $isMatch = true;
+                                        break;
+                                    }
                                 }
                             }
                             if (!$isMatch) {

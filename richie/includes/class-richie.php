@@ -196,8 +196,6 @@ class Richie {
         $this->loader->add_action( 'init', $custom_taxonomies, 'register_taxonomies', 5 );
 
         // Routes.
-        $this->loader->add_action( 'init', $plugin_public, 'register_shortcodes' );
-        $this->loader->add_action( 'init', $plugin_public, 'register_redirect_route' );
         $this->loader->add_action( 'rest_api_init', $plugin_public, 'register_richie_rest_api' );
 
         // Other.
@@ -205,11 +203,6 @@ class Richie {
         $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
         $this->loader->add_filter( 'template_include', $plugin_public, 'richie_template' );
 
-        $this->loader->add_action( 'richie_cron_hook', $plugin_public, 'refresh_maggio_cache' );
-
-        if ( ! wp_next_scheduled( 'richie_cron_hook' ) ) {
-            wp_schedule_event( time(), 'hourly', 'richie_cron_hook' );
-        }
     }
 
     /**
