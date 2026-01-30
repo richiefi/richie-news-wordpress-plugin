@@ -22,11 +22,6 @@ require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-pos
  */
 class Richie_Article {
 
-    // Values for metered_paywall.
-    const METERED_PAYWALL_NO_ACCESS_VALUE = 'no_access';
-    const METERED_PAYWALL_METERED_VALUE   = 'metered';
-    const METERED_PAYWALL_FREE_VALUE      = 'free';
-
     const EXCLUDE_NONE     = 0b0001; // 1
     const EXCLUDE_METADATA = 0b0010; // 2
     const EXCLUDE_CONTENT  = 0b0100; // 4
@@ -288,7 +283,7 @@ class Richie_Article {
         $article->share_link_url = get_permalink( $post_id );
 
         if ( ! $without_metadata ) {
-            $article->hash = $hash;
+            $article->hash = $hash; // TODO: Undocumented field - verify if still needed.
 
 
             if ( $richie_post_type->supports_property( 'summary' ) ) {
@@ -313,15 +308,6 @@ class Richie_Article {
                 if ( $diff >= 5 * MINUTE_IN_SECONDS ) {
                     $article->updated_date = $updated_date->format( 'c' );
                 }
-            }
-
-            // TODO: Provide a way to set premium status per article.
-            $is_premium = false;
-
-            if ( $is_premium ) {
-                $article->metered_paywall = self::METERED_PAYWALL_NO_ACCESS_VALUE;
-            } else {
-                $article->metered_paywall = self::METERED_PAYWALL_FREE_VALUE;
             }
 
             // Include the thumbnail if found.
@@ -380,15 +366,15 @@ class Richie_Article {
                     if ( is_array( $response ) && ! is_wp_error( $response ) ) {
                         $rendered_content = $response['body'];
                         set_transient( $transient_key, $rendered_content, 10 );
-                        $article->from_cache = false;
+                        $article->from_cache = false; // TODO: Undocumented field - verify if still needed.
                     } else {
                         $rendered_content = __( 'Failed to get content', 'richie' );
                         if ( is_wp_error( $response ) ) {
-                            $article->content_error = $response->get_error_message();
+                            $article->content_error = $response->get_error_message(); // TODO: Undocumented field - verify if still needed.
                         }
                     }
                 } else {
-                    $article->from_cache = true;
+                    $article->from_cache = true; // TODO: Undocumented field - verify if still needed.
                 }
             }
 

@@ -110,3 +110,26 @@ git submodule update --remote richie-editions-wp
 git submodule init
 git submodule update
 ```
+
+
+## News API Documentation
+
+API documentation for the Richie news feed format is at https://richie.dev/docs/news/
+
+Key pages:
+- [Feed Structure](https://richie.dev/docs/news/feed-structure) - Overview of feed format, tabs, caching
+- [Section Feeds](https://richie.dev/docs/news/section-feeds) - Section feed endpoints
+- [Article Feeds](https://richie.dev/docs/news/article-feeds) - Article feed format
+- [App Assets](https://richie.dev/docs/news/app-assets) - Asset delivery
+- [Display Ads](https://richie.dev/docs/news/display-ads) - Ad integration
+- [JavaScript API](https://richie.dev/docs/news/js-api) - JS bridge API
+
+When working on REST API endpoints or feed generation, fetch relevant docs for reference.
+
+### Related rest apis in this plugin
+
+- `/wp-json/richie/v1/news/<section>?token=abcd` - Section feed
+- `/wp-json/richie/v1/article/<id>?token=abcd` - Single article data
+- `/wp-json/richie/v1/assets` - App assets
+- `/wp-json/richie/v1/search?q=<search_string>&token=abcd` - Search articles
+
