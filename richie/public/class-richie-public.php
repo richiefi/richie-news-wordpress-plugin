@@ -157,7 +157,7 @@ class Richie_Public {
             );
 
             if ( ! empty( $source['list_group_title'] ) ) {
-                $article_attributes['list_group_title'] = $source['list_group_title'];
+                $article_attributes['collection_header_title'] = $source['list_group_title'];
             }
 
             if ( isset( $source['disable_summary'] ) && true === $source['disable_summary'] ) {
@@ -198,9 +198,9 @@ class Richie_Public {
                         array_push( $found_ids, $p->ID );
                     }
 
-                    // Include list group title to the first item only.
-                    if ( isset( $article_attributes['list_group_title'] ) ) {
-                        unset( $article_attributes['list_group_title'] );
+                    // Include collection header title to the first item only.
+                    if ( isset( $article_attributes['collection_header_title'] ) ) {
+                        unset( $article_attributes['collection_header_title'] );
                     }
                 }
             }
@@ -281,8 +281,8 @@ class Richie_Public {
                 $summary_disabled = true;
             }
 
-            if ( isset( $article['article_attributes']['list_group_title'] ) ) {
-                $section_article['list_group_title'] = $article['article_attributes']['list_group_title'];
+            if ( isset( $article['article_attributes']['collection_header_title'] ) ) {
+                $section_article['collection_header_title'] = $article['article_attributes']['collection_header_title'];
             }
 
             if ( isset( $article['article_attributes']['background_color' ] ) ) {
@@ -384,12 +384,17 @@ class Richie_Public {
                 continue;
             }
 
-            $generated_article                    = $article->generate_article( $p, Richie_Article::EXCLUDE_CONTENT );
-            $generated_article->list_layout_style = isset( $this->richie_options['search_list_layout_style'] ) ? $this->richie_options['search_list_layout_style'] : 'small';
+            $generated_article         = $article->generate_article( $p, Richie_Article::EXCLUDE_CONTENT );
+            $generated_article->layout = isset( $this->richie_options['search_list_layout_style'] ) ? $this->richie_options['search_list_layout_style'] : 'small';
             array_push( $posts, $generated_article );
         }
 
-        return array( 'articles' => $posts );
+        return array(
+            'section'  => array(
+                'name' => __( 'Search Results', 'richie' ),
+            ),
+            'articles' => $posts,
+        );
     }
 
     public function article_route_handler( $data, $version = 1 ) {
