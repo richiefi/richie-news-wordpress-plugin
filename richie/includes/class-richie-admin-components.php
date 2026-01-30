@@ -182,6 +182,7 @@ class Richie_Admin_Components {
      *
      * @param array $args  Rendering options.
      *   array selected: Array of selected category IDs.
+     *   string description: Description text after the element.
      *
      * @return void
      */
@@ -193,6 +194,10 @@ class Richie_Admin_Components {
         $selected    = isset( $args['selected'] ) ? (array) $args['selected'] : array();
 
         $custom_walker = new Richie_Walker_Category_Checklist( null, $name );
+
+        if ( isset( $args['description'] ) ) {
+            printf( '<p class="description">%s</p>', esc_html( $args['description'] ) );
+        }
         ?>
         <ul>
         <?php wp_category_checklist( 0, 0, $selected, false, $custom_walker ); ?>

@@ -276,6 +276,11 @@ class Richie_Admin {
 
         $valid['search_list_layout_style']    = in_array( $input['search_list_layout_style'], $this->available_layout_names, true ) ? sanitize_text_field( $input['search_list_layout_style'] ) : 'small';
 
+        $valid['premium_categories'] = array();
+        if ( isset( $input['premium_categories'] ) && is_array( $input['premium_categories'] ) ) {
+            $valid['premium_categories'] = array_map( 'absint', $input['premium_categories'] );
+        }
+
         return $valid;
     }
 
@@ -626,6 +631,18 @@ class Richie_Admin {
         $section  = new Richie_Settings_Section( $search_section_name, __( 'Search API settings', 'richie' ), $this->settings_option_name );
         $selected = isset( $options['search_list_layout_style'] ) ? $options['search_list_layout_style'] : 'none';
         $section->add_field( 'search_list_layout_style', __( 'Search list layout', 'richie' ), 'select_field', array( 'options' => $this->available_layout_names, 'selected' => $selected, 'required' => true ) );
+
+        // Access Control section.
+        $access_section = new Richie_Settings_Section( 'richie_access_control', __( 'Access Control', 'richie' ), $this->settings_option_name );
+        $access_section->add_field(
+            'premium_categories',
+            __( 'Premium categories', 'richie' ),
+            'category_list',
+            array(
+                'selected'    => isset( $options['premium_categories'] ) ? $options['premium_categories'] : array(),
+                'description' => __( 'Articles in selected categories will include access entitlements in the API response.', 'richie' ),
+            )
+        );
 
         // Create source section.
         $source_section = new Richie_Settings_Section( $sources_section_name, __( 'Basic data', 'richie' ), $this->sources_option_name );
