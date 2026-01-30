@@ -12,6 +12,16 @@ Separate plugin for migrating richie editions e-papers to wordpress. The plugin 
 
 Expecting podman and podman compose to be installed.
 
+## Creating releases
+
+Releases are created using [release-it](https://github.com/release-it/release-it).
+
+```shell
+npm install
+npm run release
+```
+This will bump version number, update changelog, create a zip package of the plugin under releases folder, and create a new GitHub release with the zip package attached.
+
 ### Start containers
 
 This installs images and starts containers in background. Wordpress `wp-content` folder is exposed locally, it will contain
