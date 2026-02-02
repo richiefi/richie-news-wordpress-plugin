@@ -286,7 +286,7 @@ class Richie_Article {
             $article->hash = $hash; // TODO: Undocumented field - verify if still needed.
 
 
-            if ( $richie_post_type->supports_property( 'summary' ) ) {
+            if ( $richie_post_type->supports_property( 'summary' ) && ! empty( $my_post->post_excerpt ) ) {
                 $article->summary = $my_post->post_excerpt;
             }
 
