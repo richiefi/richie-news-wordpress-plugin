@@ -321,48 +321,51 @@ class Richie_Article {
         }
 
         // Access control: add entitlements based on premium categories.
-        $richie_options     = get_option( 'richie' );
-        $premium_categories = isset( $richie_options['premium_categories'] ) ? (array) $richie_options['premium_categories'] : array();
+        // Only include in article endpoint (not in section feeds).
+        if ( ! $without_content ) {
+            $richie_options     = get_option( 'richie' );
+            $premium_categories = isset( $richie_options['premium_categories'] ) ? (array) $richie_options['premium_categories'] : array();
 
-        if ( ! empty( $premium_categories ) ) {
-            $post_categories       = wp_get_post_categories( $my_post->ID );
-            $matching_premium_cats = array_intersect( $post_categories, $premium_categories );
+            if ( ! empty( $premium_categories ) ) {
+                $post_categories       = wp_get_post_categories( $my_post->ID );
+                $matching_premium_cats = array_intersect( $post_categories, $premium_categories );
 
-            $access_entitlements   = array();
-            $default_entitlement   = isset( $richie_options['default_entitlement'] ) ? $richie_options['default_entitlement'] : '';
+                $access_entitlements = array();
+                $default_entitlement = isset( $richie_options['default_entitlement'] ) ? $richie_options['default_entitlement'] : '';
 
-            if ( ! empty( $matching_premium_cats ) ) {
-                if ( ! empty( $default_entitlement ) ) {
-                    // Use the configured default entitlement for all premium articles.
-                    $access_entitlements[] = $default_entitlement;
-                } else {
-                    // Fall back to category names converted to UPPER_SNAKE_CASE.
-                    foreach ( $matching_premium_cats as $cat_id ) {
-                        $cat = get_category( $cat_id );
-                        if ( $cat ) {
-                            $entitlement           = strtoupper( str_replace( array( ' ', '-' ), '_', $cat->name ) );
-                            $access_entitlements[] = $entitlement;
+                if ( ! empty( $matching_premium_cats ) ) {
+                    if ( ! empty( $default_entitlement ) ) {
+                        // Use the configured default entitlement for all premium articles.
+                        $access_entitlements[] = $default_entitlement;
+                    } else {
+                        // Fall back to category names converted to UPPER_SNAKE_CASE.
+                        foreach ( $matching_premium_cats as $cat_id ) {
+                            $cat = get_category( $cat_id );
+                            if ( $cat ) {
+                                $entitlement           = strtoupper( str_replace( array( ' ', '-' ), '_', $cat->name ) );
+                                $access_entitlements[] = $entitlement;
+                            }
                         }
                     }
                 }
-            }
 
-            /**
-             * Filter the access entitlements for an article.
-             *
-             * Use this filter to implement custom access control logic, such as
-             * integration with membership plugins or per-article overrides.
-             *
-             * @since 1.2.0
-             *
-             * @param string[] $access_entitlements Array of entitlement strings (e.g., ['PREMIUM']).
-             *                                      Empty array = free article.
-             * @param WP_Post  $post                The post object.
-             */
-            $access_entitlements = apply_filters( 'richie_article_access_entitlements', $access_entitlements, $my_post );
+                /**
+                 * Filter the access entitlements for an article.
+                 *
+                 * Use this filter to implement custom access control logic, such as
+                 * integration with membership plugins or per-article overrides.
+                 *
+                 * @since 1.2.0
+                 *
+                 * @param string[] $access_entitlements Array of entitlement strings (e.g., ['PREMIUM']).
+                 *                                      Empty array = free article.
+                 * @param WP_Post  $post                The post object.
+                 */
+                $access_entitlements = apply_filters( 'richie_article_access_entitlements', $access_entitlements, $my_post );
 
-            if ( ! empty( $access_entitlements ) ) {
-                $article->access_entitlements = array_values( array_unique( $access_entitlements ) );
+                if ( ! empty( $access_entitlements ) ) {
+                    $article->access_entitlements = array_values( array_unique( $access_entitlements ) );
+                }
             }
         }
 
