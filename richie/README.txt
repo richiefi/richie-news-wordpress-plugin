@@ -159,6 +159,89 @@ Richie News Platform plugin provides JSON feeds to be used in Richie News Platfo
 = 1.0 =
 * Initial version
 
+== Hooks & Filters ==
+
+= richie_article_access_entitlements =
+
+Filters the access entitlements for an article in the API response.
+
+Use this filter to implement custom access control logic, such as integration with membership plugins, per-article overrides, or dynamic entitlement assignment based on custom rules. You can modify the array by appending new entitlements, removing existing ones, or completely replacing the array.
+
+**Parameters:**
+
+* `$access_entitlements` (string[]) - Array of entitlement strings (e.g., `['PREMIUM']`). Empty array indicates a free article. This is the existing value you can append to or modify.
+* `$post` (WP_Post) - The WordPress post object for the article.
+
+**Return:**
+
+(string[]) Modified array of entitlement strings. All values must be strings (non-string values will be filtered out).
+
+**Example 1: Append custom entitlement based on post meta**
+
+```php
+add_filter( 'richie_article_access_entitlements', function( $entitlements, $post ) {
+    $is_subscriber_only = get_post_meta( $post->ID, 'subscriber_only', true );
+
+    if ( $is_subscriber_only ) {
+        // Append to existing entitlements
+        $entitlements[] = 'SUBSCRIBER_ACCESS';
+    }
+
+    return $entitlements;
+}, 10, 2 );
+```
+
+**Example 2: Override entitlements completely**
+
+```php
+add_filter( 'richie_article_access_entitlements', function( $entitlements, $post ) {
+    // Force all articles to require premium access
+    return array( 'PREMIUM_REQUIRED' );
+}, 10, 2 );
+```
+
+**Example 3: Integration with membership plugin**
+
+```php
+add_filter( 'richie_article_access_entitlements', function( $entitlements, $post ) {
+    // Check if post requires a specific membership level
+    $required_level = get_post_meta( $post->ID, 'membership_level', true );
+
+    if ( $required_level ) {
+        // Convert membership level to entitlement string
+        $entitlements[] = strtoupper( $required_level );
+    }
+
+    // Remove duplicates and return
+    return array_values( array_unique( $entitlements ) );
+}, 10, 2 );
+```
+
+**Example 4: Conditional access based on post age**
+
+```php
+add_filter( 'richie_article_access_entitlements', function( $entitlements, $post ) {
+    $post_date = strtotime( $post->post_date );
+    $days_old = ( time() - $post_date ) / DAY_IN_SECONDS;
+
+    // Articles older than 30 days become free
+    if ( $days_old > 30 ) {
+        return array(); // Empty array = free article
+    }
+
+    return $entitlements;
+}, 10, 2 );
+```
+
+**Notes:**
+
+* The filter runs only when premium categories are configured in plugin settings.
+* Returning an empty array makes the article free (no `access_entitlements` property in API response).
+* The plugin automatically removes duplicates from the final array.
+* The filter is applied before the entitlements are added to the article object.
+* **Value validation:** Only string values are allowed in the returned array. Non-string values (objects, arrays, numbers, etc.) are automatically filtered out and logged as warnings.
+* **Error handling:** If your filter throws an exception or returns a non-array value, the plugin logs the error and continues with the original entitlements. This prevents the entire article API from failing due to filter issues.
+
 == Configuration ==
 
 = General =

@@ -368,12 +368,12 @@ class Richie_Article {
                     if ( is_array( $filtered_entitlements ) ) {
                         // Validate all values are strings (filter may append invalid values).
                         $validated_entitlements = array_filter( $filtered_entitlements, 'is_string' );
-                        
+
                         if ( count( $validated_entitlements ) !== count( $filtered_entitlements ) ) {
                             // Log if some values were filtered out due to being non-string.
                             error_log( 'Warning: richie_article_access_entitlements filter returned non-string values for post ID ' . $my_post->ID );
                         }
-                        
+
                         $access_entitlements = $validated_entitlements;
                     } else {
                         // Log if filter returns invalid type, but don't crash.
