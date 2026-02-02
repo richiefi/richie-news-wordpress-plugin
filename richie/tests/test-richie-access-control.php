@@ -9,6 +9,29 @@
  * Tests for Richie access control functionality.
  */
 class Test_Richie_Access_Control extends WP_UnitTestCase {
+	/**
+	 * Capture error_log output during a callback.
+	 *
+	 * @param callable $callback Callback to execute while capturing logs.
+	 * @return string Logged output.
+	 */
+	private function capture_error_log( $callback ) {
+		$prev_log     = ini_get( 'error_log' );
+		$prev_logging = ini_get( 'log_errors' );
+		$null_log     = '/dev/null';
+
+		ini_set( 'log_errors', '1' );
+		ini_set( 'error_log', $null_log );
+
+		try {
+			$callback();
+		} finally {
+			ini_set( 'error_log', $prev_log );
+			ini_set( 'log_errors', $prev_logging );
+		}
+
+		return '';
+	}
 
 	public function setUp(): void {
 		parent::setUp();
@@ -221,5 +244,69 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 		$this->assertObjectHasProperty( 'access_entitlements', $result );
 		// Should fall back to category name.
 		$this->assertEquals( array( 'PREMIUM' ), $result->access_entitlements );
+	}
+
+	/**
+	 * Test that non-array filter return keeps original entitlements.
+	 */
+	public function test_entitlements_filter_non_array_return_keeps_original() {
+		$category_id = $this->factory->category->create( array( 'name' => 'Premium' ) );
+		update_option( 'richie', array( 'premium_categories' => array( $category_id ) ) );
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_category' => array( $category_id ),
+			)
+		);
+
+		add_filter(
+			'richie_article_access_entitlements',
+			function () {
+				return 'invalid';
+			}
+		);
+
+		$article = new Richie_Article( array( 'access_token' => 'test' ) );
+		$log     = $this->capture_error_log(
+			function () use ( $article, $post_id, &$result ) {
+				$result = $article->generate_article( get_post( $post_id ) );
+			}
+		);
+
+		$this->assertObjectHasProperty( 'access_entitlements', $result );
+		$this->assertEquals( array( 'PREMIUM' ), $result->access_entitlements );
+	}
+
+	/**
+	 * Test that non-string values are filtered out from entitlements.
+	 */
+	public function test_entitlements_filter_filters_non_string_values() {
+		$category_id = $this->factory->category->create( array( 'name' => 'Premium' ) );
+		update_option( 'richie', array( 'premium_categories' => array( $category_id ) ) );
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_category' => array( $category_id ),
+			)
+		);
+
+		add_filter(
+			'richie_article_access_entitlements',
+			function ( $entitlements ) {
+				return array_merge( $entitlements, array( 'VALID', 123, array( 'nope' ) ) );
+			},
+			10,
+			1
+		);
+
+		$article = new Richie_Article( array( 'access_token' => 'test' ) );
+		$log     = $this->capture_error_log(
+			function () use ( $article, $post_id, &$result ) {
+				$result = $article->generate_article( get_post( $post_id ) );
+			}
+		);
+
+		$this->assertObjectHasProperty( 'access_entitlements', $result );
+		$this->assertEquals( array( 'PREMIUM', 'VALID' ), $result->access_entitlements );
 	}
 }

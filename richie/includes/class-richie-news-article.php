@@ -361,7 +361,28 @@ class Richie_Article {
                  *                                      Empty array = free article.
                  * @param WP_Post  $post                The post object.
                  */
-                $access_entitlements = apply_filters( 'richie_article_access_entitlements', $access_entitlements, $my_post );
+                try {
+                    $filtered_entitlements = apply_filters( 'richie_article_access_entitlements', $access_entitlements, $my_post );
+
+                    // Validate that filter returns an array.
+                    if ( is_array( $filtered_entitlements ) ) {
+                        // Validate all values are strings (filter may append invalid values).
+                        $validated_entitlements = array_filter( $filtered_entitlements, 'is_string' );
+                        
+                        if ( count( $validated_entitlements ) !== count( $filtered_entitlements ) ) {
+                            // Log if some values were filtered out due to being non-string.
+                            error_log( 'Warning: richie_article_access_entitlements filter returned non-string values for post ID ' . $my_post->ID );
+                        }
+                        
+                        $access_entitlements = $validated_entitlements;
+                    } else {
+                        // Log if filter returns invalid type, but don't crash.
+                        error_log( 'Warning: richie_article_access_entitlements filter returned non-array type for post ID ' . $my_post->ID );
+                    }
+                } catch ( Exception $e ) {
+                    // Catch any exceptions from filter and log without crashing.
+                    error_log( 'Error in richie_article_access_entitlements filter for post ID ' . $my_post->ID . ': ' . $e->getMessage() );
+                }
 
                 if ( ! empty( $access_entitlements ) ) {
                     $article->access_entitlements = array_values( array_unique( $access_entitlements ) );
