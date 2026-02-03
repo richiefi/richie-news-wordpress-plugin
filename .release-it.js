@@ -3,7 +3,7 @@ module.exports = {
   npm: false,
   git: {
     commitMessage: "chore: release richie v${version}",
-    tagName: "richie-v${version}",
+    tagName: "v${version}",
     tagAnnotation: "Release richie ${version}",
     requireCleanWorkingDir: true,
     push: true,
