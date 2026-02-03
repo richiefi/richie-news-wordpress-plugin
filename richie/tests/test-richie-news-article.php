@@ -45,7 +45,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $postdate = '2010-01-01 12:00:00';
         $updated  = '2010-01-01 12:05:00';
 
-        $post = $this->factory->post->create_and_get(
+        $post = self::factory()->post->create_and_get(
             array(
                 'post_type'     => 'post',
                 'post_title'    => 'My Title',
@@ -68,7 +68,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $postdate = '2010-01-01 12:00:00';
         $updated  = '2010-01-01 12:04:59';
 
-        $post = $this->factory->post->create_and_get(
+        $post = self::factory()->post->create_and_get(
             array(
                 'post_type'     => 'post',
                 'post_title'    => 'My Title',
@@ -113,7 +113,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
 
         wp_enqueue_style( 'test-style', 'http://example.org/styles/style.css', null, 1.0, false );
         wp_enqueue_script( 'test-script', '//www.richie.fi/js/script.js', null, 1.1, true);
-        $post = $this->factory->post->create_and_get(
+        $post = self::factory()->post->create_and_get(
             array(
                 'post_type'     => 'post',
                 'post_title'    => 'My Title',
@@ -172,7 +172,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $postdate = '2010-01-01 12:00:00';
         $updated  = '2010-01-01 12:04:59';
 
-        $post = $this->factory->post->create_and_get(
+        $post = self::factory()->post->create_and_get(
             array(
                 'post_type'     => 'post',
                 'post_title'    => 'My Title',
@@ -235,7 +235,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $postdate = '2010-01-01 12:00:00';
         $updated  = '2010-01-01 12:04:59';
 
-        $post = $this->factory->post->create_and_get(
+        $post = self::factory()->post->create_and_get(
             array(
                 'post_type'     => 'post',
                 'post_title'    => 'My Title',
@@ -292,7 +292,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $postdate = '2010-01-01 12:00:00';
         $updated  = '2010-01-01 12:04:59';
 
-        $post = $this->factory->post->create_and_get(
+        $post = self::factory()->post->create_and_get(
             array(
                 'post_type'     => 'post',
                 'post_title'    => 'My Title',
@@ -314,7 +314,7 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $postdate = '2010-01-01 12:00:00';
         $updated  = '2010-01-01 12:05:00';
 
-        $post = $this->factory->post->create_and_get(
+        $post = self::factory()->post->create_and_get(
             array(
                 'post_type'     => 'post',
                 'post_title'    => 'My Title',

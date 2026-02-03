@@ -391,7 +391,7 @@ class Richie_Public {
 
         return array(
             'section'  => array(
-                'name' => __( 'Search Results', 'richie' ),
+                'name' => 'Search results',
             ),
             'articles' => $posts,
         );

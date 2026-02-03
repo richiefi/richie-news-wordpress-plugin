@@ -42,7 +42,7 @@ class Test_JSON_API extends WP_UnitTestCase {
 
     public function test_get_news_feed_with_correct_token() {
         // create article set
-        $term_id = $this->factory->term->create(
+        $term_id = self::factory()->term->create(
             array(
 				'name'     => 'Test set',
 				'taxonomy' => 'richie_article_set',
@@ -56,7 +56,7 @@ class Test_JSON_API extends WP_UnitTestCase {
     }
 
     public function test_get_news_feed_items_with_missing_guid() {
-        $term_id = $this->factory->term->create(
+        $term_id = self::factory()->term->create(
             array(
 				'name'     => 'Test set',
 				'taxonomy' => 'richie_article_set',
@@ -78,7 +78,7 @@ class Test_JSON_API extends WP_UnitTestCase {
 
         add_option( 'richienews_sources', array( 'published' => $sources ) );
 
-        $posts = $this->factory->post->create_many( 3 );
+        $posts = self::factory()->post->create_many( 3 );
         $first = $posts[0];
 
         global $wpdb;
@@ -100,7 +100,7 @@ class Test_JSON_API extends WP_UnitTestCase {
     }
 
     public function test_get_news_feed_items_without_duplicates() {
-        $term_id = $this->factory->term->create(
+        $term_id = self::factory()->term->create(
             array(
 				'name'     => 'Test set',
 				'taxonomy' => 'richie_article_set',
@@ -134,7 +134,7 @@ class Test_JSON_API extends WP_UnitTestCase {
 
         add_option( 'richienews_sources', array( 'published' => $sources ) );
 
-        $posts   = $this->factory->post->create_many( 10 );
+        $posts   = self::factory()->post->create_many( 10 );
         $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
         $response = $this->server->dispatch( $request );
@@ -147,7 +147,7 @@ class Test_JSON_API extends WP_UnitTestCase {
     }
 
     public function test_get_v1_news_feed() {
-        $term_id = $this->factory->term->create(
+        $term_id = self::factory()->term->create(
             array(
 				'name'     => 'Test set',
 				'taxonomy' => 'richie_article_set',
@@ -181,7 +181,7 @@ class Test_JSON_API extends WP_UnitTestCase {
 
         add_option( 'richienews_sources', array( 'published' => $sources ) );
 
-        $posts   = $this->factory->post->create_many( 10 );
+        $posts   = self::factory()->post->create_many( 10 );
         $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
         $response = $this->server->dispatch( $request );
@@ -195,7 +195,7 @@ class Test_JSON_API extends WP_UnitTestCase {
     }
 
     public function test_get_news_feed_items_with_duplicates() {
-        $term_id = $this->factory->term->create(
+        $term_id = self::factory()->term->create(
             array(
 				'name'     => 'Test set',
 				'taxonomy' => 'richie_article_set',
@@ -239,7 +239,7 @@ class Test_JSON_API extends WP_UnitTestCase {
 
         add_option( 'richienews_sources', array( 'published' => $sources ) );
 
-        $posts = $this->factory->post->create_many( 10 );
+        $posts = self::factory()->post->create_many( 10 );
 
         $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
         $request->set_query_params( array( 'token' => 'testtoken' ) );
@@ -258,8 +258,8 @@ class Test_JSON_API extends WP_UnitTestCase {
     }
 
     public function test_get_single_article_with_images() {
-        $id            = $this->factory()->post->create( array( 'post_content' => '<img src="//external.url/testing/image.jpg"/>' ) );
-        $attachment_id = $this->factory()->attachment->create_object(
+        $id            = self::factory()->post->create( array( 'post_content' => '<img src="//external.url/testing/image.jpg"/>' ) );
+        $attachment_id = self::factory()->attachment->create_object(
             'richie.png',
             $id,
             array(
@@ -290,8 +290,8 @@ class Test_JSON_API extends WP_UnitTestCase {
     }
 
     public function test_get_single_v1_article_with_images() {
-        $id            = $this->factory()->post->create( array( 'post_content' => '<img src="//external.url/testing/image.jpg"/>' ) );
-        $attachment_id = $this->factory->attachment->create_object(
+        $id            = self::factory()->post->create( array( 'post_content' => '<img src="//external.url/testing/image.jpg"/>' ) );
+        $attachment_id = self::factory()->attachment->create_object(
             'richie.png',
             $id,
             array(
@@ -324,7 +324,7 @@ class Test_JSON_API extends WP_UnitTestCase {
     }
 
     public function test_get_news_feed_items_with_tags() {
-        $term_id = $this->factory->term->create(
+        $term_id = self::factory()->term->create(
             array(
 				'name'     => 'Test set',
 				'taxonomy' => 'richie_article_set',
@@ -332,9 +332,9 @@ class Test_JSON_API extends WP_UnitTestCase {
             )
         );
 
-        $this->factory->tag->create_and_get( array( 'slug' => 'tag1' ) );
-        $this->factory->tag->create_and_get( array( 'slug' => 'tag2' ) );
-        $this->factory->tag->create_and_get( array( 'slug' => 'tag3' ) );
+        self::factory()->tag->create_and_get( array( 'slug' => 'tag1' ) );
+        self::factory()->tag->create_and_get( array( 'slug' => 'tag2' ) );
+        self::factory()->tag->create_and_get( array( 'slug' => 'tag3' ) );
 
         $sources = array();
 
@@ -364,8 +364,8 @@ class Test_JSON_API extends WP_UnitTestCase {
 
         add_option( 'richienews_sources', array( 'published' => $sources ) );
 
-        $posts     = $this->factory->post->create_many( 10 ); // create few posts without tags
-        $both_tags = $this->factory->post->create(
+        $posts     = self::factory()->post->create_many( 10 ); // create few posts without tags
+        $both_tags = self::factory()->post->create(
             array(
 				'post_date'  => '2020-01-01',
 				'tags_input' => array(
@@ -374,25 +374,25 @@ class Test_JSON_API extends WP_UnitTestCase {
 				),
             )
         );
-        $tag_1     = $this->factory->post->create(
+        $tag_1     = self::factory()->post->create(
             array(
 				'post_date'  => '2020-01-02',
 				'tags_input' => array( 'tag1' ),
             )
         );
-        $tag_2     = $this->factory->post->create(
+        $tag_2     = self::factory()->post->create(
             array(
 				'post_date'  => '2020-01-03',
 				'tags_input' => array( 'tag2' ),
             )
         );
-        $tag_2_2   = $this->factory->post->create(
+        $tag_2_2   = self::factory()->post->create(
             array(
 				'post_date'  => '2020-01-04',
 				'tags_input' => array( 'tag2' ),
             )
         );
-        $tag_3     = $this->factory->post->create(
+        $tag_3     = self::factory()->post->create(
             array(
 				'post_date'  => '2020-01-05',
 				'tags_input' => array( 'tag3' ),
