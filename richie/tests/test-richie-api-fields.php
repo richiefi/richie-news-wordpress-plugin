@@ -25,7 +25,7 @@ class Test_Richie_API_Fields extends WP_UnitTestCase {
 	 * Test that section articles use collection_header_title instead of list_group_title.
 	 */
 	public function test_section_article_uses_collection_header_title() {
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 
 		$article = array(
 			'id'                 => strval( $post_id ),
@@ -49,7 +49,7 @@ class Test_Richie_API_Fields extends WP_UnitTestCase {
 	 * Test that search endpoint returns section object.
 	 */
 	public function test_search_returns_section_object() {
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'  => 'Searchable Test Post',
 				'post_status' => 'publish',
@@ -73,7 +73,7 @@ class Test_Richie_API_Fields extends WP_UnitTestCase {
 	public function test_search_articles_use_layout_field() {
 		update_option( 'richie', array( 'search_list_layout_style' => 'small' ) );
 
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'  => 'Layout Test Post',
 				'post_status' => 'publish',

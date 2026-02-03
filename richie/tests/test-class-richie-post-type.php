@@ -42,7 +42,7 @@ class Test_Richie_Post_Type extends WP_UnitTestCase {
     }
 
     public function test_validate_post_post() {
-        $post = $this->factory->post->create_and_get(
+        $post = self::factory()->post->create_and_get(
             array(
                 'post_type'  => 'post',
                 'post_title' => 'My Title',
@@ -54,8 +54,8 @@ class Test_Richie_Post_Type extends WP_UnitTestCase {
     }
 
     public function test_validate_post_featured_post() {
-        $target_post = $this->factory->post->create_and_get();
-        $post = $this->factory->post->create_and_get(
+        $target_post = self::factory()->post->create_and_get();
+        $post = self::factory()->post->create_and_get(
             array(
                 'post_type'  => 'mb_featured_post',
                 'post_title' => 'My Title',
@@ -67,7 +67,7 @@ class Test_Richie_Post_Type extends WP_UnitTestCase {
     }
 
     public function test_validate_post_featured_post_external_url() {
-        $post = $this->factory->post->create_and_get(
+        $post = self::factory()->post->create_and_get(
             array(
                 'post_type'  => 'mb_featured_post',
                 'post_title' => 'My Title',
@@ -79,7 +79,7 @@ class Test_Richie_Post_Type extends WP_UnitTestCase {
     }
 
     public function test_validate_featured_post_hide_on_mobile() {
-        $post = $this->factory->post->create_and_get(
+        $post = self::factory()->post->create_and_get(
             array(
                 'post_type'  => 'mb_featured_post',
                 'post_title' => 'My Title',
