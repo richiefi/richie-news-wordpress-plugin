@@ -49,7 +49,7 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 	 * Test that free articles have no access_entitlements.
 	 */
 	public function test_free_article_has_no_entitlements() {
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 
 		$article = new Richie_Article( array( 'access_token' => 'test' ) );
 		$result  = $article->generate_article( get_post( $post_id ) );
@@ -61,10 +61,10 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 	 * Test that articles in premium category include entitlements.
 	 */
 	public function test_premium_article_uses_category_name_as_entitlement() {
-		$category_id = $this->factory->category->create( array( 'name' => 'Premium' ) );
+		$category_id = self::factory()->category->create( array( 'name' => 'Premium' ) );
 		update_option( 'richie', array( 'premium_categories' => array( $category_id ) ) );
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_category' => array( $category_id ),
 			)
@@ -81,10 +81,10 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 	 * Test that category names are converted to UPPER_SNAKE_CASE.
 	 */
 	public function test_category_name_converted_to_upper_snake_case() {
-		$category_id = $this->factory->category->create( array( 'name' => 'Subscriber Only' ) );
+		$category_id = self::factory()->category->create( array( 'name' => 'Subscriber Only' ) );
 		update_option( 'richie', array( 'premium_categories' => array( $category_id ) ) );
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_category' => array( $category_id ),
 			)
@@ -101,10 +101,10 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 	 * Test that hyphenated category names are converted correctly.
 	 */
 	public function test_hyphenated_category_name_converted() {
-		$category_id = $this->factory->category->create( array( 'name' => 'vip-access' ) );
+		$category_id = self::factory()->category->create( array( 'name' => 'vip-access' ) );
 		update_option( 'richie', array( 'premium_categories' => array( $category_id ) ) );
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_category' => array( $category_id ),
 			)
@@ -121,16 +121,17 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 	 * Test that the filter can override entitlements.
 	 */
 	public function test_entitlements_filter_override() {
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 
 		// Set up a premium category so the filter runs.
-		$category_id = $this->factory->category->create( array( 'name' => 'Test' ) );
+		$category_id = self::factory()->category->create( array( 'name' => 'Test' ) );
 		update_option( 'richie', array( 'premium_categories' => array( $category_id ) ) );
 
 		// Filter to add custom entitlement regardless of category.
 		add_filter(
 			'richie_article_access_entitlements',
 			function ( $entitlements, $post ) {
+				unset( $entitlements, $post );
 				return array( 'CUSTOM_ACCESS' );
 			},
 			10,
@@ -148,13 +149,13 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 	 * Test that multiple premium categories combine entitlements.
 	 */
 	public function test_multiple_premium_categories_combine_entitlements() {
-		$cat1 = $this->factory->category->create( array( 'name' => 'Premium' ) );
-		$cat2 = $this->factory->category->create( array( 'name' => 'VIP' ) );
+		$cat1 = self::factory()->category->create( array( 'name' => 'Premium' ) );
+		$cat2 = self::factory()->category->create( array( 'name' => 'VIP' ) );
 
 		update_option( 'richie', array( 'premium_categories' => array( $cat1, $cat2 ) ) );
 
 		// Post in both premium categories.
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_category' => array( $cat1, $cat2 ),
 			)
@@ -172,14 +173,14 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 	 * Test that post in non-premium category has no entitlements.
 	 */
 	public function test_post_in_non_premium_category_has_no_entitlements() {
-		$premium_cat     = $this->factory->category->create( array( 'name' => 'Premium' ) );
-		$non_premium_cat = $this->factory->category->create( array( 'name' => 'News' ) );
+		$premium_cat     = self::factory()->category->create( array( 'name' => 'Premium' ) );
+		$non_premium_cat = self::factory()->category->create( array( 'name' => 'News' ) );
 
 		// Only premium_cat is marked as premium.
 		update_option( 'richie', array( 'premium_categories' => array( $premium_cat ) ) );
 
 		// Post only in non-premium category.
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_category' => array( $non_premium_cat ),
 			)
@@ -195,7 +196,7 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 	 * Test that default_entitlement overrides category name.
 	 */
 	public function test_default_entitlement_overrides_category_name() {
-		$category_id = $this->factory->category->create( array( 'name' => 'Premium' ) );
+		$category_id = self::factory()->category->create( array( 'name' => 'Premium' ) );
 		update_option(
 			'richie',
 			array(
@@ -204,7 +205,7 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 			)
 		);
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_category' => array( $category_id ),
 			)
@@ -223,7 +224,7 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 	 * Test that empty default_entitlement falls back to category name.
 	 */
 	public function test_empty_default_entitlement_uses_category_name() {
-		$category_id = $this->factory->category->create( array( 'name' => 'Premium' ) );
+		$category_id = self::factory()->category->create( array( 'name' => 'Premium' ) );
 		update_option(
 			'richie',
 			array(
@@ -232,7 +233,7 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 			)
 		);
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_category' => array( $category_id ),
 			)
@@ -250,10 +251,10 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 	 * Test that non-array filter return keeps original entitlements.
 	 */
 	public function test_entitlements_filter_non_array_return_keeps_original() {
-		$category_id = $this->factory->category->create( array( 'name' => 'Premium' ) );
+		$category_id = self::factory()->category->create( array( 'name' => 'Premium' ) );
 		update_option( 'richie', array( 'premium_categories' => array( $category_id ) ) );
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_category' => array( $category_id ),
 			)
@@ -267,7 +268,8 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 		);
 
 		$article = new Richie_Article( array( 'access_token' => 'test' ) );
-		$log     = $this->capture_error_log(
+		$result  = new stdClass();
+		$this->capture_error_log(
 			function () use ( $article, $post_id, &$result ) {
 				$result = $article->generate_article( get_post( $post_id ) );
 			}
@@ -281,10 +283,10 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 	 * Test that non-string values are filtered out from entitlements.
 	 */
 	public function test_entitlements_filter_filters_non_string_values() {
-		$category_id = $this->factory->category->create( array( 'name' => 'Premium' ) );
+		$category_id = self::factory()->category->create( array( 'name' => 'Premium' ) );
 		update_option( 'richie', array( 'premium_categories' => array( $category_id ) ) );
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_category' => array( $category_id ),
 			)
@@ -300,7 +302,8 @@ class Test_Richie_Access_Control extends WP_UnitTestCase {
 		);
 
 		$article = new Richie_Article( array( 'access_token' => 'test' ) );
-		$log     = $this->capture_error_log(
+		$result  = new stdClass();
+		$this->capture_error_log(
 			function () use ( $article, $post_id, &$result ) {
 				$result = $article->generate_article( get_post( $post_id ) );
 			}
