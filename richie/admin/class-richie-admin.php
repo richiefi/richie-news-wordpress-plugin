@@ -180,6 +180,12 @@ class Richie_Admin {
             add_thickbox();
             wp_enqueue_code_editor( array( 'type' => 'application/json' ) );
             wp_enqueue_script( 'suggest' );
+
+            // Enqueue React feed editor if on editor tab
+            $active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : 'editor';
+            if ( $active_tab === 'editor' ) {
+                $this->enqueue_feed_editor_assets();
+            }
         }
 
         wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery', 'wp-color-picker' ), $this->get_version_id(), false );
@@ -192,6 +198,51 @@ class Richie_Admin {
                 'security' => wp_create_nonce( 'richie-security-nonce' ),
             ]
         );
+    }
+
+    /**
+     * Enqueue React feed editor assets.
+     *
+     * @since    2.0.0
+     */
+    private function enqueue_feed_editor_assets() {
+        $asset_file = plugin_dir_path( __FILE__ ) . 'feed-editor/build/index.asset.php';
+
+        if ( ! file_exists( $asset_file ) ) {
+            return;
+        }
+
+        $asset = include $asset_file;
+
+        // Enqueue the main script
+        wp_enqueue_script(
+            'richie-feed-editor',
+            plugin_dir_url( __FILE__ ) . 'feed-editor/build/index.js',
+            $asset['dependencies'],
+            $asset['version'],
+            true
+        );
+
+        // Enqueue styles
+        wp_enqueue_style(
+            'richie-feed-editor',
+            plugin_dir_url( __FILE__ ) . 'feed-editor/build/index.css',
+            array( 'wp-components' ),
+            $asset['version']
+        );
+
+        // Set up wpApiSettings for WordPress REST API
+        wp_localize_script(
+            'richie-feed-editor',
+            'wpApiSettings',
+            array(
+                'root'  => esc_url_raw( rest_url() ),
+                'nonce' => wp_create_nonce( 'wp_rest' ),
+            )
+        );
+
+        // Set translations
+        wp_set_script_translations( 'richie-feed-editor', 'richie' );
     }
 
     /**

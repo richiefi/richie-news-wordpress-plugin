@@ -177,6 +177,11 @@ class Richie {
         // Options.
         $this->loader->add_action( 'admin_init', $plugin_admin, 'options_update' );
 
+        // Feed Editor REST API.
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-richie-feed-editor.php';
+        $feed_editor = new Richie_Feed_Editor( $this->get_plugin_name(), $this->get_version() );
+        $this->loader->add_action( 'rest_api_init', $feed_editor, 'register_routes' );
+
         // allow origin
         $this->loader->add_filter( 'allowed_http_origins', $plugin_admin, 'add_allowed_origin' );
     }

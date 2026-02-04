@@ -16,19 +16,23 @@
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
 <?php
 do_action( 'richie_plugin_add_settings_sections' );
-$active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'settings';
+$active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'editor';
 ?>
 
 <div class="wrap richie-settings">
     <h2><?php echo esc_html(get_admin_page_title()); ?></h2>
     <h2 class="nav-tab-wrapper">
-        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=settings' ) ?>" class="nav-tab <?php echo $active_tab == 'settings' || '' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Settings', 'richie') ?></a>
-        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=sources' ) ?>" class="nav-tab <?php echo $active_tab == 'sources' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('News sources', 'richie') ?></a>
-        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=adslots' ) ?>" class="nav-tab <?php echo $active_tab == 'adslots' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Ad slots', 'richie') ?></a>
+        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=editor' ) ?>" class="nav-tab <?php echo $active_tab == 'editor' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Feed Editor', 'richie') ?></a>
+        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=settings' ) ?>" class="nav-tab <?php echo $active_tab == 'settings' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Settings', 'richie') ?></a>
+        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=sources' ) ?>" class="nav-tab <?php echo $active_tab == 'sources' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Advanced: Sources', 'richie') ?></a>
+        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=adslots' ) ?>" class="nav-tab <?php echo $active_tab == 'adslots' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Advanced: Ad Slots', 'richie') ?></a>
         <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=assets' ) ?>" class="nav-tab <?php echo $active_tab == 'assets' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('News assets', 'richie') ?></a>
     </h2>
 
-    <?php if ( $active_tab === 'settings' ) : ?>
+    <?php if ( $active_tab === 'editor' ) : ?>
+        <?php include plugin_dir_path( __FILE__ ) . 'richie-feed-editor.php'; ?>
+
+    <?php elseif ( $active_tab === 'settings' ) : ?>
         <form method="post" name="richie-options" action="options.php">
 
             <?php

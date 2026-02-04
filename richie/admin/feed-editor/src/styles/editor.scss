@@ -1,0 +1,309 @@
+/**
+ * Richie Feed Editor Styles
+ */
+
+// Variables
+$card-border-color: #c3c4c7;
+$card-bg: #fff;
+$card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+$card-shadow-hover: 0 3px 8px rgba(0, 0, 0, 0.15);
+$ad-slot-bg: #f0f6fc;
+$ad-slot-border: #c3c4c7;
+$text-muted: #646970;
+$primary-color: #2271b1;
+
+// Main container
+.richie-feed-editor {
+	max-width: 900px;
+	margin-top: 20px;
+}
+
+// Header with collection selector and buttons
+.feed-editor-header {
+	display: flex;
+	align-items: flex-end;
+	gap: 16px;
+	margin-bottom: 24px;
+	padding-bottom: 16px;
+	border-bottom: 1px solid #dcdcde;
+
+	.collection-selector {
+		flex: 0 0 300px;
+
+		&--loading {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.components-base-control__label {
+			font-weight: 600;
+		}
+	}
+
+	.feed-editor-actions {
+		display: flex;
+		gap: 8px;
+		margin-left: auto;
+	}
+}
+
+// Empty state
+.feed-editor-empty {
+	text-align: center;
+	padding: 48px 24px;
+	background: #f6f7f7;
+	border: 1px dashed #c3c4c7;
+	border-radius: 4px;
+
+	p {
+		margin: 0;
+		color: $text-muted;
+		font-size: 14px;
+	}
+}
+
+// Feed item list
+.feed-item-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+
+	&--loading,
+	&--empty {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		padding: 48px 24px;
+		background: #f6f7f7;
+		border-radius: 4px;
+		color: $text-muted;
+	}
+}
+
+// Card base styles
+.feed-item-card {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 16px;
+	background: $card-bg;
+	border: 1px solid $card-border-color;
+	border-radius: 4px;
+	box-shadow: $card-shadow;
+	transition: box-shadow 0.2s, opacity 0.2s;
+
+	&:hover {
+		box-shadow: $card-shadow-hover;
+	}
+
+	&.is-dragging {
+		opacity: 0.5;
+		box-shadow: $card-shadow-hover;
+	}
+}
+
+// Drag handle
+.card-drag-handle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	cursor: grab;
+	color: $text-muted;
+	flex-shrink: 0;
+
+	&:hover {
+		color: #1d2327;
+	}
+
+	&:active {
+		cursor: grabbing;
+	}
+}
+
+// Layout badge
+.card-layout-badge {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 8px;
+	background: #f0f0f1;
+	border-radius: 4px;
+	font-size: 12px;
+	font-weight: 500;
+	color: #1d2327;
+	flex-shrink: 0;
+
+	.dashicons {
+		font-size: 16px;
+		width: 16px;
+		height: 16px;
+	}
+
+	&--ad {
+		background: #fef8ee;
+		color: #9a6700;
+	}
+}
+
+// Card content
+.card-content {
+	flex: 1;
+	min-width: 0;
+}
+
+.card-header {
+	display: flex;
+	align-items: baseline;
+	gap: 12px;
+	margin-bottom: 8px;
+}
+
+.card-title {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.card-meta {
+	font-size: 12px;
+	color: $text-muted;
+}
+
+// Preview
+.card-preview {
+	font-size: 12px;
+	color: $text-muted;
+}
+
+.preview-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+
+	li {
+		position: relative;
+		padding-left: 12px;
+		margin-bottom: 2px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+
+		&::before {
+			content: "•";
+			position: absolute;
+			left: 0;
+		}
+	}
+}
+
+.preview-more {
+	display: block;
+	margin-top: 4px;
+	font-style: italic;
+}
+
+.preview-empty {
+	font-style: italic;
+}
+
+// Ad slot specific
+.ad-slot-card {
+	background: $ad-slot-bg;
+	border-color: $ad-slot-border;
+}
+
+.ad-provider-info {
+	font-size: 12px;
+	color: $text-muted;
+}
+
+// Card actions
+.card-actions {
+	display: flex;
+	gap: 4px;
+	flex-shrink: 0;
+
+	.components-button {
+		padding: 4px;
+
+		&.is-destructive {
+			color: #b32d2e;
+
+			&:hover {
+				color: #8a2424;
+			}
+		}
+	}
+}
+
+// Modals
+.section-modal,
+.adslot-modal {
+	.components-modal__content {
+		min-width: 500px;
+		max-width: 600px;
+	}
+}
+
+.section-modal-content,
+.adslot-modal-content {
+	padding: 16px 0;
+}
+
+.section-modal-row,
+.adslot-modal-row {
+	margin-bottom: 16px;
+
+	&--two-col {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 16px;
+	}
+
+	&--checkboxes {
+		display: flex;
+		gap: 24px;
+	}
+}
+
+.category-checkboxes {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+	gap: 4px;
+	max-height: 200px;
+	overflow-y: auto;
+	padding: 8px;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+
+.section-modal-footer,
+.adslot-modal-footer {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	padding-top: 16px;
+	border-top: 1px solid #dcdcde;
+}
+
+.section-modal-loading {
+	display: flex;
+	justify-content: center;
+	padding: 48px;
+}
+
+.adslot-json-error {
+	color: #b32d2e;
+}
+
+// Notice styling
+.richie-feed-editor {
+	.components-notice {
+		margin-bottom: 16px;
+	}
+}
