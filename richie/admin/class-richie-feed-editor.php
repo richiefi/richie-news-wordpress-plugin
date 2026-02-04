@@ -245,7 +245,7 @@ class Richie_Feed_Editor {
 			'tags'                => isset( $source['tags'] ) ? $source['tags'] : array(),
 			'order_by'            => isset( $source['order_by'] ) ? $source['order_by'] : 'date',
 			'order_direction'     => isset( $source['order_direction'] ) ? $source['order_direction'] : 'DESC',
-			'max_age'             => ( isset( $source['max_age'] ) && $source['max_age'] !== '' ) ? $source['max_age'] : 'all_time',
+			'max_age'             => $this->normalize_max_age( isset( $source['max_age'] ) ? $source['max_age'] : '' ),
 			'list_layout_style'   => isset( $source['list_layout_style'] ) ? $source['list_layout_style'] : 'small',
 			'list_group_title'    => isset( $source['list_group_title'] ) ? $source['list_group_title'] : '',
 			'background_color'    => isset( $source['background_color'] ) ? $source['background_color'] : '',
@@ -350,10 +350,11 @@ class Richie_Feed_Editor {
 		}
 
 		// Add date query for max_age
-		if ( ! empty( $source['max_age'] ) ) {
+		$normalized_max_age = $this->normalize_max_age( isset( $source['max_age'] ) ? $source['max_age'] : '' );
+		if ( 'all_time' !== $normalized_max_age ) {
 			$args['date_query'] = array(
 				array(
-					'after' => $source['max_age'] . ' ago',
+					'after' => $normalized_max_age . ' ago',
 				),
 			);
 		}
@@ -545,8 +546,25 @@ class Richie_Feed_Editor {
 	private function sanitize_max_age( $value ) {
 		$value = sanitize_text_field( $value );
 		// Convert 'all_time' sentinel value to empty string for storage
-		if ( $value === 'all_time' ) {
+		if ( $value === 'all_time' || $value === 'All time' ) {
 			return '';
+		}
+		return $value;
+	}
+
+	/**
+	 * Normalize max_age value for editor usage.
+	 *
+	 * Ensures legacy "All time" and empty values map to the 'all_time' sentinel.
+	 *
+	 * @since    2.0.0
+	 * @param    string    $value    The max_age value.
+	 * @return   string
+	 */
+	private function normalize_max_age( $value ) {
+		$value = sanitize_text_field( $value );
+		if ( $value === '' || $value === 'all_time' || $value === 'All time' ) {
+			return 'all_time';
 		}
 		return $value;
 	}

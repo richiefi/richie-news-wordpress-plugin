@@ -54,7 +54,7 @@ export default function SectionCard( { section, onEdit, onDelete } ) {
 
 	// Fetch preview data
 	useEffect( () => {
-		if ( ! section.id ) return;
+		if ( section.id === undefined || section.id === null ) return;
 
 		setIsLoadingPreview( true );
 		apiFetch( {
