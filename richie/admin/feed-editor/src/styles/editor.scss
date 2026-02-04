@@ -29,6 +29,9 @@ $primary-color: #2271b1;
 
 	.collection-selector {
 		flex: 0 0 300px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
 
 		&--loading {
 			display: flex;
@@ -38,6 +41,12 @@ $primary-color: #2271b1;
 
 		.components-base-control__label {
 			font-weight: 600;
+		}
+
+		&__actions {
+			display: flex;
+			gap: 8px;
+			flex-wrap: wrap;
 		}
 	}
 
@@ -242,7 +251,8 @@ $primary-color: #2271b1;
 
 // Modals
 .section-modal,
-.adslot-modal {
+.adslot-modal,
+.collection-modal {
 	.components-modal__content {
 		min-width: 500px;
 		max-width: 600px;
@@ -250,7 +260,8 @@ $primary-color: #2271b1;
 }
 
 .section-modal-content,
-.adslot-modal-content {
+.adslot-modal-content,
+.collection-modal-content {
 	padding: 16px 0;
 }
 
@@ -283,7 +294,8 @@ $primary-color: #2271b1;
 }
 
 .section-modal-footer,
-.adslot-modal-footer {
+.adslot-modal-footer,
+.collection-modal-footer {
 	display: flex;
 	justify-content: flex-end;
 	gap: 8px;

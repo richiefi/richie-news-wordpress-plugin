@@ -56,6 +56,8 @@ class Richie_Custom_Taxonomies {
             'public'       => false,
             'rewrite'      => false,
             'show_ui'      => true,
+            'show_in_rest' => true,
+            'rest_base'    => 'richie_article_set',
         ];
         register_taxonomy( 'richie_article_set', null, $args );
     }
