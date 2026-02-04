@@ -150,7 +150,12 @@
         }
         $.post(ajaxurl, data, function(response) {
           console.log(response);
-          location.reload();
+          if (document.getElementById('feed-editor-root')) {
+            window.dispatchEvent(new Event('richieSourcesUpdated'));
+            $('.richie-notice').remove();
+          } else {
+            location.reload();
+          }
         });
         return false;
       });
@@ -161,7 +166,12 @@
         }
         $.post(ajaxurl, data, function(response) {
           console.log(response);
-          location.reload();
+          if (document.getElementById('feed-editor-root')) {
+            window.dispatchEvent(new Event('richieSourcesUpdated'));
+            $('.richie-notice').remove();
+          } else {
+            location.reload();
+          }
         });
         return false;
       });

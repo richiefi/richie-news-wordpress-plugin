@@ -13,6 +13,7 @@ export default function useFeedItems( collectionId ) {
 	const [ isLoading, setIsLoading ] = useState( false );
 	const [ error, setError ] = useState( null );
 	const [ hasUnsavedChanges, setHasUnsavedChanges ] = useState( false );
+	const [ hasUnpublishedChanges, setHasUnpublishedChanges ] = useState( false );
 	const [ originalOrder, setOriginalOrder ] = useState( [] );
 
 	// Fetch items when collection changes
@@ -34,6 +35,7 @@ export default function useFeedItems( collectionId ) {
 				setItems( fetchedItems );
 				setOriginalOrder( fetchedItems.map( ( item ) => item.uniqueId ) );
 				setHasUnsavedChanges( false );
+				setHasUnpublishedChanges( !! response.has_unpublished_changes );
 			} )
 			.catch( ( err ) => {
 				console.error( 'Failed to fetch items:', err );
@@ -97,6 +99,7 @@ export default function useFeedItems( collectionId ) {
 						uniqueId: 'source-' + response.id,
 					},
 				] );
+				setHasUnpublishedChanges( true );
 				return response;
 			} )
 			.catch( ( err ) => {
@@ -121,6 +124,7 @@ export default function useFeedItems( collectionId ) {
 							: item
 					)
 				);
+				setHasUnpublishedChanges( true );
 				return response;
 			} )
 			.catch( ( err ) => {
@@ -143,6 +147,7 @@ export default function useFeedItems( collectionId ) {
 							! ( item.type === 'source' && item.id === sectionId )
 					)
 				);
+				setHasUnpublishedChanges( true );
 			} )
 			.catch( ( err ) => {
 				console.error( 'Failed to delete section:', err );
@@ -237,6 +242,7 @@ export default function useFeedItems( collectionId ) {
 				setItems( fetchedItems );
 				setOriginalOrder( fetchedItems.map( ( item ) => item.uniqueId ) );
 				setHasUnsavedChanges( false );
+				setHasUnpublishedChanges( !! response.has_unpublished_changes );
 			} )
 			.catch( ( err ) => {
 				console.error( 'Failed to refresh items:', err );
@@ -246,11 +252,62 @@ export default function useFeedItems( collectionId ) {
 			} );
 	}, [ collectionId ] );
 
+	// Publish source changes
+	const publishSources = useCallback( () => {
+		if ( ! window.richie_ajax || ! window.richie_ajax.ajax_url ) {
+			return Promise.reject( new Error( 'Missing ajax configuration' ) );
+		}
+
+		const data = new URLSearchParams();
+		data.append( 'action', 'publish_source_changes' );
+		data.append( 'security', window.richie_ajax.security );
+
+		return window
+			.fetch( window.richie_ajax.ajax_url, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+				},
+				body: data.toString(),
+			} )
+			.then( () => {
+				setHasUnpublishedChanges( false );
+				return refreshItems();
+			} );
+	}, [ refreshItems ] );
+
+	// Revert source changes
+	const revertSources = useCallback( () => {
+		if ( ! window.richie_ajax || ! window.richie_ajax.ajax_url ) {
+			return Promise.reject( new Error( 'Missing ajax configuration' ) );
+		}
+
+		const data = new URLSearchParams();
+		data.append( 'action', 'revert_source_changes' );
+		data.append( 'security', window.richie_ajax.security );
+
+		return window
+			.fetch( window.richie_ajax.ajax_url, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+				},
+				body: data.toString(),
+			} )
+			.then( () => {
+				setHasUnpublishedChanges( false );
+				return refreshItems();
+			} );
+	}, [ refreshItems ] );
+
 	return {
 		items,
 		isLoading,
 		error,
 		hasUnsavedChanges,
+		hasUnpublishedChanges,
 		reorderItems,
 		addSection,
 		updateSection,
@@ -260,5 +317,7 @@ export default function useFeedItems( collectionId ) {
 		deleteAdSlot,
 		saveOrder,
 		refreshItems,
+		publishSources,
+		revertSources,
 	};
 }

@@ -52,6 +52,17 @@ export default function SectionCard( { section, onEdit, onDelete } ) {
 		opacity: isDragging ? 0.5 : 1,
 	};
 
+	const previewDeps = JSON.stringify( {
+		id: section.id,
+		number_of_posts: section.number_of_posts,
+		order_by: section.order_by,
+		order_direction: section.order_direction,
+		categories: section.categories,
+		tags: section.tags,
+		max_age: section.max_age,
+		post_type: section.post_type,
+	} );
+
 	// Fetch preview data
 	useEffect( () => {
 		if ( section.id === undefined || section.id === null ) return;
@@ -70,7 +81,7 @@ export default function SectionCard( { section, onEdit, onDelete } ) {
 			.finally( () => {
 				setIsLoadingPreview( false );
 			} );
-	}, [ section.id ] );
+	}, [ previewDeps ] );
 
 	const layoutStyle = section.list_layout_style || 'none';
 	const layoutLabel = LAYOUT_LABELS[ layoutStyle ] || layoutStyle;

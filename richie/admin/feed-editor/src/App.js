@@ -2,7 +2,7 @@
  * Main Feed Editor App Component
  */
 
-import { useState, useCallback } from '@wordpress/element';
+import { useState, useCallback, useEffect } from '@wordpress/element';
 import { Button, Notice } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
@@ -23,6 +23,7 @@ export default function App() {
 		isLoading,
 		error,
 		hasUnsavedChanges,
+		hasUnpublishedChanges,
 		reorderItems,
 		addSection,
 		updateSection,
@@ -32,6 +33,8 @@ export default function App() {
 		deleteAdSlot,
 		saveOrder,
 		refreshItems,
+		publishSources,
+		revertSources,
 	} = useFeedItems( selectedCollection );
 
 	const handleCollectionChange = useCallback( ( collection ) => {
@@ -94,6 +97,22 @@ export default function App() {
 		[ editingItem, updateAdSlot, addAdSlot, handleAdSlotModalClose ]
 	);
 
+	useEffect( () => {
+		const handleSourcesUpdated = () => {
+			if ( selectedCollection ) {
+				refreshItems();
+			}
+		};
+
+		window.addEventListener( 'richieSourcesUpdated', handleSourcesUpdated );
+		return () => {
+			window.removeEventListener(
+				'richieSourcesUpdated',
+				handleSourcesUpdated
+			);
+		};
+	}, [ selectedCollection, refreshItems ] );
+
 	return (
 		<div className="richie-feed-editor">
 			<div className="feed-editor-header">
@@ -122,12 +141,27 @@ export default function App() {
 
 			{ hasUnsavedChanges && (
 				<Notice status="warning" isDismissible={ false }>
-					{ __( 'You have unsaved changes.', 'richie' ) }
+					{ __( 'You have unsaved order changes.', 'richie' ) }
 					<Button variant="link" onClick={ saveOrder }>
 						{ __( 'Save now', 'richie' ) }
 					</Button>
+					<Button variant="link" onClick={ refreshItems }>
+						{ __( 'Discard changes', 'richie' ) }
+					</Button>
 				</Notice>
 			) }
+
+			{ hasUnpublishedChanges && (
+				<Notice status="warning" isDismissible={ false }>
+					{ __( 'You have unpublished source changes.', 'richie' ) }
+					<Button variant="link" onClick={ publishSources }>
+						{ __( 'Publish now', 'richie' ) }
+					</Button>
+					<Button variant="link" onClick={ revertSources }>
+						{ __( 'Revert changes', 'richie' ) }
+					</Button>
+				</Notice>
+			)}
 
 			{ selectedCollection ? (
 				<FeedItemList

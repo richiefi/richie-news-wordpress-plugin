@@ -223,7 +223,32 @@ class Richie_Feed_Editor {
 			}
 		}
 
-		return new WP_REST_Response( array( 'items' => $items ), 200 );
+		return new WP_REST_Response(
+			array(
+				'items'                   => $items,
+				'has_unpublished_changes' => $this->has_unpublished_changes( $sources_option ),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Check if sources have unpublished changes.
+	 *
+	 * @since 2.0.0
+	 * @param array $sources_option Sources option data.
+	 * @return bool
+	 */
+	private function has_unpublished_changes( $sources_option ) {
+		if ( empty( $sources_option ) || ! isset( $sources_option['sources'] ) ) {
+			return false;
+		}
+
+		if ( empty( $sources_option['published'] ) || $sources_option['sources'] !== $sources_option['published'] ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -324,7 +349,8 @@ class Richie_Feed_Editor {
 		$source = $sources[ $section_id ];
 
 		// Use transient caching (5 minutes)
-		$cache_key = 'richie_preview_' . $section_id;
+		$source_hash = md5( wp_json_encode( $source ) );
+		$cache_key = 'richie_preview_' . $section_id . '_' . $source_hash;
 		$cached = get_transient( $cache_key );
 
 		if ( $cached !== false ) {
