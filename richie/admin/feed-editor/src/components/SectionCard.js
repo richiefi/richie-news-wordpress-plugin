@@ -52,6 +52,18 @@ export default function SectionCard( { section, onEdit, onDelete } ) {
 		opacity: isDragging ? 0.5 : 1,
 	};
 
+	const backgroundColor = section.background_color
+		? `#${ section.background_color }`
+		: null;
+
+	const cardStyle = backgroundColor
+		? {
+			...style,
+			borderLeftColor: backgroundColor,
+			borderLeftWidth: '4px',
+		}
+		: style;
+
 	const previewDeps = JSON.stringify( {
 		id: section.id,
 		number_of_posts: section.number_of_posts,
@@ -100,27 +112,41 @@ export default function SectionCard( { section, onEdit, onDelete } ) {
 	return (
 		<div
 			ref={ setNodeRef }
-			style={ style }
+			style={ cardStyle }
 			className={ `feed-item-card section-card${
 				isDragging ? ' is-dragging' : ''
-			}` }
+			}${ backgroundColor ? ' has-background-color' : '' }` }
 		>
 			<div className="card-drag-handle" { ...attributes } { ...listeners }>
 				<Icon icon={ dragHandle } />
 			</div>
 
-			<div className="card-layout-badge">
-				<span className={ `dashicons dashicons-${ layoutIcon }` }></span>
-				<span className="layout-label">{ layoutLabel }</span>
-			</div>
-
 			<div className="card-content">
 				<div className="card-header">
-					<strong className="card-title">{ section.name }</strong>
-					<span className="card-meta">
-						{ section.number_of_posts }{ ' ' }
-						{ __( 'articles', 'richie' ) }
-					</span>
+					{ backgroundColor && (
+						<span
+							className="section-color-swatch"
+							style={ { backgroundColor } }
+							aria-hidden="true"
+						/>
+					) }
+					<div className="card-header-details">
+						<div className="card-title-row">
+							<div className="card-title-group">
+								<strong className="card-title">{ section.name }</strong>
+								<span className="card-meta">
+									{ section.number_of_posts }{ ' ' }
+									{ __( 'articles', 'richie' ) }
+								</span>
+							</div>
+							<div className="card-layout-badge">
+								<span
+									className={ `dashicons dashicons-${ layoutIcon }` }
+								></span>
+								<span className="layout-label">{ layoutLabel }</span>
+							</div>
+						</div>
+					</div>
 				</div>
 
 				<div className="card-preview">
@@ -155,12 +181,14 @@ export default function SectionCard( { section, onEdit, onDelete } ) {
 					icon={ edit }
 					label={ __( 'Edit', 'richie' ) }
 					onClick={ onEdit }
+					isSmall
 				/>
 				<Button
 					icon={ trash }
 					label={ __( 'Delete', 'richie' ) }
 					onClick={ handleDelete }
 					isDestructive
+					isSmall
 				/>
 			</div>
 		</div>
