@@ -41,6 +41,37 @@ export default function App() {
 		setSelectedCollection( collection );
 	}, [] );
 
+	useEffect( () => {
+		const params = new URLSearchParams( window.location.search );
+		const collectionParam = params.get( 'collection' );
+		const storedCollection = window.localStorage.getItem(
+			'richie_selected_collection'
+		);
+
+		const candidate = collectionParam || storedCollection;
+		if ( candidate ) {
+			const parsed = parseInt( candidate, 10 );
+			if ( ! Number.isNaN( parsed ) ) {
+				setSelectedCollection( parsed );
+			}
+		}
+	}, [] );
+
+	useEffect( () => {
+		const url = new URL( window.location.href );
+		if ( selectedCollection ) {
+			url.searchParams.set( 'collection', String( selectedCollection ) );
+			window.localStorage.setItem(
+				'richie_selected_collection',
+				String( selectedCollection )
+			);
+		} else {
+			url.searchParams.delete( 'collection' );
+			window.localStorage.removeItem( 'richie_selected_collection' );
+		}
+		window.history.replaceState( {}, '', url );
+	}, [ selectedCollection ] );
+
 	const handleAddSection = useCallback( () => {
 		setEditingItem( null );
 		setSectionModalOpen( true );

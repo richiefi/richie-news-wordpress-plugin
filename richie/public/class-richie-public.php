@@ -369,15 +369,28 @@ class Richie_Public {
 
     public function get_section_article( $article ) {
         $section_article = array(
+            'id'                   => wp_generate_uuid4(),
             'publisher_id'         => $article['id'],
             'article_full_version' => $article['last_updated'], // TODO: Undocumented field - verify if still needed.
             'layout'               => $article['article_attributes']['list_layout_style'],
+            'is_premium'           => false,
         );
 
         if ( 'ad' !== $article['article_attributes']['list_layout_style'] ) {
             $post              = $article['original_post'];
             $article_instance  = new Richie_Article( $this->richie_options );
             $generated_article = $article_instance->generate_article( $post, Richie_Article::EXCLUDE_CONTENT );
+
+            $article_with_content = $article_instance->generate_article( $post );
+            if ( isset( $article_with_content->content_html_document ) && is_string( $article_with_content->content_html_document ) ) {
+                $section_article['content_hash'] = hash( 'sha256', $article_with_content->content_html_document );
+            }
+
+            $premium_categories = isset( $this->richie_options['premium_categories'] ) ? (array) $this->richie_options['premium_categories'] : array();
+            if ( ! empty( $premium_categories ) ) {
+                $post_categories              = wp_get_post_categories( $post->ID );
+                $section_article['is_premium'] = ! empty( array_intersect( $post_categories, $premium_categories ) );
+            }
 
             $summary_disabled = false;
             if ( array_key_exists( 'summary', $article['article_attributes'] ) && null === $article['article_attributes']['summary'] ) {

@@ -5506,6 +5506,29 @@ function App() {
   var handleCollectionChange = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useCallback)(function (collection) {
     setSelectedCollection(collection);
   }, []);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useEffect)(function () {
+    var params = new URLSearchParams(window.location.search);
+    var collectionParam = params.get('collection');
+    var storedCollection = window.localStorage.getItem('richie_selected_collection');
+    var candidate = collectionParam || storedCollection;
+    if (candidate) {
+      var parsed = parseInt(candidate, 10);
+      if (!Number.isNaN(parsed)) {
+        setSelectedCollection(parsed);
+      }
+    }
+  }, []);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useEffect)(function () {
+    var url = new URL(window.location.href);
+    if (selectedCollection) {
+      url.searchParams.set('collection', String(selectedCollection));
+      window.localStorage.setItem('richie_selected_collection', String(selectedCollection));
+    } else {
+      url.searchParams.delete('collection');
+      window.localStorage.removeItem('richie_selected_collection');
+    }
+    window.history.replaceState({}, '', url);
+  }, [selectedCollection]);
   var handleAddSection = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useCallback)(function () {
     setEditingItem(null);
     setSectionModalOpen(true);
