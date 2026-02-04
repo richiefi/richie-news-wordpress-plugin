@@ -11,7 +11,9 @@ import {
 	TextControl,
 	SelectControl,
 	CheckboxControl,
+	ColorPicker,
 	__experimentalNumberControl as NumberControl,
+	Popover,
 	Spinner,
 } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
@@ -136,6 +138,17 @@ export default function SectionModal( {
 		setFormData( ( prev ) => ( { ...prev, [ field ]: value } ) );
 	};
 
+	const [ isColorPickerOpen, setIsColorPickerOpen ] = useState( false );
+
+	const handleBackgroundColorChange = ( value ) => {
+		if ( ! value ) {
+			updateField( 'background_color', '' );
+			return;
+		}
+		const normalized = value.startsWith( '#' ) ? value.slice( 1 ) : value;
+		updateField( 'background_color', normalized );
+	};
+
 	const handleSubmit = () => {
 		setIsSaving( true );
 
@@ -203,20 +216,28 @@ export default function SectionModal( {
 						label={ __( 'Name', 'richie' ) }
 						value={ formData.name }
 						onChange={ ( value ) => updateField( 'name', value ) }
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
 						required
 					/>
 				</div>
 
 				<div className="section-modal-row section-modal-row--two-col">
-					<NumberControl
-						label={ __( 'Number of Articles', 'richie' ) }
-						value={ formData.number_of_posts }
-						onChange={ ( value ) =>
-							updateField( 'number_of_posts', parseInt( value, 10 ) )
-						}
-						min={ 1 }
-						max={ 50 }
-					/>
+					<div className="section-modal-field">
+						<NumberControl
+							label={ __( 'Number of Articles', 'richie' ) }
+							value={ formData.number_of_posts }
+							onChange={ ( value ) =>
+								updateField( 'number_of_posts', parseInt( value, 10 ) )
+							}
+							__next40pxDefaultSize
+							min={ 1 }
+							max={ 50 }
+						/>
+						<p className="section-modal-help">
+							{ __( 'Number of posts included in the feed', 'richie' ) }
+						</p>
+					</div>
 
 					<SelectControl
 						label={ __( 'Layout Style', 'richie' ) }
@@ -225,6 +246,8 @@ export default function SectionModal( {
 						onChange={ ( value ) =>
 							updateField( 'list_layout_style', value )
 						}
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
 					/>
 				</div>
 
@@ -237,6 +260,8 @@ export default function SectionModal( {
 							value: pt.name,
 						} ) ) }
 						onChange={ ( value ) => updateField( 'post_type', value ) }
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
 					/>
 				</div>
 
@@ -246,6 +271,8 @@ export default function SectionModal( {
 						value={ formData.order_by }
 						options={ ORDER_BY_OPTIONS }
 						onChange={ ( value ) => updateField( 'order_by', value ) }
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
 					/>
 
 					<SelectControl
@@ -255,6 +282,8 @@ export default function SectionModal( {
 						onChange={ ( value ) =>
 							updateField( 'order_direction', value )
 						}
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
 					/>
 				</div>
 
@@ -264,6 +293,8 @@ export default function SectionModal( {
 						value={ formData.max_age }
 						options={ MAX_AGE_OPTIONS }
 						onChange={ ( value ) => updateField( 'max_age', value ) }
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
 					/>
 				</div>
 
@@ -282,6 +313,7 @@ export default function SectionModal( {
 								onChange={ () =>
 									handleCategoryToggle( category.id )
 								}
+								__nextHasNoMarginBottom
 							/>
 						) ) }
 					</div>
@@ -292,6 +324,8 @@ export default function SectionModal( {
 						label={ __( 'Tags (comma-separated)', 'richie' ) }
 						value={ formData.tags }
 						onChange={ ( value ) => updateField( 'tags', value ) }
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
 						help={ __(
 							'Enter tag slugs separated by commas',
 							'richie'
@@ -306,43 +340,92 @@ export default function SectionModal( {
 						onChange={ ( value ) =>
 							updateField( 'list_group_title', value )
 						}
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
 						help={ __(
-							'Optional header displayed before section',
+							'Header to display before the story, useful on the first small_group_item of a group',
 							'richie'
 						) }
 					/>
 				</div>
 
-				<div className="section-modal-row">
-					<TextControl
-						label={ __( 'Background Color', 'richie' ) }
-						value={ formData.background_color }
-						onChange={ ( value ) =>
-							updateField( 'background_color', value )
-						}
-						help={ __(
-							'Hex color without # (e.g., ff0000)',
+				<div className="section-modal-row section-modal-row--color">
+					<label className="components-base-control__label">
+						{ __( 'Background Color', 'richie' ) }
+					</label>
+					<div className="section-modal-color-picker">
+						<Button
+							variant="secondary"
+							onClick={ () =>
+								setIsColorPickerOpen( ! isColorPickerOpen )
+							}
+						>
+							{ formData.background_color
+								? `#${ formData.background_color }`
+								: __( 'Select color', 'richie' ) }
+						</Button>
+						{ isColorPickerOpen && (
+							<Popover
+								placement="bottom-start"
+								onClose={ () => setIsColorPickerOpen( false ) }
+							>
+								<ColorPicker
+									color={
+										formData.background_color
+											? `#${ formData.background_color }`
+											: undefined
+									}
+									onChangeComplete={ ( value ) =>
+										handleBackgroundColorChange( value.hex )
+									}
+									disableAlpha
+								/>
+							</Popover>
+						) }
+						<Button
+							variant="secondary"
+							onClick={ () => handleBackgroundColorChange( '' ) }
+							disabled={ ! formData.background_color }
+						>
+							{ __( 'Clear', 'richie' ) }
+						</Button>
+					</div>
+					<p className="section-modal-color-help">
+						{ __(
+							'Background color to be used with layout types. Not all layout types support this.',
 							'richie'
 						) }
-					/>
+					</p>
 				</div>
 
 				<div className="section-modal-row section-modal-row--checkboxes">
-					<CheckboxControl
-						label={ __( 'Allow Duplicates', 'richie' ) }
-						checked={ formData.allow_duplicates }
-						onChange={ ( value ) =>
-							updateField( 'allow_duplicates', value )
-						}
-					/>
+					<div className="section-modal-field">
+						<CheckboxControl
+							label={ __( 'Allow Duplicates', 'richie' ) }
+							checked={ formData.allow_duplicates }
+							onChange={ ( value ) =>
+								updateField( 'allow_duplicates', value )
+							}
+							__nextHasNoMarginBottom
+						/>
+						<p className="section-modal-help">
+							{ __( 'Allow duplicate articles in this source', 'richie' ) }
+						</p>
+					</div>
 
-					<CheckboxControl
-						label={ __( 'Disable Summary', 'richie' ) }
-						checked={ formData.disable_summary }
-						onChange={ ( value ) =>
-							updateField( 'disable_summary', value )
-						}
-					/>
+					<div className="section-modal-field">
+						<CheckboxControl
+							label={ __( 'Disable Summary', 'richie' ) }
+							checked={ formData.disable_summary }
+							onChange={ ( value ) =>
+								updateField( 'disable_summary', value )
+							}
+							__nextHasNoMarginBottom
+						/>
+						<p className="section-modal-help">
+							{ __( 'Do not show summary text in news list', 'richie' ) }
+						</p>
+					</div>
 				</div>
 			</div>
 

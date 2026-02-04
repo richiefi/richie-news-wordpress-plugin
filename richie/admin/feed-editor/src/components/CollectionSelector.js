@@ -114,6 +114,8 @@ export default function CollectionSelector( { value, onChange } ) {
 				onChange={ ( newValue ) =>
 					onChange( newValue ? parseInt( newValue, 10 ) : null )
 				}
+				__next40pxDefaultSize
+				__nextHasNoMarginBottom
 			/>
 			<div className="collection-selector__actions">
 				<Button

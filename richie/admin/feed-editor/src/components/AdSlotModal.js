@@ -125,6 +125,8 @@ export default function AdSlotModal( { adSlot, collectionId, onSave, onClose } )
 						onChange={ ( value ) =>
 							updateField( 'ad_provider', value )
 						}
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
 					/>
 				</div>
 

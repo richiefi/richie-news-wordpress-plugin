@@ -54,12 +54,16 @@ export default function CollectionModal( {
 					label={ __( 'Name', 'richie' ) }
 					value={ name }
 					onChange={ setName }
+					__next40pxDefaultSize
+					__nextHasNoMarginBottom
 					required
 				/>
 				<TextControl
 					label={ __( 'Slug', 'richie' ) }
 					value={ slug }
 					onChange={ setSlug }
+					__next40pxDefaultSize
+					__nextHasNoMarginBottom
 					help={ __( 'Used in feed URL (optional)', 'richie' ) }
 				/>
 			</div>
