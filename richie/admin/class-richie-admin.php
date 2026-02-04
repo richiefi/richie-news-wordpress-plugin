@@ -107,13 +107,8 @@ class Richie_Admin {
         $this->assets_option_name     = $plugin_name . '_assets';
         $this->adslots_option_name    = $plugin_name . '_adslots';
         $this->available_layout_names = array(
-            'big',
             'small',
-            'small_group_item',
-            'featured',
-            'full_width_text',
-            'text_left_square_thumb_right',
-            'none',
+            'featured'
         );
         add_action( 'added_option', array( __CLASS__, 'maybe_clear_alloptions_cache' ) );
         add_action( 'updated_option', array( __CLASS__, 'maybe_clear_alloptions_cache' ) );
@@ -692,7 +687,7 @@ class Richie_Admin {
         $section->add_field( 'richie_article_set', __( 'Article set', 'richie' ), 'article_set' );
         $section->add_field( 'adslot_position_index', __( 'Slot position', 'richie' ), 'input_field', array( 'description' => $slot_index_description, 'class' => '' ) );
 
-        $ad_providers = array( 'smart', 'google', 'readpeak' );
+        $ad_providers = array( 'smart', 'google' );
         $section->add_field( 'adslot_provider', __( 'Ad provider', 'richie' ), 'select_field', array( 'options' => $ad_providers ) );
         $section->add_field( 'adslot_ad_data', __( 'Ad data', 'richie' ), 'adslot_ad_data_editor' );
 
