@@ -268,3 +268,6 @@
 .richie-feed-editor .components-notice {
   margin-bottom: 16px;
 }
+.richie-feed-editor .components-notice__content .components-button {
+  margin-right: 8px;
+}

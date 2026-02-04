@@ -191,6 +191,8 @@ class Richie_Feed_Editor {
 			: null;
 
 		$items = array();
+		$used_sources = array();
+		$used_ads = array();
 
 		if ( $custom_order ) {
 			// Use custom order
@@ -200,6 +202,7 @@ class Richie_Feed_Editor {
 					if ( isset( $collection_sources[ $source_id ] ) ) {
 						$source = $collection_sources[ $source_id ];
 						$items[] = $this->format_source_item( $source );
+						$used_sources[ $source_id ] = true;
 					}
 				} elseif ( $order_item['type'] === 'ad' ) {
 					$ad_id = $order_item['id'];
@@ -207,9 +210,45 @@ class Richie_Feed_Editor {
 					foreach ( $adslots as $adslot ) {
 						if ( isset( $adslot['attributes']['id'] ) && $adslot['attributes']['id'] === $ad_id ) {
 							$items[] = $this->format_adslot_item( $adslot );
+							$used_ads[ $ad_id ] = true;
 							break;
 						}
 					}
+				}
+			}
+
+			// Append any sources missing from custom order (legacy compatibility)
+			foreach ( $collection_sources as $source_id => $source ) {
+				if ( isset( $used_sources[ $source_id ] ) ) {
+					continue;
+				}
+				$items[] = $this->format_source_item( $source );
+			}
+
+			// Insert any ad slots missing from custom order by legacy index
+			$remaining_ads = array();
+			foreach ( $adslots as $adslot ) {
+				$ad_id = isset( $adslot['attributes']['id'] ) ? $adslot['attributes']['id'] : null;
+				if ( $ad_id && isset( $used_ads[ $ad_id ] ) ) {
+					continue;
+				}
+				$remaining_ads[] = $adslot;
+			}
+			usort(
+				$remaining_ads,
+				function( $a, $b ) {
+					$index_a = isset( $a['index'] ) ? intval( $a['index'] ) : 0;
+					$index_b = isset( $b['index'] ) ? intval( $b['index'] ) : 0;
+					return $index_a <=> $index_b;
+				}
+			);
+			foreach ( $remaining_ads as $adslot ) {
+				$insert_at = isset( $adslot['index'] ) ? max( intval( $adslot['index'] ) - 1, 0 ) : count( $items );
+				$formatted = $this->format_adslot_item( $adslot );
+				if ( $insert_at >= count( $items ) ) {
+					$items[] = $formatted;
+				} else {
+					array_splice( $items, $insert_at, 0, array( $formatted ) );
 				}
 			}
 		} else {
@@ -326,6 +365,51 @@ class Richie_Feed_Editor {
 		$sources_option['updated'] = time();
 
 		update_option( $this->plugin_name . 'news_sources', $sources_option );
+
+		// Sync ad slot positions with custom order for legacy compatibility
+		$adslots_option = get_option( $this->plugin_name . '_adslots' );
+		if ( isset( $adslots_option['slots'][ $collection_id ] ) && is_array( $adslots_option['slots'][ $collection_id ] ) ) {
+			$slots_for_set = $adslots_option['slots'][ $collection_id ];
+			$slots_by_uuid = array();
+			foreach ( $slots_for_set as $slot ) {
+				if ( isset( $slot['attributes']['id'] ) ) {
+					$slots_by_uuid[ $slot['attributes']['id'] ] = $slot;
+				}
+			}
+
+			$ordered_slots = array();
+			$used_uuids    = array();
+			$position      = 1;
+
+			foreach ( $items as $item ) {
+				if ( isset( $item['type'] ) && 'ad' === $item['type'] && isset( $item['id'] ) && isset( $slots_by_uuid[ $item['id'] ] ) ) {
+					$slot            = $slots_by_uuid[ $item['id'] ];
+					$slot['index']   = $position;
+					$ordered_slots[ $position ] = $slot;
+					$used_uuids[ $item['id'] ] = true;
+				}
+				$position++;
+			}
+
+			// Preserve any slots not present in the custom order
+			foreach ( $slots_by_uuid as $uuid => $slot ) {
+				if ( isset( $used_uuids[ $uuid ] ) ) {
+					continue;
+				}
+				$index = isset( $slot['index'] ) ? intval( $slot['index'] ) : 1;
+				while ( isset( $ordered_slots[ $index ] ) ) {
+					$index++;
+				}
+				$slot['index'] = $index;
+				$ordered_slots[ $index ] = $slot;
+			}
+
+			if ( ! empty( $ordered_slots ) ) {
+				ksort( $ordered_slots );
+				$adslots_option['slots'][ $collection_id ] = $ordered_slots;
+				update_option( $this->plugin_name . '_adslots', $adslots_option );
+			}
+		}
 
 		return new WP_REST_Response( array( 'success' => true ), 200 );
 	}

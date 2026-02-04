@@ -306,4 +306,10 @@ $primary-color: #2271b1;
 	.components-notice {
 		margin-bottom: 16px;
 	}
+
+	.components-notice__content {
+		.components-button {
+			margin-left: 8px;
+		}
+	}
 }
