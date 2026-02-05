@@ -38,14 +38,13 @@ export default function CollectionPreviewModal( { collectionId, onClose } ) {
 			} );
 	}, [ collectionId ] );
 
-	const renderArticle = ( article, index ) => {
+	const renderArticle = ( article, index, headerTitle = '' ) => {
 		// Layout is at the top level in API response, not in article_attributes
 		const layout = article.layout || 'small';
 		const kicker = article.kicker || '';
 		const title = article.title || __( 'Untitled', 'richie' );
 		const summary = article.summary !== undefined ? ( article.summary || '' ) : '';
 		const image = article.image_url || PLACEHOLDER_IMAGE;
-		const headerTitle = article.collection_header_title || '';
 		const bgColor = article.background_color ? `#${ article.background_color }` : null;
 
 		const articleStyle = bgColor ? { backgroundColor: bgColor } : {};
@@ -114,13 +113,24 @@ export default function CollectionPreviewModal( { collectionId, onClose } ) {
 					</div>
 				) : feed && feed.articles && feed.articles.length > 0 ? (
 					<div className="collection-preview-feed">
-						{ feed.articles.map( ( item, index ) => {
-							// Check if it's an ad slot (layout field is at top level)
-							if ( item.layout === 'ad' ) {
-								return renderAdSlot( item, index );
-							}
-							return renderArticle( item, index );
-						} ) }
+						{ ( () => {
+							let lastHeaderTitle = null;
+							return feed.articles.map( ( item, index ) => {
+								// Check if it's an ad slot (layout field is at top level)
+								if ( item.layout === 'ad' ) {
+									lastHeaderTitle = null;
+									return renderAdSlot( item, index );
+								}
+
+								const rawHeaderTitle = item.collection_header_title || '';
+								const showHeaderTitle =
+									rawHeaderTitle && rawHeaderTitle !== lastHeaderTitle;
+								lastHeaderTitle = rawHeaderTitle || null;
+								const headerTitle = showHeaderTitle ? rawHeaderTitle : '';
+
+								return renderArticle( item, index, headerTitle );
+							} );
+						} )() }
 					</div>
 				) : (
 					<div className="collection-preview-empty">
