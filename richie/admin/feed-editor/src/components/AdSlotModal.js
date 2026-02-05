@@ -110,8 +110,8 @@ export default function AdSlotModal( { adSlot, collectionId, onSave, onClose } )
 		<Modal
 			title={
 				isEditing
-					? __( 'Edit Ad Slot', 'richie' )
-					: __( 'Add Ad Slot', 'richie' )
+					? __( 'Edit ad slot', 'richie' )
+					: __( 'Add ad slot', 'richie' )
 			}
 			onRequestClose={ onClose }
 			className="adslot-modal"
@@ -164,8 +164,8 @@ export default function AdSlotModal( { adSlot, collectionId, onSave, onClose } )
 					disabled={ isSaving || !! jsonError }
 				>
 					{ isEditing
-						? __( 'Update Ad Slot', 'richie' )
-						: __( 'Add Ad Slot', 'richie' ) }
+						? __( 'Update ad slot', 'richie' )
+						: __( 'Add ad slot', 'richie' ) }
 				</Button>
 			</div>
 		</Modal>

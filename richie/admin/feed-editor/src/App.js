@@ -168,10 +168,10 @@ export default function App() {
 							{ __( 'Preview Collection', 'richie' ) }
 						</Button>
 						<Button variant="secondary" onClick={ handleAddSection }>
-							{ __( 'Add Section', 'richie' ) }
+							{ __( 'Add section', 'richie' ) }
 						</Button>
 						<Button variant="secondary" onClick={ handleAddAdSlot }>
-							{ __( 'Add Ad Slot', 'richie' ) }
+							{ __( 'Add ad slot', 'richie' ) }
 						</Button>
 					</div>
 				) }

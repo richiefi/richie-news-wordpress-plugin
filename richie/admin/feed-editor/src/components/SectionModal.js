@@ -16,12 +16,12 @@ import {
 	Popover,
 	Spinner,
 } from '@wordpress/components';
-import { __ } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 
 const DEFAULT_LAYOUT_OPTIONS = [
-	{ label: __( 'Featured', 'richie' ), value: 'featured' },
-	{ label: __( 'Small', 'richie' ), value: 'small' },
+	{ label: 'Featured', value: 'featured' },
+	{ label: 'Small', value: 'small' },
 ];
 
 const LAYOUT_OPTIONS =
@@ -48,14 +48,38 @@ const ORDER_DIRECTION_OPTIONS = [
 ];
 
 const MAX_AGE_OPTIONS = [
-	{ label: __( '1 day', 'richie' ), value: '1 day' },
-	{ label: __( '3 days', 'richie' ), value: '3 days' },
-	{ label: __( '1 week', 'richie' ), value: '1 week' },
-	{ label: __( '2 weeks', 'richie' ), value: '2 weeks' },
-	{ label: __( '1 month', 'richie' ), value: '1 month' },
-	{ label: __( '3 months', 'richie' ), value: '3 months' },
-	{ label: __( '6 months', 'richie' ), value: '6 months' },
-	{ label: __( '1 year', 'richie' ), value: '1 year' },
+	{
+		label: sprintf( _n( '%d day', '%d days', 1, 'richie' ), 1 ),
+		value: '1 day',
+	},
+	{
+		label: sprintf( _n( '%d day', '%d days', 3, 'richie' ), 3 ),
+		value: '3 days',
+	},
+	{
+		label: sprintf( _n( '%d week', '%d weeks', 1, 'richie' ), 1 ),
+		value: '1 week',
+	},
+	{
+		label: sprintf( _n( '%d week', '%d weeks', 2, 'richie' ), 2 ),
+		value: '2 weeks',
+	},
+	{
+		label: sprintf( _n( '%d month', '%d months', 1, 'richie' ), 1 ),
+		value: '1 month',
+	},
+	{
+		label: sprintf( _n( '%d month', '%d months', 3, 'richie' ), 3 ),
+		value: '3 months',
+	},
+	{
+		label: sprintf( _n( '%d month', '%d months', 6, 'richie' ), 6 ),
+		value: '6 months',
+	},
+	{
+		label: sprintf( _n( '%d year', '%d years', 1, 'richie' ), 1 ),
+		value: '1 year',
+	},
 	{ label: __( 'All time', 'richie' ), value: 'all_time' },
 ];
 
@@ -190,8 +214,8 @@ export default function SectionModal( {
 			<Modal
 				title={
 					isEditing
-						? __( 'Edit Section', 'richie' )
-						: __( 'Add Section', 'richie' )
+						? __( 'Edit section', 'richie' )
+						: __( 'Add section', 'richie' )
 				}
 				onRequestClose={ onClose }
 			>
@@ -206,8 +230,8 @@ export default function SectionModal( {
 		<Modal
 			title={
 				isEditing
-					? __( 'Edit Section', 'richie' )
-					: __( 'Add Section', 'richie' )
+					? __( 'Edit section', 'richie' )
+					: __( 'Add section', 'richie' )
 			}
 			onRequestClose={ onClose }
 			className="section-modal"
@@ -442,8 +466,8 @@ export default function SectionModal( {
 					disabled={ isSaving || ! formData.name }
 				>
 					{ isEditing
-						? __( 'Update Section', 'richie' )
-						: __( 'Add Section', 'richie' ) }
+						? __( 'Update section', 'richie' )
+						: __( 'Add section', 'richie' ) }
 				</Button>
 			</div>
 		</Modal>

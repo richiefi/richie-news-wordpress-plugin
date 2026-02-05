@@ -91,7 +91,7 @@ export default function FeedItemList( {
 			<div className="feed-item-list feed-item-list--empty">
 				<p>
 					{ __(
-						'No sections or ad slots in this collection yet. Click "Add Section" or "Add Ad Slot" to get started.',
+						'No sections or ad slots in this collection yet. Click "Add section" or "Add ad slot" to get started.',
 						'richie'
 					) }
 				</p>

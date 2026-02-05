@@ -230,13 +230,13 @@ class Richie_Admin {
         return array(
             array(
                 'value' => 'featured',
-                'title' => __( 'Featured', 'richie' ),
-                'label' => __( 'Featured', 'richie' ),
+                'title' => 'Featured',
+                'label' => 'Featured',
             ),
             array(
                 'value' => 'small',
-                'title' => __( 'Small', 'richie' ),
-                'label' => __( 'Small', 'richie' ),
+                'title' => 'Small',
+                'label' => 'Small',
             ),
         );
     }

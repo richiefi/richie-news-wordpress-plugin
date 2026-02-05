@@ -6,16 +6,15 @@
 
 import { useState, useEffect } from '@wordpress/element';
 import { Button, Spinner } from '@wordpress/components';
-import { __, sprintf } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { dragHandle, edit, trash } from '@wordpress/icons';
-import { Icon } from '@wordpress/icons';
+import { dragHandle, edit, trash, Icon } from '@wordpress/icons';
 import apiFetch from '@wordpress/api-fetch';
 
 const DEFAULT_LAYOUT_OPTIONS = [
-	{ label: __( 'Featured', 'richie' ), value: 'featured' },
-	{ label: __( 'Small', 'richie' ), value: 'small' },
+	{ label: 'Featured', value: 'featured' },
+	{ label: 'Small', value: 'small' },
 ];
 
 const LAYOUT_OPTIONS =
@@ -129,11 +128,19 @@ export default function SectionCard( { section, onEdit, onDelete } ) {
 		configuredCount > 0 && previewCount > 0 && previewCount < configuredCount;
 	const configuredCountLabel = showPreviewCountNote
 		? sprintf(
-			__( '%1$d articles (%2$d available)', 'richie' ),
+			_n(
+				'%1$d article (%2$d available)',
+				'%1$d articles (%2$d available)',
+				configuredCount,
+				'richie'
+			),
 			configuredCount,
 			previewCount
 		)
-		: sprintf( __( '%d articles', 'richie' ), configuredCount );
+		: sprintf(
+			_n( '%d article', '%d articles', configuredCount, 'richie' ),
+			configuredCount
+		);
 
 	return (
 		<div

@@ -43,8 +43,8 @@ export default function CollectionModal( {
 		<Modal
 			title={
 				collection
-					? __( 'Edit Collection', 'richie' )
-					: __( 'Add Collection', 'richie' )
+					? __( 'Edit collection', 'richie' )
+					: __( 'Add collection', 'richie' )
 			}
 			onRequestClose={ onClose }
 			className="collection-modal"
@@ -79,8 +79,8 @@ export default function CollectionModal( {
 					disabled={ isSaving || ! name }
 				>
 					{ collection
-						? __( 'Update Collection', 'richie' )
-						: __( 'Add Collection', 'richie' ) }
+						? __( 'Update collection', 'richie' )
+						: __( 'Add collection', 'richie' ) }
 				</Button>
 			</div>
 		</Modal>
