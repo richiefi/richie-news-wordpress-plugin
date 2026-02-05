@@ -133,3 +133,7 @@ When working on REST API endpoints or feed generation, fetch relevant docs for r
 - `/wp-json/richie/v1/assets` - App assets
 - `/wp-json/richie/v1/search?q=<search_string>&token=abcd` - Search articles
 
+
+## Developing
+
+When developing new feature, keep session diary in PROGRESS.md file in the root of the feature's directory.

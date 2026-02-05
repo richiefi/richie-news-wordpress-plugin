@@ -10,12 +10,14 @@ import CollectionSelector from './components/CollectionSelector';
 import FeedItemList from './components/FeedItemList';
 import SectionModal from './components/SectionModal';
 import AdSlotModal from './components/AdSlotModal';
+import CollectionPreviewModal from './components/CollectionPreviewModal';
 import useFeedItems from './hooks/useFeedItems';
 
 export default function App() {
 	const [ selectedCollection, setSelectedCollection ] = useState( null );
 	const [ sectionModalOpen, setSectionModalOpen ] = useState( false );
 	const [ adSlotModalOpen, setAdSlotModalOpen ] = useState( false );
+	const [ previewModalOpen, setPreviewModalOpen ] = useState( false );
 	const [ editingItem, setEditingItem ] = useState( null );
 
 	const {
@@ -100,6 +102,14 @@ export default function App() {
 		setEditingItem( null );
 	}, [] );
 
+	const handlePreview = useCallback( () => {
+		setPreviewModalOpen( true );
+	}, [] );
+
+	const handlePreviewModalClose = useCallback( () => {
+		setPreviewModalOpen( false );
+	}, [] );
+
 	const handleSectionSave = useCallback(
 		( sectionData ) => {
 			const promise = editingItem
@@ -154,6 +164,9 @@ export default function App() {
 
 				{ selectedCollection && (
 					<div className="feed-editor-actions">
+						<Button variant="secondary" onClick={ handlePreview }>
+							{ __( 'Preview Collection', 'richie' ) }
+						</Button>
 						<Button variant="secondary" onClick={ handleAddSection }>
 							{ __( 'Add Section', 'richie' ) }
 						</Button>
@@ -222,6 +235,13 @@ export default function App() {
 					collectionId={ selectedCollection }
 					onSave={ handleAdSlotSave }
 					onClose={ handleAdSlotModalClose }
+				/>
+			) }
+
+			{ previewModalOpen && (
+				<CollectionPreviewModal
+					collectionId={ selectedCollection }
+					onClose={ handlePreviewModalClose }
 				/>
 			) }
 		</div>

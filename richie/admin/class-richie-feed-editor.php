@@ -125,6 +125,13 @@ class Richie_Feed_Editor {
 			'callback'            => array( $this, 'get_post_types' ),
 			'permission_callback' => array( $this, 'check_permission' ),
 		) );
+
+		// Preview full collection feed
+		register_rest_route( $namespace, '/preview-feed/(?P<collection_id>\d+)', array(
+			'methods'             => WP_REST_Server::READABLE,
+			'callback'            => array( $this, 'preview_collection_feed' ),
+			'permission_callback' => array( $this, 'check_permission' ),
+		) );
 	}
 
 	/**
@@ -851,5 +858,62 @@ class Richie_Feed_Editor {
 		}
 
 		return new WP_REST_Response( $types, 200 );
+	}
+
+	/**
+	 * Preview full collection feed with articles.
+	 *
+	 * Generates a preview of the complete feed for a collection,
+	 * including all sections and ad slots in their proper order,
+	 * with full article data (title, kicker, summary, images, layout).
+	 *
+	 * @since    2.0.0
+	 * @param    WP_REST_Request    $request    Request object.
+	 * @return   WP_REST_Response
+	 */
+	public function preview_collection_feed( $request ) {
+		$collection_id = intval( $request['collection_id'] );
+
+		// Get the article set term
+		$article_set = get_term( $collection_id, 'richie_article_set' );
+		if ( is_wp_error( $article_set ) || ! $article_set ) {
+			return new WP_REST_Response(
+				array(
+					'articles' => array(),
+					'message'  => 'Collection not found',
+				),
+				404
+			);
+		}
+
+		// Use the public feed route handler to get the actual feed
+		// This tests the real API and avoids code duplication
+		$public_class = new Richie_Public( $this->plugin_name, $this->version );
+
+		// Create a mock request object with unpublished=1 to get draft content
+		$mock_request = new WP_REST_Request( 'GET', '/richie/v1/news/' . $article_set->slug );
+		$mock_request->set_query_params( array( 'unpublished' => '1' ) );
+		$mock_request['article_set'] = $article_set->slug;
+
+		$feed_response = $public_class->feed_route_handler( $mock_request );
+
+		// Check if we got an error
+		if ( is_wp_error( $feed_response ) ) {
+			return new WP_REST_Response(
+				array(
+					'articles' => array(),
+					'message'  => $feed_response->get_error_message(),
+				),
+				500
+			);
+		}
+
+		// Return the articles from the feed response
+		return new WP_REST_Response(
+			array(
+				'articles' => isset( $feed_response['articles'] ) ? $feed_response['articles'] : array(),
+			),
+			200
+		);
 	}
 }

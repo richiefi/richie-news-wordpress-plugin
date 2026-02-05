@@ -91,25 +91,38 @@ Building a visual drag-and-drop editor for managing news feed sections and ad sl
      - Added script translations
    - ✅ Rebuilt app with fixes
 
+7. **Collection Preview Modal** (Phase 6 - Polish)
+   - ✅ Created `CollectionPreviewModal.js` component
+   - ✅ Added REST API endpoint `/richie/v1/preview-feed/{collection_id}`
+   - ✅ Used real public API (`Richie_Public::feed_route_handler()`) to avoid code duplication
+   - ✅ Renders articles in featured/small layouts with real data
+   - ✅ Shows ad slots in feed preview
+   - ✅ Added "Preview Collection" button in header
+   - ✅ Fixed data structure reading (layout at article root, not in article_attributes)
+   - ✅ Styled modal at 480px max-width for mobile preview
+   - ✅ Removed borders, added subtle dividers for feed-like appearance
+   - ✅ Fixed modal width and padding issues
+     - Fixed CSS selector to target `.components-modal__frame.collection-preview-modal`
+     - Overrode WordPress default padding with `!important` flags
+     - Content now fills full modal width (480px max-width, responsive)
+     - Header padding reduced to 12px 16px
+     - Proper flexbox layout with scrollable content area
+
 #### 🔄 In Progress
 
-7. **Final Testing** (current task)
-   - ⏳ Verify all endpoints work correctly
-   - ⏳ Test CRUD operations (create, edit, delete)
-   - ⏳ Test drag-and-drop reordering and save
-   - ⏳ Test article preview loading
+None - Collection Preview Modal is complete!
 
 #### 📋 TODO
 
-6. **Data Model Update** (Phase 4)
+8. **Data Model Update** (Phase 4)
    - Add `collection_order` to `richienews_sources` option structure
    - Modify `class-richie-public.php` `fetch_articles()` to use new order
    - Maintain backward compatibility
 
-7. **Additional Testing & Documentation**
+9. **Additional Testing & Documentation**
    - Test all CRUD operations
    - Test drag-and-drop reordering
-   - Test preview loading
+   - Test collection preview modal with various layouts
    - Verify backward compatibility
    - Update documentation
 
