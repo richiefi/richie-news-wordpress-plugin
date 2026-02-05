@@ -36,6 +36,7 @@ const LAYOUT_ICONS = {
 export default function SectionCard( { section, onEdit, onDelete } ) {
 	const [ preview, setPreview ] = useState( null );
 	const [ isLoadingPreview, setIsLoadingPreview ] = useState( false );
+	const [ isExpanded, setIsExpanded ] = useState( false );
 
 	const {
 		attributes,
@@ -152,20 +153,33 @@ export default function SectionCard( { section, onEdit, onDelete } ) {
 				<div className="card-preview">
 					{ isLoadingPreview ? (
 						<Spinner />
-					) : preview && preview.articles ? (
+					) : preview && preview.articles && preview.articles.length > 0 ? (
 						<>
-							<ul className="preview-list">
-								{ preview.articles
-									.slice( 0, 3 )
+							<ul className={ `preview-list${ isExpanded ? ' preview-list--expanded' : '' }` }>
+								{ ( isExpanded ? preview.articles : preview.articles.slice( 0, 3 ) )
 									.map( ( article, index ) => (
-										<li key={ index }>{ article.title }</li>
+										<li key={ index } className="preview-item">
+											{ article.thumbnail && (
+												<img
+													src={ article.thumbnail }
+													alt=""
+													className="preview-thumbnail"
+												/>
+											) }
+											<span className="preview-title">{ article.title }</span>
+										</li>
 									) ) }
 							</ul>
 							{ preview.articles.length > 3 && (
-								<span className="preview-more">
-									+{ preview.articles.length - 3 }{ ' ' }
-									{ __( 'more', 'richie' ) }
-								</span>
+								<Button
+									variant="link"
+									onClick={ () => setIsExpanded( ! isExpanded ) }
+									className="preview-toggle"
+								>
+									{ isExpanded
+										? __( 'Show less', 'richie' )
+										: `+${ preview.articles.length - 3 } ${ __( 'more', 'richie' ) }` }
+								</Button>
 							) }
 						</>
 					) : (

@@ -485,9 +485,15 @@ class Richie_Feed_Editor {
 		$posts = get_posts( $args );
 
 		$articles = array_map( function( $post ) {
+			$thumbnail = null;
+			if ( has_post_thumbnail( $post->ID ) ) {
+				$thumbnail = get_the_post_thumbnail_url( $post->ID, 'thumbnail' );
+			}
+
 			return array(
-				'id'    => $post->ID,
-				'title' => get_the_title( $post ),
+				'id'        => $post->ID,
+				'title'     => get_the_title( $post ),
+				'thumbnail' => $thumbnail,
 			);
 		}, $posts );
 

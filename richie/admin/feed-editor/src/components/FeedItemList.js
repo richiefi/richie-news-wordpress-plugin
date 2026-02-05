@@ -4,7 +4,7 @@
  * Sortable container for section and ad slot cards.
  */
 
-import { useCallback } from '@wordpress/element';
+import { useCallback, useState } from '@wordpress/element';
 import { Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import {
@@ -14,6 +14,7 @@ import {
 	PointerSensor,
 	useSensor,
 	useSensors,
+	DragOverlay,
 } from '@dnd-kit/core';
 import {
 	SortableContext,
@@ -33,12 +34,18 @@ export default function FeedItemList( {
 	onEditAdSlot,
 	onDeleteAdSlot,
 } ) {
+	const [ activeId, setActiveId ] = useState( null );
+
 	const sensors = useSensors(
 		useSensor( PointerSensor ),
 		useSensor( KeyboardSensor, {
 			coordinateGetter: sortableKeyboardCoordinates,
 		} )
 	);
+
+	const handleDragStart = useCallback( ( event ) => {
+		setActiveId( event.active.id );
+	}, [] );
 
 	const handleDragEnd = useCallback(
 		( event ) => {
@@ -56,9 +63,19 @@ export default function FeedItemList( {
 					onReorder( oldIndex, newIndex );
 				}
 			}
+
+			setActiveId( null );
 		},
 		[ items, onReorder ]
 	);
+
+	const handleDragCancel = useCallback( () => {
+		setActiveId( null );
+	}, [] );
+
+	const activeItem = activeId
+		? items.find( ( item ) => item.uniqueId === activeId )
+		: null;
 
 	if ( isLoading ) {
 		return (
@@ -86,7 +103,9 @@ export default function FeedItemList( {
 		<DndContext
 			sensors={ sensors }
 			collisionDetection={ closestCenter }
+			onDragStart={ handleDragStart }
 			onDragEnd={ handleDragEnd }
+			onDragCancel={ handleDragCancel }
 		>
 			<SortableContext
 				items={ items.map( ( item ) => item.uniqueId ) }
@@ -112,6 +131,23 @@ export default function FeedItemList( {
 					) }
 				</div>
 			</SortableContext>
+			<DragOverlay>
+				{ activeItem ? (
+					activeItem.type === 'source' ? (
+						<SectionCard
+							section={ activeItem }
+							onEdit={ () => {} }
+							onDelete={ () => {} }
+						/>
+					) : (
+						<AdSlotCard
+							adSlot={ activeItem }
+							onEdit={ () => {} }
+							onDelete={ () => {} }
+						/>
+					)
+				) : null }
+			</DragOverlay>
 		</DndContext>
 	);
 }

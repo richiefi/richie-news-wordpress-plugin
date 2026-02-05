@@ -108,8 +108,18 @@ $primary-color: #2271b1;
 	}
 
 	&.is-dragging {
-		opacity: 0.5;
-		box-shadow: $card-shadow-hover;
+		opacity: 0.3;
+	}
+}
+
+// Drag overlay (the item being dragged)
+.feed-item-card {
+	// When used in DragOverlay
+	body > & {
+		cursor: grabbing;
+		box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+		transform: rotate(3deg);
+		width: 868px; // Match the list container width
 	}
 }
 
@@ -236,27 +246,69 @@ $primary-color: #2271b1;
 	margin: 0;
 	padding: 0;
 	list-style: none;
+}
 
-	li {
-		position: relative;
-		padding-left: 12px;
-		margin-bottom: 2px;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+.preview-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 0;
+	white-space: nowrap;
+	overflow: hidden;
 
-		&::before {
-			content: "•";
-			position: absolute;
-			left: 0;
-		}
+	&:not(:last-child) {
+		border-bottom: 1px solid #f0f0f1;
 	}
 }
 
-.preview-more {
+.preview-thumbnail {
+	width: 40px;
+	height: 40px;
+	object-fit: cover;
+	border-radius: 2px;
+	flex-shrink: 0;
+	background: #f0f0f1;
+}
+
+.preview-title {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.preview-list--expanded {
+	max-height: 400px;
+	overflow-y: auto;
+	padding-right: 8px;
+	margin-right: -8px;
+
+	&::-webkit-scrollbar {
+		width: 6px;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: #c3c4c7;
+		border-radius: 3px;
+	}
+
+	&::-webkit-scrollbar-track {
+		background: #f0f0f1;
+	}
+}
+
+.preview-toggle {
 	display: block;
-	margin-top: 4px;
-	font-style: italic;
+	margin-top: 8px;
+	font-size: 12px;
+	padding: 0;
+	height: auto;
+	min-height: 0;
+	text-decoration: none;
+
+	&:hover {
+		text-decoration: underline;
+	}
 }
 
 .preview-empty {
