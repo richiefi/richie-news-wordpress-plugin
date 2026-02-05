@@ -198,10 +198,7 @@ class Richie_Public {
                         array_push( $found_ids, $p->ID );
                     }
 
-                    // Include collection header title to the first item only.
-                    if ( isset( $article_attributes['collection_header_title'] ) ) {
-                        unset( $article_attributes['collection_header_title'] );
-                    }
+                    // Keep collection header title for all items in the group.
                 }
             }
         }
@@ -642,5 +639,4 @@ class Richie_Public {
 
     }
 }
-
 
