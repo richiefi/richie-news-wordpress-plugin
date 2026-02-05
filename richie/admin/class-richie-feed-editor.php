@@ -287,6 +287,13 @@ class Richie_Feed_Editor {
 			return true;
 		}
 
+		$draft_order     = isset( $sources_option['collection_order'] ) ? $sources_option['collection_order'] : array();
+		$published_order = isset( $sources_option['published_collection_order'] ) ? $sources_option['published_collection_order'] : array();
+
+		if ( $draft_order !== $published_order ) {
+			return true;
+		}
+
 		return false;
 	}
 
@@ -411,7 +418,13 @@ class Richie_Feed_Editor {
 			}
 		}
 
-		return new WP_REST_Response( array( 'success' => true ), 200 );
+		return new WP_REST_Response(
+			array(
+				'success'                 => true,
+				'has_unpublished_changes' => $this->has_unpublished_changes( $sources_option ),
+			),
+			200
+		);
 	}
 
 	/**

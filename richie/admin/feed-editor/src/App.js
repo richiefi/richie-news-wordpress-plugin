@@ -22,7 +22,6 @@ export default function App() {
 		items,
 		isLoading,
 		error,
-		hasUnsavedChanges,
 		hasUnpublishedChanges,
 		reorderItems,
 		addSection,
@@ -31,7 +30,6 @@ export default function App() {
 		addAdSlot,
 		updateAdSlot,
 		deleteAdSlot,
-		saveOrder,
 		refreshItems,
 		publishSources,
 		revertSources,
@@ -144,6 +142,8 @@ export default function App() {
 		};
 	}, [ selectedCollection, refreshItems ] );
 
+
+
 	return (
 		<div className="richie-feed-editor">
 			<div className="feed-editor-header">
@@ -170,29 +170,21 @@ export default function App() {
 				</Notice>
 			) }
 
-			{ hasUnsavedChanges && (
-				<Notice status="warning" isDismissible={ false }>
-					{ __( 'You have unsaved order changes.', 'richie' ) }
-					<Button variant="link" onClick={ saveOrder }>
-						{ __( 'Save now', 'richie' ) }
-					</Button>
-					<Button variant="link" onClick={ refreshItems }>
-						{ __( 'Discard changes', 'richie' ) }
-					</Button>
-				</Notice>
-			) }
-
 			{ hasUnpublishedChanges && (
 				<Notice status="warning" isDismissible={ false }>
-					{ __( 'You have unpublished source changes.', 'richie' ) }
-					<Button variant="link" onClick={ publishSources }>
-						{ __( 'Publish now', 'richie' ) }
-					</Button>
-					<Button variant="link" onClick={ revertSources }>
-						{ __( 'Revert changes', 'richie' ) }
-					</Button>
+					{ __( 'You have unpublished changes.', 'richie' ) }
+					{ hasUnpublishedChanges && (
+						<Button variant="link" onClick={ publishSources }>
+							{ __( 'Publish now', 'richie' ) }
+						</Button>
+					) }
+					{ hasUnpublishedChanges && (
+						<Button variant="link" onClick={ revertSources }>
+							{ __( 'Revert changes', 'richie' ) }
+						</Button>
+					) }
 				</Notice>
-			)}
+			) }
 
 			{ selectedCollection ? (
 				<FeedItemList

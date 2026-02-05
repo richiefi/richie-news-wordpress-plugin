@@ -12,7 +12,6 @@ export default function useFeedItems( collectionId ) {
 	const [ items, setItems ] = useState( [] );
 	const [ isLoading, setIsLoading ] = useState( false );
 	const [ error, setError ] = useState( null );
-	const [ hasUnsavedChanges, setHasUnsavedChanges ] = useState( false );
 	const [ hasUnpublishedChanges, setHasUnpublishedChanges ] = useState( false );
 	const [ originalOrder, setOriginalOrder ] = useState( [] );
 
@@ -34,7 +33,6 @@ export default function useFeedItems( collectionId ) {
 				const fetchedItems = response.items || [];
 				setItems( fetchedItems );
 				setOriginalOrder( fetchedItems.map( ( item ) => item.uniqueId ) );
-				setHasUnsavedChanges( false );
 				setHasUnpublishedChanges( !! response.has_unpublished_changes );
 			} )
 			.catch( ( err ) => {
@@ -47,40 +45,54 @@ export default function useFeedItems( collectionId ) {
 			} );
 	}, [ collectionId ] );
 
-	// Reorder items (drag-drop)
-	const reorderItems = useCallback( ( fromIndex, toIndex ) => {
-		setItems( ( prevItems ) => {
-			const newItems = [ ...prevItems ];
-			const [ movedItem ] = newItems.splice( fromIndex, 1 );
-			newItems.splice( toIndex, 0, movedItem );
-			return newItems;
-		} );
-		setHasUnsavedChanges( true );
-	}, [] );
-
 	// Save current order
-	const saveOrder = useCallback( () => {
-		if ( ! collectionId ) return Promise.resolve();
+	const saveOrder = useCallback(
+		( itemsOverride = null ) => {
+			if ( ! collectionId ) return Promise.resolve();
 
-		return apiFetch( {
-			path: '/richie/v1/editor/order/' + collectionId,
-			method: 'POST',
-			data: {
-				items: items.map( ( item ) => ( {
-					type: item.type,
-					id: item.id,
-				} ) ),
-			},
-		} )
-			.then( () => {
-				setOriginalOrder( items.map( ( item ) => item.uniqueId ) );
-				setHasUnsavedChanges( false );
+			const itemsToSave = itemsOverride || items;
+
+			return apiFetch( {
+				path: '/richie/v1/editor/order/' + collectionId,
+				method: 'POST',
+				data: {
+					items: itemsToSave.map( ( item ) => ( {
+						type: item.type,
+						id: item.id,
+					} ) ),
+				},
 			} )
-			.catch( ( err ) => {
-				console.error( 'Failed to save order:', err );
-				throw err;
+				.then( ( response ) => {
+					setOriginalOrder( itemsToSave.map( ( item ) => item.uniqueId ) );
+					if ( response && typeof response.has_unpublished_changes !== 'undefined' ) {
+						setHasUnpublishedChanges( !! response.has_unpublished_changes );
+					} else {
+						setHasUnpublishedChanges( true );
+					}
+					setError( null );
+				} )
+				.catch( ( err ) => {
+					console.error( 'Failed to save order:', err );
+					setError( err.message || 'Failed to save order' );
+					throw err;
+				} );
+		},
+		[ collectionId, items ]
+	);
+
+	// Reorder items (drag-drop)
+	const reorderItems = useCallback(
+		( fromIndex, toIndex ) => {
+			setItems( ( prevItems ) => {
+				const newItems = [ ...prevItems ];
+				const [ movedItem ] = newItems.splice( fromIndex, 1 );
+				newItems.splice( toIndex, 0, movedItem );
+				saveOrder( newItems );
+				return newItems;
 			} );
-	}, [ collectionId, items ] );
+		},
+		[ saveOrder ]
+	);
 
 	// Add a new section
 	const addSection = useCallback( ( sectionData ) => {
@@ -100,10 +112,12 @@ export default function useFeedItems( collectionId ) {
 					},
 				] );
 				setHasUnpublishedChanges( true );
+				setError( null );
 				return response;
 			} )
 			.catch( ( err ) => {
 				console.error( 'Failed to add section:', err );
+				setError( err.message || 'Failed to add section' );
 				throw err;
 			} );
 	}, [] );
@@ -125,10 +139,12 @@ export default function useFeedItems( collectionId ) {
 					)
 				);
 				setHasUnpublishedChanges( true );
+				setError( null );
 				return response;
 			} )
 			.catch( ( err ) => {
 				console.error( 'Failed to update section:', err );
+				setError( err.message || 'Failed to update section' );
 				throw err;
 			} );
 	}, [] );
@@ -148,9 +164,11 @@ export default function useFeedItems( collectionId ) {
 					)
 				);
 				setHasUnpublishedChanges( true );
+				setError( null );
 			} )
 			.catch( ( err ) => {
 				console.error( 'Failed to delete section:', err );
+				setError( err.message || 'Failed to delete section' );
 				throw err;
 			} );
 	}, [] );
@@ -172,10 +190,12 @@ export default function useFeedItems( collectionId ) {
 						uniqueId: 'ad-' + response.id,
 					},
 				] );
+				setError( null );
 				return response;
 			} )
 			.catch( ( err ) => {
 				console.error( 'Failed to add ad slot:', err );
+				setError( err.message || 'Failed to add ad slot' );
 				throw err;
 			} );
 	}, [] );
@@ -196,10 +216,12 @@ export default function useFeedItems( collectionId ) {
 							: item
 					)
 				);
+				setError( null );
 				return response;
 			} )
 			.catch( ( err ) => {
 				console.error( 'Failed to update ad slot:', err );
+				setError( err.message || 'Failed to update ad slot' );
 				throw err;
 			} );
 	}, [] );
@@ -220,9 +242,11 @@ export default function useFeedItems( collectionId ) {
 								! ( item.type === 'ad' && item.id === adSlotId )
 						)
 					);
+					setError( null );
 				} )
 				.catch( ( err ) => {
 					console.error( 'Failed to delete ad slot:', err );
+					setError( err.message || 'Failed to delete ad slot' );
 					throw err;
 				} );
 		},
@@ -241,11 +265,12 @@ export default function useFeedItems( collectionId ) {
 				const fetchedItems = response.items || [];
 				setItems( fetchedItems );
 				setOriginalOrder( fetchedItems.map( ( item ) => item.uniqueId ) );
-				setHasUnsavedChanges( false );
 				setHasUnpublishedChanges( !! response.has_unpublished_changes );
+				setError( null );
 			} )
 			.catch( ( err ) => {
 				console.error( 'Failed to refresh items:', err );
+				setError( err.message || 'Failed to refresh items' );
 			} )
 			.finally( () => {
 				setIsLoading( false );
@@ -271,9 +296,23 @@ export default function useFeedItems( collectionId ) {
 				},
 				body: data.toString(),
 			} )
-			.then( () => {
+			.then( ( response ) => {
+				if ( ! response.ok ) {
+					throw new Error( 'Failed to publish source changes' );
+				}
+				return response.json().catch( () => ( {} ) );
+			} )
+			.then( ( response ) => {
+				if ( response && response.success === false ) {
+					throw new Error( response.data || 'Failed to publish source changes' );
+				}
 				setHasUnpublishedChanges( false );
+				setError( null );
 				return refreshItems();
+			} )
+			.catch( ( err ) => {
+				setError( err.message || 'Failed to publish source changes' );
+				throw err;
 			} );
 	}, [ refreshItems ] );
 
@@ -296,17 +335,32 @@ export default function useFeedItems( collectionId ) {
 				},
 				body: data.toString(),
 			} )
-			.then( () => {
+			.then( ( response ) => {
+				if ( ! response.ok ) {
+					throw new Error( 'Failed to revert source changes' );
+				}
+				return response.json().catch( () => ( {} ) );
+			} )
+			.then( ( response ) => {
+				if ( response && response.success === false ) {
+					throw new Error( response.data || 'Failed to revert source changes' );
+				}
 				setHasUnpublishedChanges( false );
+				setError( null );
 				return refreshItems();
+			} )
+			.catch( ( err ) => {
+				setError( err.message || 'Failed to revert source changes' );
+				throw err;
 			} );
 	}, [ refreshItems ] );
+
+	// Save draft (persist order changes and refresh)
 
 	return {
 		items,
 		isLoading,
 		error,
-		hasUnsavedChanges,
 		hasUnpublishedChanges,
 		reorderItems,
 		addSection,

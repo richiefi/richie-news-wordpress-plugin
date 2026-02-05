@@ -542,6 +542,16 @@ class Richie_Admin {
      * @return void
      */
     public function add_admin_notices() {
+        $is_editor_tab = false;
+        if ( isset( $_GET['page'] ) && 'richie' === $_GET['page'] ) {
+            $active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : 'editor';
+            $is_editor_tab = ( 'editor' === $active_tab );
+        }
+
+        if ( $is_editor_tab ) {
+            return;
+        }
+
         if ( $this->has_unpublished_changes() ) {
             ?>
             <div class="richie-notice notice notice-warning">
@@ -896,10 +906,11 @@ class Richie_Admin {
             wp_send_json_error( 'Unauthorized', 403 );
         }
 
-        $option                 = get_option( $this->sources_option_name );
-        $sources                = ! empty( $option['sources'] ) ? $option['sources'] : array();
-        $option['published']    = $sources;
-        $option['published_at'] = time();
+        $option                          = get_option( $this->sources_option_name );
+        $sources                         = ! empty( $option['sources'] ) ? $option['sources'] : array();
+        $option['published']             = $sources;
+        $option['published_at']          = time();
+        $option['published_collection_order'] = isset( $option['collection_order'] ) ? $option['collection_order'] : array();
 
         remove_filter( 'sanitize_option_' . $this->sources_option_name, array( $this, 'validate_source' ) );
         $updated = update_option( $this->sources_option_name, $option );
@@ -925,6 +936,12 @@ class Richie_Admin {
         $published_sources = ! empty( $option['published'] ) ? $option['published'] : array();
         $option['sources'] = $published_sources;
 
+        if ( isset( $option['published_collection_order'] ) ) {
+            $option['collection_order'] = $option['published_collection_order'];
+        } else {
+            unset( $option['collection_order'] );
+        }
+
         remove_filter( 'sanitize_option_' . $this->sources_option_name, array( $this, 'validate_source' ) );
         $updated = update_option( $this->sources_option_name, $option );
         add_filter( 'sanitize_option_' . $this->sources_option_name, array( $this, 'validate_source' ) );
@@ -941,6 +958,13 @@ class Richie_Admin {
 
         if ( $sources !== false && isset( $sources['sources'] ) ) {
             if ( empty( $sources['published'] ) || $sources['sources'] !== $sources['published'] ) {
+                return true;
+            }
+
+            $draft_order     = isset( $sources['collection_order'] ) ? $sources['collection_order'] : array();
+            $published_order = isset( $sources['published_collection_order'] ) ? $sources['published_collection_order'] : array();
+
+            if ( $draft_order !== $published_order ) {
                 return true;
             }
         }

@@ -88,9 +88,21 @@ class Richie_Public {
         $errors      = array();
 
         // Check for custom collection order
-        $collection_order = isset( $sourcelist['collection_order'][ $article_set->term_id ] )
-            ? $sourcelist['collection_order'][ $article_set->term_id ]
-            : null;
+        if ( $unpublished ) {
+            $collection_order = isset( $sourcelist['collection_order'][ $article_set->term_id ] )
+                ? $sourcelist['collection_order'][ $article_set->term_id ]
+                : null;
+        } else {
+            $published_orders = isset( $sourcelist['published_collection_order'] )
+                ? $sourcelist['published_collection_order']
+                : array();
+
+            $collection_order = isset( $published_orders[ $article_set->term_id ] )
+                ? $published_orders[ $article_set->term_id ]
+                : ( isset( $sourcelist['collection_order'][ $article_set->term_id ] )
+                    ? $sourcelist['collection_order'][ $article_set->term_id ]
+                    : null );
+        }
 
         // Index sources by ID for quick lookup when using custom order
         $sources_by_id = array();
