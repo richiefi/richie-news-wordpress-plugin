@@ -847,13 +847,13 @@ class Richie_Feed_Editor {
 	 * @return   WP_REST_Response
 	 */
 	public function get_post_types( $request ) {
-		$post_types = get_post_types( array( 'public' => true ), 'objects' );
+		$post_types = Richie_Post_Type::available_post_types( 'object' );
 
 		$types = array();
 		foreach ( $post_types as $post_type ) {
 			$types[] = array(
-				'name'  => $post_type->name,
-				'label' => $post_type->label,
+				'name'  => $post_type['value'],
+				'label' => $post_type['title'],
 			);
 		}
 
