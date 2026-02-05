@@ -11,7 +11,7 @@ module.exports = {
   github: {
     release: true,
     releaseName: "Richie News ${version}",
-    assets: ["releases/richie-${version}.zip"],
+    assets: ["releases/richie-news-${version}.zip"],
   },
   plugins: {
     "@release-it/bumper": {
@@ -48,6 +48,6 @@ module.exports = {
   },
   hooks: {
     "before:release":
-      "node scripts/sync-wp-version.mjs richie ${version} && npm run plugin-zip && mkdir -p releases && mv richie.zip releases/richie-${version}.zip",
+      "node scripts/sync-wp-version.mjs richie ${version} && npm run plugin-zip && mkdir -p releases && mv richie.zip releases/richie-news-${version}.zip",
   },
 };
