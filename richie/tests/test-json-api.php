@@ -146,6 +146,58 @@ class Test_JSON_API extends WP_UnitTestCase {
         $this->assertEquals( $id_list, array_slice( $posts, 0, 5 ) );
     }
 
+    public function test_group_items_include_collection_header_title() {
+        $term_id = self::factory()->term->create(
+            array(
+                'name'     => 'Test set',
+                'taxonomy' => 'richie_article_set',
+                'slug'     => 'test-set',
+            )
+        );
+
+        $sources = array();
+
+        $sources[1] = array(
+            'id'                => 1,
+            'name'              => 'group source',
+            'number_of_posts'   => 3,
+            'order_by'          => 'date',
+            'order_direction'   => 'ASC',
+            'article_set'       => $term_id,
+            'list_layout_style' => 'small_group_item',
+            'list_group_title'  => 'group title',
+            'allow_duplicates'  => 0,
+        );
+
+        $sources[2] = array(
+            'id'                => 2,
+            'name'              => 'non-group source',
+            'number_of_posts'   => 2,
+            'order_by'          => 'date',
+            'order_direction'   => 'ASC',
+            'article_set'       => $term_id,
+            'list_layout_style' => 'small',
+        );
+
+        add_option( 'richienews_sources', array( 'published' => $sources ) );
+
+        self::factory()->post->create_many( 10 );
+
+        $request = new WP_REST_Request( 'GET', '/richie/v1/news/test-set' );
+        $request->set_query_params( array( 'token' => 'testtoken' ) );
+        $response = $this->server->dispatch( $request );
+        $articles = $response->data['articles'];
+
+        $this->assertEquals( 200, $response->get_status() );
+        $this->assertEquals( 5, count( $articles ) );
+
+        $group_articles = array_slice( $articles, 0, 3 );
+        foreach ( $group_articles as $article ) {
+            $this->assertArrayHasKey( 'collection_header_title', $article );
+            $this->assertEquals( 'group title', $article['collection_header_title'] );
+        }
+    }
+
     public function test_get_v1_news_feed() {
         $term_id = self::factory()->term->create(
             array(
