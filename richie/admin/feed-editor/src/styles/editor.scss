@@ -91,6 +91,14 @@ $primary-color: #2271b1;
 	}
 }
 
+.feed-item-list-note {
+	color: $text-muted;
+	font-size: 12px;
+	line-height: 1.4;
+	padding: 0 0 6px;
+	margin-bottom: 8px;
+}
+
 // Card base styles
 .feed-item-card {
 	display: flex;
@@ -276,6 +284,7 @@ $primary-color: #2271b1;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+
 
 .preview-list--expanded {
 	max-height: 400px;

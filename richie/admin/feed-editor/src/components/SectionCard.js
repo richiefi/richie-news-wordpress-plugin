@@ -110,6 +110,14 @@ export default function SectionCard( { section, onEdit, onDelete } ) {
 		}
 	};
 
+	let headerTitle = section.list_group_title || '';
+	if ( ! headerTitle && preview && preview.articles && preview.articles.length > 0 ) {
+		const headerArticle = preview.articles.find(
+			( article ) => article.collection_header_title
+		);
+		headerTitle = headerArticle ? headerArticle.collection_header_title : '';
+	}
+
 	return (
 		<div
 			ref={ setNodeRef }
@@ -155,6 +163,9 @@ export default function SectionCard( { section, onEdit, onDelete } ) {
 						<Spinner />
 					) : preview && preview.articles && preview.articles.length > 0 ? (
 						<>
+							{ headerTitle && (
+								<h4 className="preview-header-title">{ headerTitle }</h4>
+							) }
 							<ul className={ `preview-list${ isExpanded ? ' preview-list--expanded' : '' }` }>
 								{ ( isExpanded ? preview.articles : preview.articles.slice( 0, 3 ) )
 									.map( ( article, index ) => (

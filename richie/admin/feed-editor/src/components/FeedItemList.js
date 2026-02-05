@@ -81,7 +81,7 @@ export default function FeedItemList( {
 		return (
 			<div className="feed-item-list feed-item-list--loading">
 				<Spinner />
-				<span>{ __( 'Loading feed items...', 'richie' ) }</span>
+				<span>{ __( 'Loading feed items…', 'richie' ) }</span>
 			</div>
 		);
 	}
@@ -111,6 +111,12 @@ export default function FeedItemList( {
 				items={ items.map( ( item ) => item.uniqueId ) }
 				strategy={ verticalListSortingStrategy }
 			>
+				<div className="feed-item-list-note">
+					{ __(
+						'Section previews are a sample of current content. They also show duplicated articles if the same source is used in multiple sections. To see how the feed looks in the app, use the "Preview Collection" button above.',
+						'richie'
+					) }
+				</div>
 				<div className="feed-item-list">
 					{ items.map( ( item ) =>
 						item.type === 'source' ? (
