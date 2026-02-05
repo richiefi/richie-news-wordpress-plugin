@@ -77,6 +77,13 @@ class Richie_Admin {
     private $available_layout_names;
 
     /**
+     * Available news list layout options
+     *
+     * @var array
+     */
+    private $available_layout_options;
+
+    /**
      * If set, dump source database
      *
      * @var boolean
@@ -106,9 +113,23 @@ class Richie_Admin {
         $this->sources_option_name    = $plugin_name . 'news_sources';
         $this->assets_option_name     = $plugin_name . '_assets';
         $this->adslots_option_name    = $plugin_name . '_adslots';
-        $this->available_layout_names = array(
-            'small',
-            'featured'
+        $this->available_layout_options = array(
+            array(
+                'value' => 'featured',
+                'title' => 'Featured',
+                'label' => 'Featured',
+            ),
+            array(
+                'value' => 'small',
+                'title' => 'Small',
+                'label' => 'Small',
+            ),
+        );
+        $this->available_layout_names = array_map(
+            function( $option ) {
+                return $option['value'];
+            },
+            $this->available_layout_options
         );
         add_action( 'added_option', array( __CLASS__, 'maybe_clear_alloptions_cache' ) );
         add_action( 'updated_option', array( __CLASS__, 'maybe_clear_alloptions_cache' ) );
@@ -201,6 +222,26 @@ class Richie_Admin {
     }
 
     /**
+     * Get translated layout options for UI usage.
+     *
+     * @return array
+     */
+    private function get_layout_options() {
+        return array(
+            array(
+                'value' => 'featured',
+                'title' => __( 'Featured', 'richie' ),
+                'label' => __( 'Featured', 'richie' ),
+            ),
+            array(
+                'value' => 'small',
+                'title' => __( 'Small', 'richie' ),
+                'label' => __( 'Small', 'richie' ),
+            ),
+        );
+    }
+
+    /**
      * Enqueue React feed editor assets.
      *
      * @since    2.0.0
@@ -238,6 +279,14 @@ class Richie_Admin {
             array(
                 'root'  => esc_url_raw( rest_url() ),
                 'nonce' => wp_create_nonce( 'wp_rest' ),
+            )
+        );
+
+        wp_localize_script(
+            'richie-feed-editor',
+            'richieFeedEditorSettings',
+            array(
+                'layoutOptions' => $this->get_layout_options(),
             )
         );
 
@@ -696,7 +745,7 @@ class Richie_Admin {
         // Create search settings section.
         $section  = new Richie_Settings_Section( $search_section_name, __( 'Search API settings', 'richie' ), $this->settings_option_name );
         $selected = isset( $options['search_list_layout_style'] ) ? $options['search_list_layout_style'] : 'none';
-        $section->add_field( 'search_list_layout_style', __( 'Search list layout', 'richie' ), 'select_field', array( 'options' => $this->available_layout_names, 'selected' => $selected, 'required' => true ) );
+        $section->add_field( 'search_list_layout_style', __( 'Search list layout', 'richie' ), 'select_field', array( 'options' => $this->get_layout_options(), 'selected' => $selected, 'required' => true ) );
 
         // Access Control section.
         $access_section = new Richie_Settings_Section( 'richie_access_control', __( 'Access Control', 'richie' ), $this->settings_option_name );
@@ -735,7 +784,7 @@ class Richie_Admin {
         $source_filters->add_field( 'max_age', __( 'Post max age', 'richie' ), 'max_age' );
 
         $source_options = new Richie_Settings_Section( $sources_section_name . 'options', __( 'Options', 'richie' ), $this->sources_option_name );
-        $source_options->add_field( 'list_layout_style', __( 'List layout', 'richie' ), 'select_field', array( 'options' => $this->available_layout_names, 'required' => true ) );
+        $source_options->add_field( 'list_layout_style', __( 'List layout', 'richie' ), 'select_field', array( 'options' => $this->get_layout_options(), 'required' => true ) );
         $source_options->add_field( 'list_group_title', __( 'List group title', 'richie' ), 'input_field', array( 'description' => __( 'Header to display before the story, useful on the first small_group_item of a group', 'richie' ) ) );
         $source_options->add_field( 'background_color', __( 'Background color', 'richie' ), 'color_picker', array( 'description' => __( 'Background color to be used with layout types. Not all layout types support this.', 'richie' ) ) );
         $source_options->add_field( 'allow_duplicates', __( 'Allow duplicates', 'richie' ), 'checkbox', array( 'description' => __( 'Allow duplicate articles in this source', 'richie' ) ) );

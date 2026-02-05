@@ -19,18 +19,20 @@ import {
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 
-const LAYOUT_OPTIONS = [
+const DEFAULT_LAYOUT_OPTIONS = [
 	{ label: __( 'Featured', 'richie' ), value: 'featured' },
-	{ label: __( 'Big', 'richie' ), value: 'big' },
 	{ label: __( 'Small', 'richie' ), value: 'small' },
-	{ label: __( 'Small Group Item', 'richie' ), value: 'small_group_item' },
-	{ label: __( 'Full Width Text', 'richie' ), value: 'full_width_text' },
-	{
-		label: __( 'Text + Thumbnail', 'richie' ),
-		value: 'text_left_square_thumb_right',
-	},
-	{ label: __( 'None', 'richie' ), value: 'none' },
 ];
+
+const LAYOUT_OPTIONS =
+	typeof window !== 'undefined' &&
+	window.richieFeedEditorSettings &&
+	Array.isArray( window.richieFeedEditorSettings.layoutOptions )
+		? window.richieFeedEditorSettings.layoutOptions.map( ( option ) => ( {
+			label: option.label || option.title || option.value,
+			value: option.value,
+		} ) )
+		: DEFAULT_LAYOUT_OPTIONS;
 
 const ORDER_BY_OPTIONS = [
 	{ label: __( 'Date', 'richie' ), value: 'date' },

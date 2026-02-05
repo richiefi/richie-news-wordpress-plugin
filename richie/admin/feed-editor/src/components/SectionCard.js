@@ -13,24 +13,29 @@ import { dragHandle, edit, trash } from '@wordpress/icons';
 import { Icon } from '@wordpress/icons';
 import apiFetch from '@wordpress/api-fetch';
 
-const LAYOUT_LABELS = {
-	featured: __( 'Featured', 'richie' ),
-	big: __( 'Big', 'richie' ),
-	small: __( 'Small', 'richie' ),
-	small_group_item: __( 'Small Group', 'richie' ),
-	full_width_text: __( 'Full Width', 'richie' ),
-	text_left_square_thumb_right: __( 'Text + Thumb', 'richie' ),
-	none: __( 'Default', 'richie' ),
-};
+const DEFAULT_LAYOUT_OPTIONS = [
+	{ label: __( 'Featured', 'richie' ), value: 'featured' },
+	{ label: __( 'Small', 'richie' ), value: 'small' },
+];
+
+const LAYOUT_OPTIONS =
+	typeof window !== 'undefined' &&
+	window.richieFeedEditorSettings &&
+	Array.isArray( window.richieFeedEditorSettings.layoutOptions )
+		? window.richieFeedEditorSettings.layoutOptions.map( ( option ) => ( {
+			label: option.label || option.title || option.value,
+			value: option.value,
+		} ) )
+		: DEFAULT_LAYOUT_OPTIONS;
+
+const LAYOUT_LABELS = LAYOUT_OPTIONS.reduce( ( labels, option ) => {
+	labels[ option.value ] = option.label;
+	return labels;
+}, {} );
 
 const LAYOUT_ICONS = {
 	featured: 'format-image',
-	big: 'format-aside',
 	small: 'list-view',
-	small_group_item: 'grid-view',
-	full_width_text: 'text',
-	text_left_square_thumb_right: 'columns',
-	none: 'admin-post',
 };
 
 export default function SectionCard( { section, onEdit, onDelete } ) {
