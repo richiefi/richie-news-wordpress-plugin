@@ -3,12 +3,17 @@
 	"version": "1.0.0",
 	"description": "Richie Platform WordPress Plugins",
 	"private": true,
+	"workspaces": [
+		"richie/admin/feed-editor"
+	],
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"release": "release-it",
 		"release:minor": "release-it minor",
 		"release:major": "release-it major",
-		"plugin-zip": "zip -r richie.zip richie -x 'richie/.*' -x 'richie/tests/*' -x 'richie/bin/*' -x 'richie/.circleci/*' -x 'richie/phpunit.xml.dist*' -x 'richie/runtests.sh' -x '*.po~' -x '*.zip'"
+		"plugin-zip": "zip -r richie.zip richie -x 'richie/.*' -x 'richie/tests/*' -x 'richie/bin/*' -x 'richie/.circleci/*' -x 'richie/phpunit.xml.dist*' -x 'richie/runtests.sh' -x '*.po~' -x '*.zip'",
+		"build:feed-editor": "npm run build --workspace=richie/admin/feed-editor",
+		"start:feed-editor": "npm run start --workspace=richie/admin/feed-editor"
 	},
 	"author": "Richie Oy",
 	"license": "GPL-2.0-or-later",
@@ -19,15 +24,6 @@
 		"release-it": "19.2.4"
 	},
 	"browserslist": [
-		"> 1%",
-		"ie >= 11",
-		"last 1 Android versions",
-		"last 1 ChromeAndroid versions",
-		"last 2 Chrome versions",
-		"last 2 Firefox versions",
-		"last 2 Safari versions",
-		"last 2 iOS versions",
-		"last 2 Edge versions",
-		"last 2 Opera versions"
+    "defaults"
 	]
 }
