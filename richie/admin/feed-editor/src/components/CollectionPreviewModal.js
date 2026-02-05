@@ -50,9 +50,13 @@ export default function CollectionPreviewModal( { collectionId, onClose } ) {
 
 		const articleStyle = bgColor ? { backgroundColor: bgColor } : {};
 
+		const articleClassName = `preview-article preview-article--${ layout }${
+			bgColor ? ' preview-article--has-bg' : ''
+		}`;
+
 		if ( layout === 'featured' ) {
 			return (
-				<div key={ index } className="preview-article preview-article--featured" style={ articleStyle }>
+				<div key={ index } className={ articleClassName } style={ articleStyle }>
 					{ headerTitle && <h3 className="preview-header-title">{ headerTitle }</h3> }
 					<img src={ image } alt="" className="preview-article-image" />
 					{ kicker && <div className="preview-article-kicker">{ kicker }</div> }
@@ -64,7 +68,7 @@ export default function CollectionPreviewModal( { collectionId, onClose } ) {
 
 		// Default: small layout (horizontal with image on right)
 		return (
-			<div key={ index } className="preview-article preview-article--small" style={ articleStyle }>
+			<div key={ index } className={ articleClassName } style={ articleStyle }>
 				{ headerTitle && <h3 className="preview-header-title">{ headerTitle }</h3> }
 				<div className="preview-article-content">
 					<div className="preview-article-text">

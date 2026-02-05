@@ -516,6 +516,13 @@ $primary-color: #2271b1;
 	border-bottom: 1px solid #f0f0f1;
 	padding: 16px 0;
 
+	&--has-bg {
+		margin-left: -16px;
+		margin-right: -16px;
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+
 	&:first-child {
 		padding-top: 0;
 	}
@@ -530,7 +537,11 @@ $primary-color: #2271b1;
 		flex-direction: column !important;
 		gap: 10px;
 		padding: 20px 0;
+    border-bottom: none;
 
+		&.preview-article--has-bg {
+			padding: 20px 16px;
+		}
 		.preview-article-image {
 			width: 100% !important;
 			height: auto !important;
@@ -576,6 +587,10 @@ $primary-color: #2271b1;
 	// Small layout: horizontal with small image on right
 	&--small {
 		padding: 12px 0;
+
+		&.preview-article--has-bg {
+			padding: 12px 16px;
+		}
 
 		.preview-article-content {
 			display: flex;
