@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from '@wordpress/element';
 import { Button, Spinner } from '@wordpress/components';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { dragHandle, edit, trash } from '@wordpress/icons';
@@ -104,6 +104,7 @@ export default function SectionCard( { section, onEdit, onDelete } ) {
 	const layoutStyle = section.list_layout_style || 'none';
 	const layoutLabel = LAYOUT_LABELS[ layoutStyle ] || layoutStyle;
 	const layoutIcon = LAYOUT_ICONS[ layoutStyle ] || 'admin-post';
+	const configuredCount = parseInt( section.number_of_posts, 10 ) || 0;
 
 	const handleDelete = () => {
 		if (
@@ -122,6 +123,17 @@ export default function SectionCard( { section, onEdit, onDelete } ) {
 		);
 		headerTitle = headerArticle ? headerArticle.collection_header_title : '';
 	}
+
+	const previewCount = preview && preview.articles ? preview.articles.length : 0;
+	const showPreviewCountNote =
+		configuredCount > 0 && previewCount > 0 && previewCount < configuredCount;
+	const configuredCountLabel = showPreviewCountNote
+		? sprintf(
+			__( '%1$d articles (%2$d available)', 'richie' ),
+			configuredCount,
+			previewCount
+		)
+		: sprintf( __( '%d articles', 'richie' ), configuredCount );
 
 	return (
 		<div
@@ -149,8 +161,7 @@ export default function SectionCard( { section, onEdit, onDelete } ) {
 							<div className="card-title-group">
 								<strong className="card-title">{ section.name }</strong>
 								<span className="card-meta">
-									{ section.number_of_posts }{ ' ' }
-									{ __( 'articles', 'richie' ) }
+									{ configuredCountLabel }
 								</span>
 							</div>
 							<div className="card-layout-badge">
