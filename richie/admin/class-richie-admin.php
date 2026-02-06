@@ -244,6 +244,17 @@ class Richie_Admin {
     }
 
     /**
+     * Get available ad providers.
+     *
+     * This is the single source of truth for ad providers in the system.
+     *
+     * @return array
+     */
+    private function get_ad_providers() {
+        return array( 'smart', 'google' );
+    }
+
+    /**
      * Enqueue React feed editor assets.
      *
      * @since    2.0.0
@@ -289,6 +300,7 @@ class Richie_Admin {
             'richieFeedEditorSettings',
             array(
                 'layoutOptions' => $this->get_layout_options(),
+                'adProviders'   => $this->get_ad_providers(),
             )
         );
 
@@ -799,8 +811,7 @@ class Richie_Admin {
         $section->add_field( 'richie_article_set', __( 'Article set', 'richie' ), 'article_set' );
         $section->add_field( 'adslot_position_index', __( 'Slot position', 'richie' ), 'input_field', array( 'description' => $slot_index_description, 'class' => '' ) );
 
-        $ad_providers = array( 'smart', 'google' );
-        $section->add_field( 'adslot_provider', __( 'Ad provider', 'richie' ), 'select_field', array( 'options' => $ad_providers ) );
+        $section->add_field( 'adslot_provider', __( 'Ad provider', 'richie' ), 'select_field', array( 'options' => $this->get_ad_providers() ) );
         $section->add_field( 'adslot_ad_data', __( 'Ad data', 'richie' ), 'adslot_ad_data_editor' );
 
         // Create assets section.

@@ -10,11 +10,14 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Icon, dragHandle, edit, trash } from '@wordpress/icons';
 
-const PROVIDER_LABELS = {
-	smart: 'Smart',
-	google: 'Google',
-	readpeak: 'Readpeak',
-};
+// Get ad providers from PHP (single source of truth)
+const AD_PROVIDERS = window.richieFeedEditorSettings?.adProviders || [];
+
+// Generate provider labels dynamically
+const PROVIDER_LABELS = AD_PROVIDERS.reduce( ( acc, provider ) => {
+	acc[ provider ] = provider.charAt( 0 ).toUpperCase() + provider.slice( 1 );
+	return acc;
+}, {} );
 
 export default function AdSlotCard( { adSlot, onEdit, onDelete } ) {
 	const {

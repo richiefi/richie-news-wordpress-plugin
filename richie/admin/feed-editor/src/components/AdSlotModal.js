@@ -13,11 +13,14 @@ import {
 } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
-const PROVIDER_OPTIONS = [
-	{ label: __( 'Smart', 'richie' ), value: 'smart' },
-	{ label: __( 'Google', 'richie' ), value: 'google' },
-	{ label: __( 'Readpeak', 'richie' ), value: 'readpeak' },
-];
+// Get ad providers from PHP (single source of truth)
+const AD_PROVIDERS = window.richieFeedEditorSettings?.adProviders || [];
+
+// Convert provider values to select options with proper labels
+const PROVIDER_OPTIONS = AD_PROVIDERS.map( ( provider ) => ( {
+	label: provider.charAt( 0 ).toUpperCase() + provider.slice( 1 ),
+	value: provider,
+} ) );
 
 const defaultFormData = {
 	ad_provider: 'smart',
