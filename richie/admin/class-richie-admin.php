@@ -285,13 +285,17 @@ class Richie_Admin {
             $asset['version']
         );
 
+        // Get plugin options for access token
+        $options = get_option( 'richie' );
+
         // Set up wpApiSettings for WordPress REST API
         wp_localize_script(
             'richie-feed-editor',
             'wpApiSettings',
             array(
-                'root'  => esc_url_raw( rest_url() ),
-                'nonce' => wp_create_nonce( 'wp_rest' ),
+                'root'        => esc_url_raw( rest_url() ),
+                'nonce'       => wp_create_nonce( 'wp_rest' ),
+                'accessToken' => isset( $options['access_token'] ) ? $options['access_token'] : '',
             )
         );
 
@@ -779,6 +783,23 @@ class Richie_Admin {
             array(
                 'value'       => $options['default_entitlement'],
                 'description' => __( 'Entitlement value used for all premium articles. If empty, category name is used (converted to UPPER_SNAKE_CASE).', 'richie' ),
+            )
+        );
+
+        // API Endpoints section.
+        $api_section = new Richie_Settings_Section(
+            'richie_api_endpoints',
+            __( 'API Endpoints', 'richie' ),
+            $this->settings_option_name
+        );
+
+        $api_section->add_field(
+            'api_endpoints_description',
+            '',
+            'api_endpoints_list',
+            array(
+                'access_token' => $options['access_token'],
+                'rest_url'     => rest_url(),
             )
         );
 

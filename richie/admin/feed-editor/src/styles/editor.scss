@@ -20,15 +20,11 @@ $primary-color: #2271b1;
 
 // Header with collection selector and buttons
 .feed-editor-header {
-	display: flex;
-	align-items: flex-end;
-	gap: 16px;
 	margin-bottom: 24px;
 	padding-bottom: 16px;
 	border-bottom: 1px solid #dcdcde;
 
 	.collection-selector {
-		flex: 0 0 300px;
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
@@ -43,10 +39,28 @@ $primary-color: #2271b1;
 			font-weight: 600;
 		}
 
+		&__row {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-end;
+			gap: 12px;
+
+			.components-base-control {
+				flex: 0 0 300px;
+			}
+		}
+
 		&__actions {
 			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			flex-wrap: wrap;
+			gap: 12px;
+		}
+
+		&__actions-group {
+			display: flex;
 			gap: 6px;
-			flex-wrap: nowrap;
 
 			.components-button {
 				white-space: nowrap;
@@ -54,12 +68,6 @@ $primary-color: #2271b1;
 				font-size: 13px;
 			}
 		}
-	}
-
-	.feed-editor-actions {
-		display: flex;
-		gap: 8px;
-		margin-left: auto;
 	}
 }
 

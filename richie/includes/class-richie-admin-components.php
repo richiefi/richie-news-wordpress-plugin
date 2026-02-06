@@ -369,4 +369,126 @@ class Richie_Admin_Components {
             printf( '<br><span class="description">%s</span>', esc_html( $args['description'] ) );
         }
     }
+
+    /**
+     * Render API endpoints reference with copy buttons.
+     *
+     * @param array $args Component arguments with access_token and rest_url.
+     *
+     * @return void
+     */
+    public function api_endpoints_list( array $args ) {
+        $token    = isset( $args['access_token'] ) ? $args['access_token'] : '';
+        $rest_url = isset( $args['rest_url'] ) ? $args['rest_url'] : rest_url();
+
+        // Remove trailing slash.
+        $rest_url = rtrim( $rest_url, '/' );
+
+        ?>
+        <div class="richie-api-endpoints">
+            <p class="description">
+                <?php esc_html_e( 'Copy these endpoint URLs to use in your API client or documentation. Replace placeholders with actual values.', 'richie' ); ?>
+            </p>
+
+            <!-- News Feed Endpoint -->
+            <div class="richie-api-endpoint">
+                <h4><?php esc_html_e( 'News Feed', 'richie' ); ?></h4>
+                <p class="description">
+                    <?php esc_html_e( 'Get articles for a specific collection. Replace <collection-slug> with your collection\'s slug.', 'richie' ); ?>
+                </p>
+                <?php
+                $this->api_endpoint_field(
+                    array(
+                        'id'    => 'api-endpoint-news',
+                        'value' => $rest_url . '/richie/v1/news/<collection-slug>?token=' . $token,
+                    )
+                );
+                ?>
+                <p class="description">
+                    <strong><?php esc_html_e( 'Optional parameters:', 'richie' ); ?></strong>
+                    <code>&unpublished=1</code> - <?php esc_html_e( 'Include draft/unpublished content', 'richie' ); ?>
+                </p>
+            </div>
+
+            <!-- Article Endpoint -->
+            <div class="richie-api-endpoint">
+                <h4><?php esc_html_e( 'Single Article', 'richie' ); ?></h4>
+                <p class="description">
+                    <?php esc_html_e( 'Get a single article by ID. Replace <article-id> with a WordPress post ID.', 'richie' ); ?>
+                </p>
+                <?php
+                $this->api_endpoint_field(
+                    array(
+                        'id'    => 'api-endpoint-article',
+                        'value' => $rest_url . '/richie/v1/article/<article-id>?token=' . $token,
+                    )
+                );
+                ?>
+            </div>
+
+            <!-- Search Endpoint -->
+            <div class="richie-api-endpoint">
+                <h4><?php esc_html_e( 'Search', 'richie' ); ?></h4>
+                <p class="description">
+                    <?php esc_html_e( 'Search articles. Replace <search-query> with your search term.', 'richie' ); ?>
+                </p>
+                <?php
+                $this->api_endpoint_field(
+                    array(
+                        'id'    => 'api-endpoint-search',
+                        'value' => $rest_url . '/richie/v1/search?q=<search-query>&token=' . $token,
+                    )
+                );
+                ?>
+            </div>
+
+            <!-- Assets Endpoint -->
+            <div class="richie-api-endpoint">
+                <h4><?php esc_html_e( 'App Assets', 'richie' ); ?></h4>
+                <p class="description">
+                    <?php esc_html_e( 'Get custom app assets (icons, colors, etc.). No authentication required.', 'richie' ); ?>
+                </p>
+                <?php
+                $this->api_endpoint_field(
+                    array(
+                        'id'    => 'api-endpoint-assets',
+                        'value' => $rest_url . '/richie/v1/assets',
+                    )
+                );
+                ?>
+            </div>
+        </div>
+        <?php
+    }
+
+    /**
+     * Render a copyable API endpoint input field.
+     *
+     * @param array $args Field arguments with id and value.
+     *
+     * @return void
+     */
+    public function api_endpoint_field( array $args ) {
+        $id    = isset( $args['id'] ) ? $args['id'] : '';
+        $value = isset( $args['value'] ) ? $args['value'] : '';
+        ?>
+        <div class="richie-api-endpoint-field">
+            <input
+                type="text"
+                id="<?php echo esc_attr( $id ); ?>"
+                value="<?php echo esc_attr( $value ); ?>"
+                class="regular-text richie-api-url"
+                readonly
+            />
+            <button
+                type="button"
+                class="button button-secondary richie-copy-btn"
+                data-copy-target="<?php echo esc_attr( $id ); ?>"
+            >
+                <span class="dashicons dashicons-clipboard"></span>
+                <?php esc_html_e( 'Copy', 'richie' ); ?>
+            </button>
+        </div>
+        <?php
+    }
 }

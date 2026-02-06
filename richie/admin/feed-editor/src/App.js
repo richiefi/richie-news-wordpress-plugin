@@ -162,21 +162,10 @@ export default function App() {
 					value={ selectedCollection }
 					onChange={ handleCollectionChange }
 					onUnpublishedChangesUpdate={ setHasUnpublishedChanges }
+					onPreview={ handlePreview }
+					onAddSection={ handleAddSection }
+					onAddAdSlot={ handleAddAdSlot }
 				/>
-
-				{ selectedCollection && (
-					<div className="feed-editor-actions">
-						<Button variant="secondary" onClick={ handlePreview }>
-							{ __( 'Preview Collection', 'richie' ) }
-						</Button>
-						<Button variant="secondary" onClick={ handleAddSection }>
-							{ __( 'Add section', 'richie' ) }
-						</Button>
-						<Button variant="secondary" onClick={ handleAddAdSlot }>
-							{ __( 'Add ad slot', 'richie' ) }
-						</Button>
-					</div>
-				) }
 			</div>
 
 			{ error && (
