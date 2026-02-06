@@ -1,3 +1,5 @@
+# Copyright (C) 2019 Richie Oy
+# This file is distributed under the same license as the Richie plugin.
 msgid ""
 msgstr ""
 "Project-Id-Version: Richie 1.0.2\n"
@@ -8,21 +10,56 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2020-04-01T12:11:10+00:00\n"
-"PO-Revision-Date: 2026-02-06 14:41+0000\n"
-"Language: fi\n"
+"PO-Revision-Date: 2026-02-06 16:00+0000\n"
 "X-Generator: Loco https://localise.biz/\n"
 "X-Domain: richie\n"
+"Language: fi\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Loco-Version: 2.3.1; wp-5.4\n"
+"X-Loco-Version: 2.3.1; wp-5.4"
 
-#: admin/class-richie-admin.php:1394
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionCard.js:131
+#, js-format
+msgid "%1$d article (%2$d available)"
+msgid_plural "%1$d articles (%2$d available)"
+msgstr[0] "%1$d artikkeli (%2$d saatavilla)"
+msgstr[1] "%1$d artikkelia (%2$d saatavilla)"
+
+#: admin/class-richie-admin.php:1415
 #, php-format
 msgid "%d ad slot collection"
 msgid_plural "%d ad slot collections"
 msgstr[0] "%d mainospaikkakokoelma"
 msgstr[1] "%d mainospaikkakokoelmaa"
 
-#: admin/class-richie-admin.php:1385
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionCard.js:141
+#, js-format
+msgid "%d article"
+msgid_plural "%d articles"
+msgstr[0] "%d artikkeli"
+msgstr[1] "%d artikkelia"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:52
+#: admin/feed-editor/src/components/SectionModal.js:56
+#, js-format
+msgid "%d day"
+msgid_plural "%d days"
+msgstr[0] "%d päivä"
+msgstr[1] "%d päivää"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:68
+#: admin/feed-editor/src/components/SectionModal.js:72
+#: admin/feed-editor/src/components/SectionModal.js:76
+#, js-format
+msgid "%d month"
+msgid_plural "%d months"
+msgstr[0] "%d kuukausi"
+msgstr[1] "%d kuukautta"
+
+#: admin/class-richie-admin.php:1406
 #, php-format
 msgid "%d source"
 msgid_plural "%d sources"
@@ -30,32 +67,69 @@ msgstr[0] "%d lähde"
 msgstr[1] "%d lähdettä"
 
 #. translators: %d: number of orphaned sources
-#: admin/class-richie-admin.php:1137
+#: admin/class-richie-admin.php:1158
 #, php-format
 msgid "%d source is referencing a collection that no longer exists."
 msgid_plural "%d sources are referencing collections that no longer exist."
 msgstr[0] "%d lähde viittaa kokoelmaan, jota ei enää ole olemassa."
 msgstr[1] "%d lähdettä viittaa kokoelmiin, joita ei enää ole olemassa."
 
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:60
+#: admin/feed-editor/src/components/SectionModal.js:64
+#, js-format
+msgid "%d week"
+msgid_plural "%d weeks"
+msgstr[0] "%d viikko"
+msgstr[1] "%d viikkoa"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:80
+#, js-format
+msgid "%d year"
+msgid_plural "%d years"
+msgstr[0] "%d vuosi"
+msgstr[1] "%d vuotta"
+
 #: includes/class-richie-admin-components.php:336
 msgid "1 year"
 msgstr "1 vuosi"
 
-#: admin/class-richie-admin.php:765
+#: admin/class-richie-admin.php:769
 msgid "Access Control"
 msgstr "Pääsynhallinta"
 
-#: admin/class-richie-admin.php:757
+#: admin/class-richie-admin.php:761
 msgid "Access token"
 msgstr "Pääsyavain"
 
-#: admin/class-richie-admin.php:815
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/AdSlotCard.js:65
+msgid "AD"
+msgstr "Mainos"
+
+#: admin/class-richie-admin.php:836
 msgid "Ad data"
 msgstr "Mainostiedot"
 
-#: admin/class-richie-admin.php:814
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/AdSlotModal.js:138
+msgid "Ad Data (JSON)"
+msgstr "Mainostiedot (JSON)"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/AdSlotModal.js:125
+msgid "Ad Provider"
+msgstr "Mainospalvelu"
+
+#: admin/class-richie-admin.php:835
 msgid "Ad provider"
 msgstr "Mainospalvelu"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/AdSlotCard.js:71
+msgid "Ad Slot"
+msgstr "Mainospaikka"
 
 #: admin/partials/richie-admin-display.php:59
 msgid "Ad slots"
@@ -63,13 +137,20 @@ msgstr "Mainospaikat"
 
 #: admin/partials/richie-admin-display.php:66
 #: admin/feed-editor/build/index.js:1
-#: admin/feed-editor/src/App.js:176
 #: admin/feed-editor/src/components/AdSlotModal.js:117
 #: admin/feed-editor/src/components/AdSlotModal.js:171
+#: admin/feed-editor/src/components/CollectionSelector.js:265
 msgid "Add ad slot"
 msgstr "Lisää mainospaikka"
 
-#: admin/class-richie-admin.php:810
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionModal.js:47
+#: admin/feed-editor/src/components/CollectionModal.js:83
+#: admin/feed-editor/src/components/CollectionSelector.js:238
+msgid "Add collection"
+msgstr "Lisää kokoelma"
+
+#: admin/class-richie-admin.php:831
 msgid "Add new ad slot"
 msgstr "Lisää uusi mainospaikka"
 
@@ -80,6 +161,14 @@ msgstr "Luo uusi artikkelikokoelma"
 #: admin/partials/richie-admin-display.php:49
 msgid "Add new feed source"
 msgstr "Lisää uusi uutislähde"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionSelector.js:262
+#: admin/feed-editor/src/components/SectionModal.js:218
+#: admin/feed-editor/src/components/SectionModal.js:234
+#: admin/feed-editor/src/components/SectionModal.js:470
+msgid "Add section"
+msgstr "Lisää osio"
 
 #: admin/partials/richie-admin-display.php:55
 msgid "Add source"
@@ -93,6 +182,11 @@ msgstr "Lisäasetukset: Mainospaikat"
 msgid "Advanced: Sources"
 msgstr "Lisäasetukset: Lähteet"
 
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionPreviewModal.js:89
+msgid "Advertisement"
+msgstr "Mainos"
+
 #: includes/class-richie-custom-taxonomies.php:44
 msgid "All Article sets"
 msgstr "Kaikki artikkelikokoelmat"
@@ -103,167 +197,272 @@ msgstr "Kaikki artikkelikokoelmat"
 msgid "All time"
 msgstr "Kaikki"
 
-#: admin/class-richie-admin.php:804
-#: admin/feed-editor/build/index.js:1
+#: admin/class-richie-admin.php:825 admin/feed-editor/build/index.js:1
 #: admin/feed-editor/src/components/SectionModal.js:438
 msgid "Allow duplicate articles in this source"
 msgstr "Salli duplikaattiartikkelit tässä lähteessä"
 
-#: admin/class-richie-admin.php:804
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:430
+msgid "Allow Duplicates"
+msgstr "Salli duplikaatit"
+
+#: admin/class-richie-admin.php:825
 msgid "Allow duplicates"
 msgstr "Salli duplikaatit"
 
-#: admin/class-richie-admin.php:1390
+#: admin/class-richie-admin.php:1411
 msgid "and"
 msgstr "ja"
 
-#: admin/class-richie-admin.php:1399
+#: admin/class-richie-admin.php:792
+msgid "API Endpoints"
+msgstr "API-päätepisteet"
+
+#: includes/class-richie-admin-components.php:447
+msgid "App Assets"
+msgstr "Sovelluksen resurssit"
+
+#: admin/class-richie-admin.php:1420
 msgid "are referencing collections that no longer exist."
 msgstr "viittaavat kokoelmiin, joita ei enää ole olemassa."
 
-#: admin/class-richie-admin.php:788
-#: admin/class-richie-admin.php:811
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/AdSlotCard.js:44
+msgid "Are you sure you want to delete this ad slot?"
+msgstr "Haluatko varmasti poistaa tämän mainospaikan?"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionSelector.js:93
+msgid ""
+"Are you sure you want to delete this collection? This will permanently "
+"remove all news sources and ad slots associated with it."
+msgstr ""
+"Haluatko varmasti poistaa tämän kokoelman? Tämä poistaa pysyvästi kaikki "
+"siihen liittyvät uutislähteet ja mainospaikat."
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionCard.js:111
+msgid "Are you sure you want to delete this section?"
+msgstr "Haluatko varmasti poistaa tämän osion?"
+
+#: admin/class-richie-admin.php:809 admin/class-richie-admin.php:832
 #: includes/class-richie-custom-taxonomies.php:49
 msgid "Article set"
 msgstr "Artikkelikokoelma"
 
-#: admin/class-richie-admin.php:772
-msgid "Articles in selected categories will include access entitlements in the API response."
-msgstr "Valittujen kategorioiden artikkeleihin sisältyy API-vastauksessa tiedot käyttöoikeuksista."
+#: admin/class-richie-admin.php:776
+msgid ""
+"Articles in selected categories will include access entitlements in the API "
+"response."
+msgstr ""
+"Valittujen kategorioiden artikkeleihin sisältyy API-vastauksessa tiedot "
+"käyttöoikeuksista."
 
 #: includes/class-richie-admin-components.php:275
 msgid "ASC"
 msgstr "Nouseva järjestys"
 
-#: admin/class-richie-admin.php:818
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:47
+msgid "Ascending"
+msgstr "Nouseva"
+
+#: admin/class-richie-admin.php:839
 msgid "Asset feed"
 msgstr "Resurssisyöte"
 
-#: admin/class-richie-admin.php:819
+#: admin/class-richie-admin.php:840
 msgid "Assets"
 msgstr "Resurssit"
 
-#: admin/class-richie-admin.php:803
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:41
+msgid "Author"
+msgstr "Kirjoittaja"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:380
+msgid "Background Color"
+msgstr "Taustaväri"
+
+#: admin/class-richie-admin.php:824
 msgid "Background color"
 msgstr "Taustaväri"
 
-#: admin/class-richie-admin.php:803
-#: admin/feed-editor/build/index.js:1
+#: admin/class-richie-admin.php:824 admin/feed-editor/build/index.js:1
 #: admin/feed-editor/src/components/SectionModal.js:420
-msgid "Background color to be used with layout types. Not all layout types support this."
-msgstr "Taustaväri jota voidaan käyttää artikkelipohjissa. Kaikki pohjat eivät tätä tue."
+msgid ""
+"Background color to be used with layout types. Not all layout types support "
+"this."
+msgstr ""
+"Taustaväri jota voidaan käyttää artikkelipohjissa. Kaikki pohjat eivät tätä "
+"tue."
 
-#: admin/class-richie-admin.php:786
+#: admin/class-richie-admin.php:807
 msgid "Basic data"
 msgstr "Perustiedot"
 
-#: admin/class-richie-admin.php:794
 #: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/AdSlotModal.js:161
+#: admin/feed-editor/src/components/CollectionModal.js:73
+#: admin/feed-editor/src/components/SectionModal.js:460
+msgid "Cancel"
+msgstr "Peruuta"
+
+#: admin/class-richie-admin.php:815 admin/feed-editor/build/index.js:1
 #: admin/feed-editor/src/components/SectionModal.js:329
 msgid "Categories"
 msgstr "Kategoriat"
 
-#: admin/class-richie-admin.php:1403
+#: admin/class-richie-admin.php:1424
 msgid "Clean up orphaned data"
 msgstr "Siivoa vanhentuneet viittaukset"
 
-#: admin/class-richie-admin.php:1144
+#: admin/class-richie-admin.php:1165
 msgid "Clean up orphaned sources"
 msgstr "Siivoa vanhentuneet lähteet"
 
-#: admin/class-richie-admin.php:1199
-#: admin/class-richie-admin.php:1276
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:416
+msgid "Clear"
+msgstr "Tyhjennä"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionPreviewModal.js:144
+msgid "Close"
+msgstr "Sulje"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionSelector.js:212
+msgid "Collection"
+msgstr "Kokoelma"
+
+#: admin/class-richie-admin.php:1220 admin/class-richie-admin.php:1297
 msgid "Collection not found"
 msgstr "Kokoelmaa ei löytynyt"
 
-#: admin/class-richie-admin.php:1168
-#: admin/class-richie-admin.php:1258
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionPreviewModal.js:97
+msgid "Collection Preview"
+msgstr "Kokoelman esikatselu"
+
+#: admin/class-richie-admin.php:1189 admin/class-richie-admin.php:1279
 msgctxt "column name"
 msgid "Actions"
 msgstr "Toiminnot"
 
-#: admin/class-richie-admin.php:1257
+#: admin/class-richie-admin.php:1278
 msgctxt "column name"
 msgid "Ad data"
 msgstr "Tiedot"
 
-#: admin/class-richie-admin.php:1256
+#: admin/class-richie-admin.php:1277
 msgctxt "column name"
 msgid "Ad provider"
 msgstr "Palvelu"
 
-#: admin/class-richie-admin.php:1167
+#: admin/class-richie-admin.php:1188
 msgctxt "column name"
 msgid "Allow duplicates"
 msgstr "Salli duplikaatit"
 
-#: admin/class-richie-admin.php:1157
-#: admin/class-richie-admin.php:1253
+#: admin/class-richie-admin.php:1178 admin/class-richie-admin.php:1274
 msgctxt "column name"
 msgid "Article Set"
 msgstr "Artikkelikokoelma"
 
-#: admin/class-richie-admin.php:1165
+#: admin/class-richie-admin.php:1186
 msgctxt "column name"
 msgid "Background"
 msgstr ""
 "Taustaväri\n"
-""
 
-#: admin/class-richie-admin.php:1160
+#: admin/class-richie-admin.php:1181
 msgctxt "column name"
 msgid "Categories"
 msgstr "Kategoriat"
 
-#: admin/class-richie-admin.php:1166
+#: admin/class-richie-admin.php:1187
 msgctxt "column name"
 msgid "Disable summary"
 msgstr "Piilota yhteenveto"
 
-#: admin/class-richie-admin.php:1156
-#: admin/class-richie-admin.php:1255
+#: admin/class-richie-admin.php:1177 admin/class-richie-admin.php:1276
 msgctxt "column name"
 msgid "ID"
 msgstr "ID"
 
-#: admin/class-richie-admin.php:1254
+#: admin/class-richie-admin.php:1275
 msgctxt "column name"
 msgid "Index"
 msgstr "Järjestysnumero"
 
-#: admin/class-richie-admin.php:1164
+#: admin/class-richie-admin.php:1185
 msgctxt "column name"
 msgid "List layout"
 msgstr "Muoto"
 
-#: admin/class-richie-admin.php:1163
+#: admin/class-richie-admin.php:1184
 msgctxt "column name"
 msgid "Max age"
 msgstr "Artikkelin ikä"
 
-#: admin/class-richie-admin.php:1158
+#: admin/class-richie-admin.php:1179
 msgctxt "column name"
 msgid "Name"
 msgstr "Nimi"
 
-#: admin/class-richie-admin.php:1162
+#: admin/class-richie-admin.php:1183
 msgctxt "column name"
 msgid "Order"
 msgstr "Järjestys"
 
-#: admin/class-richie-admin.php:1159
+#: admin/class-richie-admin.php:1180
 msgctxt "column name"
 msgid "Post type"
 msgstr "Artikkelityyppi"
 
-#: admin/class-richie-admin.php:1161
+#: admin/class-richie-admin.php:1182
 msgctxt "column name"
 msgid "Posts"
 msgstr "Lukumäärä"
 
-#: admin/class-richie-admin.php:1295
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionSelector.js:227
+msgid "Copied!"
+msgstr "Kopioitu!"
+
+#: includes/class-richie-admin-components.php:489
+msgid "Copy"
+msgstr "Kopioi"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionSelector.js:227
+msgid "Copy Feed URL"
+msgstr "Kopioi syötteen URL"
+
+#: includes/class-richie-admin-components.php:390
+msgid ""
+"Copy these endpoint URLs to use in your API client or documentation. Replace "
+"placeholders with actual values."
+msgstr ""
+"Kopioi nämä päätepisteen URL-osoitteet käytettäväksi API-asiakasohjelmassa "
+"tai dokumentaatiossa. Korvaa paikanvaraajat todellisilla arvoilla."
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionSelector.js:204
+msgid "Copy this URL: "
+msgstr "Kopioi tämä URL: "
+
+#: admin/class-richie-admin.php:1316
 msgid "Copy to form"
 msgstr "Kopioi lomakkeelle"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:38
+msgid "Date"
+msgstr "Päivämäärä"
 
 #: includes/class-richie-admin-components.php:329
 #: includes/class-richie-admin-components.php:330
@@ -272,23 +471,54 @@ msgid_plural "days"
 msgstr[0] "päivä"
 msgstr[1] "päivää"
 
-#: admin/class-richie-admin.php:777
+#: admin/class-richie-admin.php:781
 msgid "Default entitlement"
 msgstr "Oletuskäyttöoikeus"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/AdSlotCard.js:90
+#: admin/feed-editor/src/components/SectionCard.js:236
+msgid "Delete"
+msgstr "Poista"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionSelector.js:253
+msgid "Delete collection"
+msgstr "Poista kokoelma"
 
 #: includes/class-richie-admin-components.php:274
 msgid "DESC"
 msgstr "Laskeva järjestys"
 
-#: admin/class-richie-admin.php:805
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:46
+msgid "Descending"
+msgstr "Laskeva"
+
+#: admin/class-richie-admin.php:826
 msgid "Disable article summary"
 msgstr "Piilota artikkelin yhteenveto"
 
-#: admin/class-richie-admin.php:805
 #: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:444
+msgid "Disable Summary"
+msgstr "Piilota yhteenveto"
+
+#: admin/class-richie-admin.php:826 admin/feed-editor/build/index.js:1
 #: admin/feed-editor/src/components/SectionModal.js:452
 msgid "Do not show summary text in news list"
 msgstr "Älä näytä artikkelin yhteenvetoa uutislistauksessa"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/AdSlotCard.js:85
+#: admin/feed-editor/src/components/SectionCard.js:230
+msgid "Edit"
+msgstr "Muokkaa"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/AdSlotModal.js:116
+msgid "Edit ad slot"
+msgstr "Muokkaa mainospaikkaa"
 
 #: includes/class-richie-custom-taxonomies.php:45
 msgid "Edit Article set"
@@ -298,22 +528,53 @@ msgstr "Muokkaa artikkelikokoelmaa"
 msgid "Edit Article sets"
 msgstr "Muokkaa artikkelikokoelmia"
 
-#: admin/class-richie-admin.php:781
-msgid "Entitlement value used for all premium articles. If empty, category name is used (converted to UPPER_SNAKE_CASE)."
-msgstr "Arvoa käytetään kaikissa valituissa premium artikkeleissa. Jos tyhjä, niin siinä tapauksessa käytetään premium-artikkelin kategoriaa."
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionModal.js:46
+#: admin/feed-editor/src/components/CollectionSelector.js:245
+msgid "Edit collection"
+msgstr "Muokkaa kokoelmaa"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:217
+#: admin/feed-editor/src/components/SectionModal.js:233
+msgid "Edit section"
+msgstr "Muokkaa osiota"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:355
+msgid "Enter tag slugs separated by commas"
+msgstr "Syötä tunnisteiden polkutunnukset pilkuilla eroteltuna"
+
+#: admin/class-richie-admin.php:785
+msgid ""
+"Entitlement value used for all premium articles. If empty, category name is "
+"used (converted to UPPER_SNAKE_CASE)."
+msgstr ""
+"Arvoa käytetään kaikissa valituissa premium artikkeleissa. Jos tyhjä, niin "
+"siinä tapauksessa käytetään premium-artikkelin kategoriaa."
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionSelector.js:198
+msgid "Failed to copy. URL: "
+msgstr "Kopiointi epäonnistui. URL: "
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionSelector.js:128
+msgid "Failed to delete collection. Please try again."
+msgstr "Kokoelman poistaminen epäonnistui. Yritä uudelleen."
 
 #: includes/class-richie-news-article.php:441
 msgid "Failed to get content"
 msgstr "Sisällön lataus epäonnistui"
 
 #. translators: %s is replaced with the error
-#: admin/class-richie-admin.php:528
+#: admin/class-richie-admin.php:532
 #, php-format
 msgid "Failed to parse json, unable to save: %s"
 msgstr "JSON-tiedon käsittely epäonnistui, tallennus ei onnistu: %s"
 
 #. translators: %s is replaced with the error
-#: admin/class-richie-admin.php:575
+#: admin/class-richie-admin.php:579
 #, php-format
 msgid "Failed to save adslot, validation failed: %s"
 msgstr "Mainospaikan tallennus epäonnistui: %s"
@@ -323,22 +584,50 @@ msgstr "Mainospaikan tallennus epäonnistui: %s"
 msgid "Feed Editor"
 msgstr "Syötteen muokkaus"
 
-#: admin/class-richie-admin.php:793
+#: admin/class-richie-admin.php:814
 msgid "Filters"
 msgstr "Suodattimet"
 
-#: admin/class-richie-admin.php:756
+#: admin/class-richie-admin.php:760
 msgid "General settings"
 msgstr "Yleiset asetukset"
 
-#: admin/class-richie-admin.php:446
+#: includes/class-richie-admin-components.php:417
+msgid ""
+"Get a single article by ID. Replace <article-id> with a WordPress post ID."
+msgstr ""
+"Hae yksittäinen artikkeli ID:llä. Korvaa <article-id> WordPress-artikkelin "
+"ID:llä."
+
+#: includes/class-richie-admin-components.php:397
+msgid ""
+"Get articles for a specific collection. Replace <collection-slug> with your "
+"collection's slug."
+msgstr ""
+"Hae artikkelit tietylle kokoelmalle. Korvaa <collection-slug> kokoelmasi "
+"tunnisteella."
+
+#: includes/class-richie-admin-components.php:449
+msgid ""
+"Get custom app assets (icons, colors, etc.). No authentication required."
+msgstr ""
+"Hae mukautetut sovelluksen resurssit (kuvakkeet, värit jne.). Ei vaadi "
+"tunnistautumista."
+
+#: admin/class-richie-admin.php:450
 msgid "Given post type not supported"
 msgstr "Annettu artikkelityyppi ei ole tuettu"
 
-#: admin/class-richie-admin.php:802
 #: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:364
+msgid "Group Title"
+msgstr "Ryhmän otsikko"
+
+#: admin/class-richie-admin.php:823 admin/feed-editor/build/index.js:1
 #: admin/feed-editor/src/components/SectionModal.js:371
-msgid "Header to display before the story, useful on the first small_group_item of a group"
+msgid ""
+"Header to display before the story, useful on the first small_group_item of "
+"a group"
 msgstr "Otsikko, joka näytetään ennen artikkelia."
 
 #. Plugin URI of the plugin
@@ -346,21 +635,70 @@ msgstr "Otsikko, joka näytetään ennen artikkelia."
 msgid "https://www.richie.fi"
 msgstr "https://www.richie.fi"
 
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:42
+msgid "ID"
+msgstr "ID"
+
+#: includes/class-richie-admin-components.php:409
+msgid "Include draft/unpublished content"
+msgstr "Sisällytä luonnos-/julkaisematon sisältö"
+
 #: includes/class-richie-admin-components.php:349
 msgid "Include posts that are not older than specific time range"
 msgstr "Ota mukaan artikkelit, jotka eivät ole määriteltyä arvoa vanhempia."
 
-#: admin/class-richie-admin.php:1150
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/AdSlotModal.js:154
+msgid "Insert example"
+msgstr "Lisää esimerkki"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/AdSlotModal.js:145
+msgid "Invalid JSON:"
+msgstr "Virheellinen JSON:"
+
+#: admin/class-richie-admin.php:1171
 msgid "Last publish time:"
 msgstr "Viimeksi julkaistu:"
 
-#: admin/class-richie-admin.php:802
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:269
+msgid "Layout Style"
+msgstr "Asettelu"
+
+#: admin/class-richie-admin.php:823
 msgid "List group title"
 msgstr "Ryhmän otsikko"
 
-#: admin/class-richie-admin.php:801
+#: admin/class-richie-admin.php:822
 msgid "List layout"
 msgstr "Listauksen muoto"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionSelector.js:54
+msgid "Loading collections..."
+msgstr "Ladataan kokoelmia..."
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/FeedItemList.js:84
+msgid "Loading feed items…"
+msgstr "Ladataan syötteen kohteita…"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionPreviewModal.js:108
+msgid "Loading preview..."
+msgstr "Ladataan esikatselua..."
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:318
+msgid "Max Age"
+msgstr "Enimmäisikä"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:39
+msgid "Modified"
+msgstr "Muokattu"
 
 #: includes/class-richie-admin-components.php:333
 #: includes/class-richie-admin-components.php:334
@@ -370,14 +708,18 @@ msgid_plural "months"
 msgstr[0] "kuukausi"
 msgstr[1] "kuukautta"
 
-#: admin/class-richie-admin.php:787
 #: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionCard.js:215
+msgid "more"
+msgstr "lisää"
+
+#: admin/class-richie-admin.php:808 admin/feed-editor/build/index.js:1
 #: admin/feed-editor/src/components/CollectionModal.js:54
 #: admin/feed-editor/src/components/SectionModal.js:242
 msgid "Name"
 msgstr "Nimi"
 
-#: admin/class-richie-admin.php:493
+#: admin/class-richie-admin.php:497
 msgid "Name and number of posts are required"
 msgstr "Nimi ja artikkelien lukumäärä ovat vaadittuja"
 
@@ -389,61 +731,107 @@ msgstr "Uusi artikkelikokoelman nimi"
 msgid "News assets"
 msgstr "Uutisresurssit"
 
+#: includes/class-richie-admin-components.php:395
+msgid "News Feed"
+msgstr "Uutissyöte"
+
 #: admin/partials/richie-admin-display.php:47
 msgid "News sources"
 msgstr "Uutislähteet"
 
-#: admin/class-richie-admin.php:622
+#: admin/class-richie-admin.php:626
 msgid "News sources have unpublished changes."
 msgstr "Uutislähteissä on julkaisemattomia muutoksia."
 
-#: admin/class-richie-admin.php:514
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionCard.js:221
+msgid "No articles found"
+msgstr "Ei artikkeleita löytynyt"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionPreviewModal.js:137
+msgid "No articles in this collection"
+msgstr "Ei artikkeleita tässä kokoelmassa"
+
+#: admin/class-richie-admin.php:518
 msgid "No data found"
 msgstr "Tiedot puuttuvat"
 
-#: admin/class-richie-admin.php:1510
+#: admin/class-richie-admin.php:1531
 msgid "No orphaned data found."
 msgstr "Vanhentuneita viittauksia ei löytynyt."
 
-#: admin/class-richie-admin.php:1428
+#: admin/class-richie-admin.php:1449
 msgid "No orphaned sources found."
 msgstr "Vanhentuneita lähteitä ei löytynyt."
 
-#: admin/class-richie-admin.php:1307
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/FeedItemList.js:93
+msgid ""
+"No sections or ad slots in this collection yet. Click \"Add section\" or "
+"\"Add ad slot\" to get started."
+msgstr ""
+"Tässä kokoelmassa ei ole vielä osioita tai mainospaikkoja. Aloita "
+"valitsemalla \"Lisää osio\" tai \"Lisää mainospaikka\"."
+
+#: admin/class-richie-admin.php:1328
 msgid "No slots configured. Add ad slots with the form below."
 msgstr "Ei luotuja mainospaikkoja. Lisää mainospaikka alapuolen lomakkeella."
 
-#: admin/class-richie-admin.php:1237
+#: admin/class-richie-admin.php:1258
 msgid "No sources configured. Add news feed sources with the form below."
 msgstr "Ei luotuja uutislähteitä. Lisää uusi lähde alapuolen lomakkeella."
 
-#: admin/class-richie-admin.php:789
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:254
+msgid "Number of Articles"
+msgstr "Artikkelien määrä"
+
+#: admin/class-richie-admin.php:810
 msgid "Number of posts"
 msgstr "Artikkelien lukumäärä"
 
-#: admin/class-richie-admin.php:789
-#: admin/feed-editor/build/index.js:1
+#: admin/class-richie-admin.php:810 admin/feed-editor/build/index.js:1
 #: admin/feed-editor/src/components/SectionModal.js:264
 msgid "Number of posts included in the feed"
 msgstr "Syötteeseen mukaanotettavien artikkelien määrä"
 
-#: admin/class-richie-admin.php:800
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/AdSlotModal.js:149
+msgid "Optional JSON configuration for the ad"
+msgstr "Valinnainen JSON-asetus mainokselle"
+
+#: includes/class-richie-admin-components.php:408
+msgid "Optional parameters:"
+msgstr "Valinnaiset parametrit:"
+
+#: admin/class-richie-admin.php:821
 msgid "Options"
 msgstr "Lisävalinnat"
 
-#: admin/class-richie-admin.php:796
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:296
+msgid "Order By"
+msgstr "Järjestä"
+
+#: admin/class-richie-admin.php:817
 msgid "Order by"
 msgstr "Järjestä"
 
-#: admin/class-richie-admin.php:797
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:305
+msgid "Order Direction"
+msgstr "Järjestyssuunta"
+
+#: admin/class-richie-admin.php:818
 msgid "Order direction"
 msgstr "Järjestyksen suunta"
 
-#: admin/class-richie-admin.php:1381
+#: admin/class-richie-admin.php:1402
 msgid "Orphaned data detected:"
 msgstr "Vanhentuneita viittauksia havaittu:"
 
-#: admin/class-richie-admin.php:1133
+#: admin/class-richie-admin.php:1154
 msgid "Orphaned sources detected:"
 msgstr "Vanhentuneita lähteitä havaittu:"
 
@@ -459,7 +847,7 @@ msgstr "Artikkelin päiväys"
 msgid "Post ID"
 msgstr "Artikkelin ID"
 
-#: admin/class-richie-admin.php:798
+#: admin/class-richie-admin.php:819
 msgid "Post max age"
 msgstr "Artikkelin ikä korkeintaan"
 
@@ -471,7 +859,12 @@ msgstr "Artikkelin muokkausaika"
 msgid "Post title"
 msgstr "Artikkelin otsikko"
 
-#: admin/class-richie-admin.php:791
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:282
+msgid "Post Type"
+msgstr "Artikkelityyppi"
+
+#: admin/class-richie-admin.php:812
 msgid "Post type"
 msgstr "Artikkelityyppi"
 
@@ -479,28 +872,44 @@ msgstr "Artikkelityyppi"
 msgid "Post views"
 msgstr "Artikkelinäytöt"
 
-#: admin/class-richie-admin.php:768
+#: admin/class-richie-admin.php:772
 msgid "Premium categories"
 msgstr "Premium-kategoriat"
 
-#: admin/class-richie-admin.php:1152
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionSelector.js:259
+msgid "Preview Collection"
+msgstr "Esikatsele kokoelmaa"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionPreviewModal.js:102
+msgid ""
+"Preview shows the feed structure and layout types. Actual appearance depends "
+"on the native app configuration."
+msgstr ""
+"Esikatselu näyttää syötteen rakenteen ja asettelutyypit. Todellinen ulkoasu "
+"riippuu natiivisovelluksen konfiguraatiosta."
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/AdSlotCard.js:77
+msgid "Provider:"
+msgstr "Tarjoaja:"
+
+#: admin/class-richie-admin.php:1173
 msgid "Publish"
 msgstr "Julkaise"
 
-#: admin/class-richie-admin.php:624
-#: admin/feed-editor/build/index.js:1
-#: admin/feed-editor/src/App.js:193
+#: admin/class-richie-admin.php:628 admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/App.js:182
 msgid "Publish now"
 msgstr "Julkaise nyt"
 
-#: admin/class-richie-admin.php:1227
-#: admin/class-richie-admin.php:1296
+#: admin/class-richie-admin.php:1248 admin/class-richie-admin.php:1317
 msgid "Remove"
 msgstr "Poista"
 
-#: admin/class-richie-admin.php:625
-#: admin/feed-editor/build/index.js:1
-#: admin/feed-editor/src/App.js:198
+#: admin/class-richie-admin.php:629 admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/App.js:187
 msgid "Revert changes"
 msgstr "Peruuta muutokset"
 
@@ -512,7 +921,8 @@ msgstr "Richie News"
 #. Description of the plugin
 #: richie.php
 msgid "Richie news platform plugin. Provides news API for native applications."
-msgstr "Richie News plugin. Tarjoaa Richie News-rajapinnan sovelluksien käyttöön."
+msgstr ""
+"Richie News plugin. Tarjoaa Richie News-rajapinnan sovelluksien käyttöön."
 
 #. Author of the plugin
 #: richie.php
@@ -524,7 +934,11 @@ msgstr "Richie OY"
 msgid "Save all changes"
 msgstr "Tallenna muutokset"
 
-#: admin/class-richie-admin.php:760
+#: includes/class-richie-admin-components.php:431
+msgid "Search"
+msgstr "Haku"
+
+#: admin/class-richie-admin.php:764
 msgid "Search API settings"
 msgstr "Hakurajapinnan asetukset"
 
@@ -532,38 +946,91 @@ msgstr "Hakurajapinnan asetukset"
 msgid "Search Article sets"
 msgstr "Etsi artikkelikokoelmaa"
 
-#: admin/class-richie-admin.php:762
+#: includes/class-richie-admin-components.php:433
+msgid "Search articles. Replace <search-query> with your search term."
+msgstr "Hae artikkeleita. Korvaa <search-query> hakusanallasi."
+
+#: admin/class-richie-admin.php:766
 msgid "Search list layout"
 msgstr "Hakurajapinnan listamuoto"
 
-#: admin/class-richie-admin.php:339
-#: admin/partials/richie-admin-display.php:26
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/FeedItemList.js:115
+msgid ""
+"Section previews are a sample of current content. They also show duplicated "
+"articles if the same source is used in multiple sections. To see how the "
+"feed looks in the app, use the \"Preview Collection\" button above."
+msgstr ""
+"Osioiden esikatselut ovat näytteitä nykyisestä sisällöstä. Ne näyttävät myös "
+"duplikaattiartikkelit, jos sama lähde on käytössä useissa osioissa. Näet, "
+"miltä syöte näyttää sovelluksessa, käyttämällä yllä olevaa \"Esikatsele "
+"kokoelmaa\" -painiketta."
+
+#: admin/feed-editor/build/index.js:1 admin/feed-editor/src/App.js:206
+msgid "Select a collection above to manage its feed items."
+msgstr "Valitse yllä oleva kokoelma hallitaksesi sen syötteen kohteita."
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:391
+msgid "Select color"
+msgstr "Valitse väri"
+
+#: admin/class-richie-admin.php:343 admin/partials/richie-admin-display.php:26
 msgid "Settings"
 msgstr "Asetukset"
 
-#: admin/class-richie-admin.php:812
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionCard.js:214
+msgid "Show less"
+msgstr "Näytä vähemmän"
+
+#: includes/class-richie-admin-components.php:415
+msgid "Single Article"
+msgstr "Yksittäinen artikkeli"
+
+#: admin/class-richie-admin.php:833
 msgid "Slot position"
 msgstr "Mainospaikan järjestysnumero"
 
-#: admin/class-richie-admin.php:808
-msgid "Specify an index number for the ad slot placement in the article set feed. 1-based index, so 1 means the first item on the feed. Existing index for the article set is overwritten."
-msgstr "Syötä haluttu järjestysnumero mainospaikalle artikkelisyötteessä. 1-pohjainen indeksi, joten 1 sijoittaa mainoksen ensimmäiseksi syötteessä. Olemassa oleva järjestysnumero artikkelikokoelmassa korvataan tallennuksen yhteydessä."
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionModal.js:62
+msgid "Slug"
+msgstr "Polkutunnus"
+
+#: admin/class-richie-admin.php:829
+msgid ""
+"Specify an index number for the ad slot placement in the article set feed. 1-"
+"based index, so 1 means the first item on the feed. Existing index for the "
+"article set is overwritten."
+msgstr ""
+"Syötä haluttu järjestysnumero mainospaikalle artikkelisyötteessä. 1-"
+"pohjainen indeksi, joten 1 sijoittaa mainoksen ensimmäiseksi syötteessä. "
+"Olemassa oleva järjestysnumero artikkelikokoelmassa korvataan tallennuksen "
+"yhteydessä."
 
 #. translators: 1: sources count, 2: ad slots count
-#: admin/class-richie-admin.php:1588
+#: admin/class-richie-admin.php:1609
 #, php-format
-msgid "Successfully cleaned up %1$d orphaned source(s) and %2$d orphaned ad slot(s)."
-msgstr "Siivottiin onnistuneesti %1$d vanhentunutta lähdettä ja %2$d vanhentunutta mainospaikkaa."
+msgid ""
+"Successfully cleaned up %1$d orphaned source(s) and %2$d orphaned ad slot(s)."
+msgstr ""
+"Siivottiin onnistuneesti %1$d vanhentunutta lähdettä ja %2$d vanhentunutta "
+"mainospaikkaa."
 
 #. translators: %d: number of orphaned sources cleaned up
-#: admin/class-richie-admin.php:1483
+#: admin/class-richie-admin.php:1504
 #, php-format
 msgid "Successfully cleaned up %d orphaned source(s)."
 msgstr "Siivottiin onnistuneesti %d vanhentunutta lähdettä."
 
-#: admin/class-richie-admin.php:795
+#: admin/class-richie-admin.php:816
 msgid "Tags"
 msgstr "Asiasanat"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:350
+msgid "Tags (comma-separated)"
+msgstr "Asiasanat (pilkuilla eroteltuna)"
 
 #: includes/class-richie-custom-taxonomies.php:41
 msgctxt "taxonomy general name"
@@ -575,9 +1042,39 @@ msgctxt "taxonomy singular name"
 msgid "Article set"
 msgstr "Artikkelikokoelma"
 
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:40
+msgid "Title"
+msgstr "Otsikko"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionPreviewModal.js:45
+msgid "Untitled"
+msgstr "Nimetön"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/AdSlotModal.js:170
+msgid "Update ad slot"
+msgstr "Päivitä mainospaikka"
+
 #: includes/class-richie-custom-taxonomies.php:46
 msgid "Update Article set"
 msgstr "Päivitä artikkelikokoelma"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionModal.js:82
+msgid "Update collection"
+msgstr "Päivitä kokoelma"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/SectionModal.js:469
+msgid "Update section"
+msgstr "Päivitä osio"
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionModal.js:67
+msgid "Used in feed URL (optional)"
+msgstr "Käytetään syötteen URL-osoitteessa (valinnainen)"
 
 #: includes/class-richie-admin-components.php:331
 #: includes/class-richie-admin-components.php:332
@@ -585,3 +1082,12 @@ msgid "week"
 msgid_plural "weeks"
 msgstr[0] "viikko"
 msgstr[1] "viikkoa"
+
+#: admin/feed-editor/build/index.js:1 admin/feed-editor/src/App.js:179
+msgid "You have unpublished changes."
+msgstr "Sinulla on julkaisemattomia muutoksia."
+
+#: admin/feed-editor/build/index.js:1
+#: admin/feed-editor/src/components/CollectionSelector.js:60
+msgid "— Select a collection —"
+msgstr "— Valitse kokoelma —"
