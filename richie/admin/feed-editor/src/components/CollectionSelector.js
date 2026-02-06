@@ -10,7 +10,7 @@ import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import CollectionModal from './CollectionModal';
 
-export default function CollectionSelector( { value, onChange } ) {
+export default function CollectionSelector( { value, onChange, onUnpublishedChangesUpdate } ) {
 	const [ collections, setCollections ] = useState( [] );
 	const [ isLoading, setIsLoading ] = useState( true );
 	const [ isSaving, setIsSaving ] = useState( false );
@@ -24,6 +24,14 @@ export default function CollectionSelector( { value, onChange } ) {
 		} )
 			.then( ( response ) => {
 				setCollections( response || [] );
+
+				// If current selection no longer exists, clear it.
+				if ( value && response && response.length > 0 ) {
+					const exists = response.some( ( c ) => c.id === value );
+					if ( ! exists ) {
+						onChange( null );
+					}
+				}
 			} )
 			.catch( ( err ) => {
 				console.error( 'Failed to fetch collections:', err );
@@ -32,7 +40,7 @@ export default function CollectionSelector( { value, onChange } ) {
 			.finally( () => {
 				setIsLoading( false );
 			} );
-	}, [] );
+	}, [ value, onChange ] );
 
 	useEffect( () => {
 		fetchCollections();
@@ -67,6 +75,64 @@ export default function CollectionSelector( { value, onChange } ) {
 		const current = collections.find( ( collection ) => collection.id === value );
 		setEditingCollection( current || null );
 		setIsModalOpen( true );
+	};
+
+	const handleDeleteCollection = () => {
+		if ( ! value ) {
+			return;
+		}
+
+		const current = collections.find( ( collection ) => collection.id === value );
+		if ( ! current ) {
+			return;
+		}
+
+		// eslint-disable-next-line no-alert
+		const confirmed = window.confirm(
+			__(
+				'Are you sure you want to delete this collection? This will permanently remove all news sources and ad slots associated with it.',
+				'richie'
+			)
+		);
+
+		if ( ! confirmed ) {
+			return;
+		}
+
+		setIsSaving( true );
+		apiFetch( {
+			path: `/richie/v1/editor/collection/${ value }`,
+			method: 'DELETE',
+		} )
+			.then( ( response ) => {
+				// eslint-disable-next-line no-alert
+				if ( response.success ) {
+					// Show success message if sources or ad slots were deleted
+					if ( response.deleted && ( response.deleted.sources > 0 || response.deleted.ad_slots > 0 ) ) {
+						// eslint-disable-next-line no-alert
+						alert( response.message );
+					}
+					// Update unpublished changes flag if provided in response
+					if ( onUnpublishedChangesUpdate && typeof response.has_unpublished_changes !== 'undefined' ) {
+						onUnpublishedChangesUpdate( response.has_unpublished_changes );
+					}
+					onChange( null );
+					return fetchCollections();
+				}
+			} )
+			.catch( ( err ) => {
+				console.error( 'Failed to delete collection:', err );
+				// eslint-disable-next-line no-alert
+				alert(
+					__(
+						'Failed to delete collection. Please try again.',
+						'richie'
+					)
+				);
+			} )
+			.finally( () => {
+				setIsSaving( false );
+			} );
 	};
 
 	const handleModalClose = () => {
@@ -132,6 +198,14 @@ export default function CollectionSelector( { value, onChange } ) {
 					disabled={ isSaving || ! value }
 				>
 					{ __( 'Edit collection', 'richie' ) }
+				</Button>
+				<Button
+					variant="secondary"
+					isDestructive
+					onClick={ handleDeleteCollection }
+					disabled={ isSaving || ! value }
+				>
+					{ __( 'Delete collection', 'richie' ) }
 				</Button>
 			</div>
 

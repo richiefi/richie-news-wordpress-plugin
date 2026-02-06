@@ -108,9 +108,26 @@ Building a visual drag-and-drop editor for managing news feed sections and ad sl
      - Header padding reduced to 12px 16px
      - Proper flexbox layout with scrollable content area
 
+8. **Collection Deletion & Cleanup** (Phase 7 - Data Safety)
+   - ✅ Added `pre_delete_term` hook in `class-richie-admin.php`
+     - Prevents deletion from WordPress UI when sources exist
+     - Shows error message directing users to Feed Editor
+     - Allows deletion when no sources exist (safe cleanup)
+   - ✅ Created REST API endpoint `DELETE /richie/v1/editor/collection/{collection_id}`
+   - ✅ Implemented `delete_collection()` method in Feed Editor class
+     - Removes all sources associated with the collection
+     - Removes all ad slots for the collection
+     - Cleans up custom order data (draft and published)
+     - Deletes the collection term itself
+     - Returns count of deleted items in response
+   - ✅ Added "Delete collection" button to CollectionSelector component
+     - Confirmation dialog warns about permanent deletion
+     - Shows success message with cleanup details
+     - Automatically refreshes collection list after deletion
+
 #### 🔄 In Progress
 
-None - Collection Preview Modal is complete!
+None - Collection deletion feature is complete!
 
 #### 📋 TODO
 

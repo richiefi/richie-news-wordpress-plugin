@@ -86,6 +86,62 @@
         });
       });
 
+      // Cleanup orphaned sources (legacy - for backward compatibility)
+      $('#cleanup-orphaned-sources').on('click', function() {
+        var $button = $(this);
+        var originalText = $button.text();
+        $button.prop('disabled', true).text('Cleaning up...');
+
+        var data = {
+          action: 'cleanup_orphaned_sources',
+          security: richie_ajax.security
+        };
+
+        $.post(ajaxurl, data)
+          .done(function(response) {
+            if (response.success) {
+              alert(response.data.message);
+              location.reload();
+            } else {
+              alert('Error: ' + (response.data || 'Unknown error'));
+              $button.prop('disabled', false).text(originalText);
+            }
+          })
+          .fail(function(err) {
+            console.error(err);
+            alert('Failed to cleanup orphaned sources. Please try again.');
+            $button.prop('disabled', false).text(originalText);
+          });
+      });
+
+      // Cleanup all orphaned data (sources and ad slots)
+      $(document).on('click', '#cleanup-orphaned-data', function() {
+        var $button = $(this);
+        var originalText = $button.text();
+        $button.prop('disabled', true).text('Cleaning up...');
+
+        var data = {
+          action: 'cleanup_orphaned_data',
+          security: richie_ajax.security
+        };
+
+        $.post(ajaxurl, data)
+          .done(function(response) {
+            if (response.success) {
+              alert(response.data.message);
+              location.reload();
+            } else {
+              alert('Error: ' + (response.data || 'Unknown error'));
+              $button.prop('disabled', false).text(originalText);
+            }
+          })
+          .fail(function(err) {
+            console.error(err);
+            alert('Failed to cleanup orphaned data. Please try again.');
+            $button.prop('disabled', false).text(originalText);
+          });
+      });
+
       $('.richie-settings .feed-source-list').on('click', '.disable-summary', function() {
         var data = {
           action: 'set_checkbox_field',

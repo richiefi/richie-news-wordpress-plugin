@@ -58,6 +58,13 @@ class Richie_Feed_Editor {
 			'permission_callback' => array( $this, 'check_permission' ),
 		) );
 
+		// Delete collection (article set)
+		register_rest_route( $namespace, '/editor/collection/(?P<collection_id>\d+)', array(
+			'methods'             => WP_REST_Server::DELETABLE,
+			'callback'            => array( $this, 'delete_collection' ),
+			'permission_callback' => array( $this, 'check_permission' ),
+		) );
+
 		// Get items for a collection
 		register_rest_route( $namespace, '/editor/items/(?P<collection_id>\d+)', array(
 			'methods'             => WP_REST_Server::READABLE,
@@ -170,6 +177,94 @@ class Richie_Feed_Editor {
 		}, $terms );
 
 		return new WP_REST_Response( $collections, 200 );
+	}
+
+	/**
+	 * Delete a collection and all associated data.
+	 *
+	 * Removes all sources, ad slots, and custom order data associated with
+	 * the collection, then deletes the collection term itself.
+	 *
+	 * @since    2.0.0
+	 * @param    WP_REST_Request    $request    Request object.
+	 * @return   WP_REST_Response
+	 */
+	public function delete_collection( $request ) {
+		$collection_id = intval( $request['collection_id'] );
+
+		// Verify the collection exists.
+		$term = get_term( $collection_id, 'richie_article_set' );
+		if ( is_wp_error( $term ) || ! $term ) {
+			return new WP_REST_Response( array( 'error' => 'Collection not found' ), 404 );
+		}
+
+		// Step 1: Delete all sources for this collection.
+		$sources_option = get_option( $this->plugin_name . 'news_sources' );
+		$sources = isset( $sources_option['sources'] ) ? $sources_option['sources'] : array();
+		$deleted_source_count = 0;
+
+		foreach ( $sources as $source_id => $source ) {
+			if ( isset( $source['article_set'] ) && (int) $source['article_set'] === $collection_id ) {
+				unset( $sources[ $source_id ] );
+				$deleted_source_count++;
+				// Clear preview cache for this source.
+				delete_transient( 'richie_preview_' . $source_id );
+			}
+		}
+
+		$sources_option['sources'] = $sources;
+
+		// Step 2: Remove custom order data for this collection.
+		if ( isset( $sources_option['collection_order'][ $collection_id ] ) ) {
+			unset( $sources_option['collection_order'][ $collection_id ] );
+		}
+		if ( isset( $sources_option['published_collection_order'][ $collection_id ] ) ) {
+			unset( $sources_option['published_collection_order'][ $collection_id ] );
+		}
+
+		$sources_option['updated'] = time();
+		update_option( $this->plugin_name . 'news_sources', $sources_option );
+
+		// Step 3: Delete all ad slots for this collection.
+		$adslots_option = get_option( $this->plugin_name . '_adslots' );
+		$deleted_adslot_count = 0;
+
+		if ( isset( $adslots_option['slots'][ $collection_id ] ) ) {
+			$deleted_adslot_count = count( $adslots_option['slots'][ $collection_id ] );
+			unset( $adslots_option['slots'][ $collection_id ] );
+			$adslots_option['updated'] = time();
+			update_option( $this->plugin_name . '_adslots', $adslots_option );
+		}
+
+		// Step 4: Delete the collection term itself.
+		$result = wp_delete_term( $collection_id, 'richie_article_set' );
+
+		if ( is_wp_error( $result ) ) {
+			return new WP_REST_Response(
+				array( 'error' => 'Failed to delete collection: ' . $result->get_error_message() ),
+				500
+			);
+		}
+
+		// Get updated sources option to check for unpublished changes.
+		$updated_sources_option = get_option( $this->plugin_name . 'news_sources' );
+
+		return new WP_REST_Response(
+			array(
+				'success'                 => true,
+				'deleted'                 => array(
+					'sources'  => $deleted_source_count,
+					'ad_slots' => $deleted_adslot_count,
+				),
+				'message'                 => sprintf(
+					'Collection deleted successfully. Removed %d source(s) and %d ad slot(s).',
+					$deleted_source_count,
+					$deleted_adslot_count
+				),
+				'has_unpublished_changes' => $this->has_unpublished_changes( $updated_sources_option ),
+			),
+			200
+		);
 	}
 
 	/**

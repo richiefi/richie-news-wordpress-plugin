@@ -25,6 +25,7 @@ export default function App() {
 		isLoading,
 		error,
 		hasUnpublishedChanges,
+		setHasUnpublishedChanges,
 		reorderItems,
 		addSection,
 		updateSection,
@@ -160,6 +161,7 @@ export default function App() {
 				<CollectionSelector
 					value={ selectedCollection }
 					onChange={ handleCollectionChange }
+					onUnpublishedChangesUpdate={ setHasUnpublishedChanges }
 				/>
 
 				{ selectedCollection && (

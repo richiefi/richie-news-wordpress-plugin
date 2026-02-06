@@ -45,8 +45,14 @@ $primary-color: #2271b1;
 
 		&__actions {
 			display: flex;
-			gap: 8px;
-			flex-wrap: wrap;
+			gap: 6px;
+			flex-wrap: nowrap;
+
+			.components-button {
+				white-space: nowrap;
+				padding: 6px 10px;
+				font-size: 13px;
+			}
 		}
 	}
 

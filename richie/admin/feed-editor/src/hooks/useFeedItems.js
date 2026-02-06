@@ -362,6 +362,7 @@ export default function useFeedItems( collectionId ) {
 		isLoading,
 		error,
 		hasUnpublishedChanges,
+		setHasUnpublishedChanges,
 		reorderItems,
 		addSection,
 		updateSection,
