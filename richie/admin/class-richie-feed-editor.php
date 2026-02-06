@@ -290,7 +290,17 @@ class Richie_Feed_Editor {
 			return false;
 		}
 
-		if ( empty( $sources_option['published'] ) || $sources_option['sources'] !== $sources_option['published'] ) {
+		// Only show unpublished changes if draft differs from published.
+		// If published doesn't exist, only show changes if draft has content.
+		if ( ! isset( $sources_option['published'] ) ) {
+			return ! empty( $sources_option['sources'] );
+		}
+
+		// Both sources and published exist - compare them.
+		$sources   = isset( $sources_option['sources'] ) ? $sources_option['sources'] : array();
+		$published = isset( $sources_option['published'] ) ? $sources_option['published'] : array();
+
+		if ( $sources !== $published ) {
 			return true;
 		}
 

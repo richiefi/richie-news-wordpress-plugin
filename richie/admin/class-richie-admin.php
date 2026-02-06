@@ -1006,7 +1006,17 @@ class Richie_Admin {
         $sources = get_option( $this->sources_option_name );
 
         if ( $sources !== false && isset( $sources['sources'] ) ) {
-            if ( empty( $sources['published'] ) || $sources['sources'] !== $sources['published'] ) {
+            // Only show unpublished changes if draft differs from published.
+            // If published doesn't exist, only show changes if draft has content.
+            if ( ! isset( $sources['published'] ) ) {
+                return ! empty( $sources['sources'] );
+            }
+
+            // Both sources and published exist - compare them.
+            $draft_sources     = isset( $sources['sources'] ) ? $sources['sources'] : array();
+            $published_sources = isset( $sources['published'] ) ? $sources['published'] : array();
+
+            if ( $draft_sources !== $published_sources ) {
                 return true;
             }
 
