@@ -237,8 +237,17 @@ class Richie_Admin {
      *
      * @return array
      */
-    private function get_ad_providers() {
+    public static function get_ad_providers() {
         return array( 'smart', 'google' );
+    }
+
+    /**
+     * Get allowed feed item types for collection order entries.
+     *
+     * @return array
+     */
+    public static function get_feed_item_types() {
+        return apply_filters( 'richie_feed_item_types', array( 'source', 'ad' ) );
     }
 
     /**
@@ -802,7 +811,7 @@ class Richie_Admin {
         $section->add_field( 'richie_article_set', __( 'Article set', 'richie' ), 'article_set' );
         $section->add_field( 'adslot_position_index', __( 'Slot position', 'richie' ), 'input_field', array( 'description' => $slot_index_description, 'class' => '' ) );
 
-        $section->add_field( 'adslot_provider', __( 'Ad provider', 'richie' ), 'select_field', array( 'options' => $this->get_ad_providers() ) );
+        $section->add_field( 'adslot_provider', __( 'Ad provider', 'richie' ), 'select_field', array( 'options' => self::get_ad_providers() ) );
         $section->add_field( 'adslot_ad_data', __( 'Ad data', 'richie' ), 'adslot_ad_data_editor' );
 
         // Create assets section.

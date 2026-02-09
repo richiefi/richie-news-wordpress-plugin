@@ -77,6 +77,13 @@ class Richie_Feed_Editor {
 			'methods'             => WP_REST_Server::CREATABLE,
 			'callback'            => array( $this, 'save_order' ),
 			'permission_callback' => array( $this, 'check_permission' ),
+			'args'                => array(
+				'items' => array(
+					'required'          => true,
+					'validate_callback' => array( $this, 'validate_order_items' ),
+					'sanitize_callback' => array( $this, 'sanitize_order_items' ),
+				),
+			),
 		) );
 
 		// Preview section articles
@@ -111,6 +118,22 @@ class Richie_Feed_Editor {
 			'methods'             => WP_REST_Server::CREATABLE,
 			'callback'            => array( $this, 'create_adslot' ),
 			'permission_callback' => array( $this, 'check_permission' ),
+			'args'                => array(
+				'article_set' => array(
+					'required'          => true,
+					'sanitize_callback' => 'absint',
+				),
+				'ad_provider' => array(
+					'required'          => true,
+					'validate_callback' => array( $this, 'validate_ad_provider' ),
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'ad_data' => array(
+					'required'          => false,
+					'validate_callback' => array( $this, 'validate_ad_data' ),
+					'sanitize_callback' => array( $this, 'sanitize_ad_data' ),
+				),
+			),
 		) );
 
 		register_rest_route( $namespace, '/editor/adslot/(?P<id>[a-f0-9\-]+)', array(
@@ -118,6 +141,22 @@ class Richie_Feed_Editor {
 				'methods'             => WP_REST_Server::EDITABLE,
 				'callback'            => array( $this, 'update_adslot' ),
 				'permission_callback' => array( $this, 'check_permission' ),
+				'args'                => array(
+					'article_set' => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+					'ad_provider' => array(
+						'required'          => true,
+						'validate_callback' => array( $this, 'validate_ad_provider' ),
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'ad_data' => array(
+						'required'          => false,
+						'validate_callback' => array( $this, 'validate_ad_data' ),
+						'sanitize_callback' => array( $this, 'sanitize_ad_data' ),
+					),
+				),
 			),
 			array(
 				'methods'             => WP_REST_Server::DELETABLE,
@@ -849,6 +888,178 @@ class Richie_Feed_Editor {
 	}
 
 	/**
+	 * Validate order items payload from REST.
+	 *
+	 * @param mixed           $value   Items payload.
+	 * @param WP_REST_Request $request Request object.
+	 * @param string          $param   Param name.
+	 * @return bool|WP_Error
+	 */
+	public function validate_order_items( $value, $request, $param ) {
+		if ( ! is_array( $value ) ) {
+			return new WP_Error( 'richie_invalid_items', __( 'Items must be an array.', 'richie' ), array( 'status' => 400 ) );
+		}
+
+		if ( count( $value ) > 500 ) {
+			return new WP_Error( 'richie_items_too_large', __( 'Items payload is too large.', 'richie' ), array( 'status' => 400 ) );
+		}
+
+		$allowed_types = $this->get_feed_item_types();
+
+		foreach ( $value as $item ) {
+			if ( ! is_array( $item ) ) {
+				return new WP_Error( 'richie_invalid_item', __( 'Each item must be an object.', 'richie' ), array( 'status' => 400 ) );
+			}
+			$type = isset( $item['type'] ) ? $item['type'] : '';
+			$id   = isset( $item['id'] ) ? $item['id'] : null;
+
+			if ( ! in_array( $type, $allowed_types, true ) ) {
+				return new WP_Error( 'richie_invalid_item_type', __( 'Invalid item type.', 'richie' ), array( 'status' => 400 ) );
+			}
+
+			if ( ! is_scalar( $id ) || '' === trim( (string) $id ) ) {
+				return new WP_Error( 'richie_invalid_item_id', __( 'Invalid item ID.', 'richie' ), array( 'status' => 400 ) );
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Sanitize order items payload.
+	 *
+	 * @param mixed $value Items payload.
+	 * @return array
+	 */
+	public function sanitize_order_items( $value ) {
+		if ( ! is_array( $value ) ) {
+			return array();
+		}
+
+		$allowed_types = $this->get_feed_item_types();
+		$sanitized = array();
+		foreach ( $value as $item ) {
+			if ( ! is_array( $item ) || ! isset( $item['type'], $item['id'] ) ) {
+				continue;
+			}
+			$type = sanitize_text_field( $item['type'] );
+			if ( ! in_array( $type, $allowed_types, true ) ) {
+				continue;
+			}
+			$sanitized[] = array(
+				'type' => $type,
+				'id'   => sanitize_text_field( $item['id'] ),
+			);
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Validate ad provider.
+	 *
+	 * @param mixed           $value   Provider value.
+	 * @param WP_REST_Request $request Request object.
+	 * @param string          $param   Param name.
+	 * @return bool|WP_Error
+	 */
+	public function validate_ad_provider( $value, $request, $param ) {
+		$provider = sanitize_text_field( $value );
+		$providers = $this->get_ad_providers();
+		if ( ! in_array( $provider, $providers, true ) ) {
+			return new WP_Error( 'richie_invalid_ad_provider', __( 'Invalid ad provider.', 'richie' ), array( 'status' => 400 ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Validate ad data size and structure.
+	 *
+	 * @param mixed           $value   Ad data.
+	 * @param WP_REST_Request $request Request object.
+	 * @param string          $param   Param name.
+	 * @return bool|WP_Error
+	 */
+	public function validate_ad_data( $value, $request, $param ) {
+		if ( null === $value || '' === $value ) {
+			return true;
+		}
+
+		if ( is_string( $value ) ) {
+			$raw = wp_unslash( $value );
+			$decoded = json_decode( $raw, true );
+			if ( null === $decoded && JSON_ERROR_NONE !== json_last_error() ) {
+				return new WP_Error( 'richie_invalid_ad_data', __( 'Ad data must be valid JSON.', 'richie' ), array( 'status' => 400 ) );
+			}
+			return true;
+		}
+
+		if ( is_array( $value ) || is_object( $value ) ) {
+			return true;
+		}
+
+		return new WP_Error( 'richie_invalid_ad_data', __( 'Ad data must be JSON.', 'richie' ), array( 'status' => 400 ) );
+	}
+
+	/**
+	 * Sanitize ad data to array or null.
+	 *
+	 * @param mixed $value Ad data.
+	 * @return array|null
+	 */
+	public function sanitize_ad_data( $value ) {
+		if ( null === $value || '' === $value ) {
+			return null;
+		}
+
+		if ( is_string( $value ) ) {
+			$raw = trim( wp_unslash( $value ) );
+			if ( '' === $raw ) {
+				return null;
+			}
+			$decoded = json_decode( $raw, true );
+			return is_array( $decoded ) ? $decoded : null;
+		}
+
+		if ( is_array( $value ) ) {
+			return $value;
+		}
+
+		if ( is_object( $value ) ) {
+			return (array) $value;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Get allowed ad providers.
+	 *
+	 * @return array
+	 */
+	private function get_ad_providers() {
+		if ( class_exists( 'Richie_Admin' ) && method_exists( 'Richie_Admin', 'get_ad_providers' ) ) {
+			return Richie_Admin::get_ad_providers();
+		}
+
+		return array();
+	}
+
+	/**
+	 * Get allowed feed item types.
+	 *
+	 * @return array
+	 */
+	private function get_feed_item_types() {
+		if ( class_exists( 'Richie_Admin' ) && method_exists( 'Richie_Admin', 'get_feed_item_types' ) ) {
+			return Richie_Admin::get_feed_item_types();
+		}
+
+		return array();
+	}
+
+
+	/**
 	 * Create a new ad slot.
 	 *
 	 * @since    2.0.0
@@ -857,6 +1068,7 @@ class Richie_Feed_Editor {
 	 */
 	public function create_adslot( $request ) {
 		$collection_id = intval( $request->get_param( 'article_set' ) );
+		$ad_data = $request->get_param( 'ad_data' );
 		$adslots_option = get_option( $this->plugin_name . '_adslots' );
 
 		if ( ! isset( $adslots_option['slots'] ) ) {
@@ -882,7 +1094,7 @@ class Richie_Feed_Editor {
 				'id'                => $ad_id,
 				'list_layout_style' => 'ad',
 				'ad_provider'       => sanitize_text_field( $request->get_param( 'ad_provider' ) ),
-				'ad_data'           => $request->get_param( 'ad_data' ),
+				'ad_data'           => $ad_data,
 			),
 		);
 
@@ -904,6 +1116,7 @@ class Richie_Feed_Editor {
 	public function update_adslot( $request ) {
 		$ad_id = $request['id'];
 		$collection_id = intval( $request->get_param( 'article_set' ) );
+		$ad_data = $request->get_param( 'ad_data' );
 		$adslots_option = get_option( $this->plugin_name . '_adslots' );
 
 		// Find the ad slot by UUID
@@ -912,7 +1125,7 @@ class Richie_Feed_Editor {
 			foreach ( $adslots_option['slots'][ $collection_id ] as $index => &$adslot ) {
 				if ( isset( $adslot['attributes']['id'] ) && $adslot['attributes']['id'] === $ad_id ) {
 					$adslot['attributes']['ad_provider'] = sanitize_text_field( $request->get_param( 'ad_provider' ) );
-					$adslot['attributes']['ad_data'] = $request->get_param( 'ad_data' );
+					$adslot['attributes']['ad_data'] = $ad_data;
 					$adslot['updated'] = time();
 					$found = true;
 					break;
