@@ -1,0 +1,36 @@
+{
+    "translation-revision-date": "2026-02-09 07:42+0000",
+    "generator": "Loco https://localise.biz/",
+    "source": "admin/feed-editor/src/components/CollectionModal.js",
+    "domain": "richie",
+    "locale_data": {
+        "richie": {
+            "": {
+                "domain": "",
+                "lang": "fi",
+                "plural-forms": "nplurals=2; plural=n != 1;"
+            },
+            "Add collection": [
+                "Lis\u00e4\u00e4 kokoelma"
+            ],
+            "Cancel": [
+                "Peruuta"
+            ],
+            "Edit collection": [
+                "Muokkaa kokoelmaa"
+            ],
+            "Name": [
+                "Nimi"
+            ],
+            "Slug": [
+                "Polkutunnus"
+            ],
+            "Update collection": [
+                "P\u00e4ivit\u00e4 kokoelma"
+            ],
+            "Used in feed URL (optional)": [
+                "K\u00e4ytet\u00e4\u00e4n sy\u00f6tteen URL-osoitteessa (valinnainen)"
+            ]
+        }
+    }
+}

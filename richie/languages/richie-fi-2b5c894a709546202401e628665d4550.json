@@ -1,0 +1,42 @@
+{
+    "translation-revision-date": "2026-02-09 07:42+0000",
+    "generator": "Loco https://localise.biz/",
+    "source": "admin/feed-editor/src/components/AdSlotModal.js",
+    "domain": "richie",
+    "locale_data": {
+        "richie": {
+            "": {
+                "domain": "",
+                "lang": "fi",
+                "plural-forms": "nplurals=2; plural=n != 1;"
+            },
+            "Ad Data (JSON)": [
+                "Mainostiedot (JSON)"
+            ],
+            "Ad Provider": [
+                "Mainospalvelu"
+            ],
+            "Add ad slot": [
+                "Lis\u00e4\u00e4 mainospaikka"
+            ],
+            "Cancel": [
+                "Peruuta"
+            ],
+            "Edit ad slot": [
+                "Muokkaa mainospaikkaa"
+            ],
+            "Insert example": [
+                "Lis\u00e4\u00e4 esimerkki"
+            ],
+            "Invalid JSON:": [
+                "Virheellinen JSON:"
+            ],
+            "Optional JSON configuration for the ad": [
+                "Valinnainen JSON-asetus mainokselle"
+            ],
+            "Update ad slot": [
+                "P\u00e4ivit\u00e4 mainospaikka"
+            ]
+        }
+    }
+}

@@ -1,0 +1,41 @@
+{
+    "translation-revision-date": "2026-02-09 07:42+0000",
+    "generator": "Loco https://localise.biz/",
+    "source": "admin/feed-editor/src/components/SectionCard.js",
+    "domain": "richie",
+    "locale_data": {
+        "richie": {
+            "": {
+                "domain": "",
+                "lang": "fi",
+                "plural-forms": "nplurals=2; plural=n != 1;"
+            },
+            "%1$d article (%2$d available)": [
+                "%1$d artikkeli (%2$d saatavilla)",
+                "%1$d artikkelia (%2$d saatavilla)"
+            ],
+            "%d article": [
+                "%d artikkeli",
+                "%d artikkelia"
+            ],
+            "Are you sure you want to delete this section?": [
+                "Haluatko varmasti poistaa t\u00e4m\u00e4n osion?"
+            ],
+            "Delete": [
+                "Poista"
+            ],
+            "Edit": [
+                "Muokkaa"
+            ],
+            "more": [
+                "lis\u00e4\u00e4"
+            ],
+            "No articles found": [
+                "Ei artikkeleita l\u00f6ytynyt"
+            ],
+            "Show less": [
+                "N\u00e4yt\u00e4 v\u00e4hemm\u00e4n"
+            ]
+        }
+    }
+}

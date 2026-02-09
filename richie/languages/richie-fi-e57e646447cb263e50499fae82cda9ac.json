@@ -1,0 +1,130 @@
+{
+    "translation-revision-date": "2026-02-09 07:42+0000",
+    "generator": "Loco https://localise.biz/",
+    "source": "admin/feed-editor/src/components/SectionModal.js",
+    "domain": "richie",
+    "locale_data": {
+        "richie": {
+            "": {
+                "domain": "",
+                "lang": "fi",
+                "plural-forms": "nplurals=2; plural=n != 1;"
+            },
+            "%d day": [
+                "%d p\u00e4iv\u00e4",
+                "%d p\u00e4iv\u00e4\u00e4"
+            ],
+            "%d month": [
+                "%d kuukausi",
+                "%d kuukautta"
+            ],
+            "%d week": [
+                "%d viikko",
+                "%d viikkoa"
+            ],
+            "%d year": [
+                "%d vuosi",
+                "%d vuotta"
+            ],
+            "Add section": [
+                "Lis\u00e4\u00e4 osio"
+            ],
+            "All time": [
+                "Kaikki"
+            ],
+            "Allow duplicate articles in this source": [
+                "Salli duplikaattiartikkelit t\u00e4ss\u00e4 l\u00e4hteess\u00e4"
+            ],
+            "Allow Duplicates": [
+                "Salli duplikaatit"
+            ],
+            "Ascending": [
+                "Nouseva"
+            ],
+            "Author": [
+                "Kirjoittaja"
+            ],
+            "Background Color": [
+                "Taustav\u00e4ri"
+            ],
+            "Background color to be used with layout types. Not all layout types support this.": [
+                "Taustav\u00e4ri jota voidaan k\u00e4ytt\u00e4\u00e4 artikkelipohjissa. Kaikki pohjat eiv\u00e4t t\u00e4t\u00e4 tue."
+            ],
+            "Cancel": [
+                "Peruuta"
+            ],
+            "Categories": [
+                "Kategoriat"
+            ],
+            "Clear": [
+                "Tyhjenn\u00e4"
+            ],
+            "Date": [
+                "P\u00e4iv\u00e4m\u00e4\u00e4r\u00e4"
+            ],
+            "Descending": [
+                "Laskeva"
+            ],
+            "Disable Summary": [
+                "Piilota yhteenveto"
+            ],
+            "Do not show summary text in news list": [
+                "\u00c4l\u00e4 n\u00e4yt\u00e4 artikkelin yhteenvetoa uutislistauksessa"
+            ],
+            "Edit section": [
+                "Muokkaa osiota"
+            ],
+            "Enter tag slugs separated by commas": [
+                "Sy\u00f6t\u00e4 tunnisteiden polkutunnukset pilkuilla eroteltuna"
+            ],
+            "Group Title": [
+                "Ryhm\u00e4n otsikko"
+            ],
+            "Header to display before the story, useful on the first small_group_item of a group": [
+                "Otsikko, joka n\u00e4ytet\u00e4\u00e4n ennen artikkelia."
+            ],
+            "ID": [
+                "ID"
+            ],
+            "Layout Style": [
+                "Asettelu"
+            ],
+            "Max Age": [
+                "Enimm\u00e4isik\u00e4"
+            ],
+            "Modified": [
+                "Muokattu"
+            ],
+            "Name": [
+                "Nimi"
+            ],
+            "Number of Articles": [
+                "Artikkelien m\u00e4\u00e4r\u00e4"
+            ],
+            "Number of posts included in the feed": [
+                "Sy\u00f6tteeseen mukaanotettavien artikkelien m\u00e4\u00e4r\u00e4"
+            ],
+            "Order By": [
+                "J\u00e4rjest\u00e4"
+            ],
+            "Order Direction": [
+                "J\u00e4rjestyssuunta"
+            ],
+            "Post Type": [
+                "Artikkelityyppi"
+            ],
+            "Select color": [
+                "Valitse v\u00e4ri"
+            ],
+            "Tags (comma-separated)": [
+                "Asiasanat (pilkuilla eroteltuna)"
+            ],
+            "Title": [
+                "Otsikko"
+            ],
+            "Update section": [
+                "P\u00e4ivit\u00e4 osio"
+            ]
+        }
+    }
+}
