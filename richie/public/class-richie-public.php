@@ -104,12 +104,18 @@ class Richie_Public {
                     : null );
         }
 
+        // Filter sources matching this article set.
+        $matching_sources = array_filter(
+            $richie_news_sources,
+            function ( $source ) use ( $article_set ) {
+                return isset( $source['article_set'] ) && $article_set->term_id === $source['article_set'];
+            }
+        );
+
         // Index sources by ID for quick lookup when using custom order
         $sources_by_id = array();
-        foreach ( $richie_news_sources as $source ) {
-            if ( isset( $source['article_set'] ) && $article_set->term_id === $source['article_set'] ) {
-                $sources_by_id[ $source['id'] ] = $source;
-            }
+        foreach ( $matching_sources as $source ) {
+            $sources_by_id[ $source['id'] ] = $source;
         }
 
         // Get ad slots indexed by UUID
@@ -125,35 +131,31 @@ class Richie_Public {
         }
 
         // Determine iteration order
-        if ( $collection_order ) {
+        $use_custom_order = ! empty( $collection_order );
+        if ( $use_custom_order ) {
             $ordered_items = $collection_order;
         } else {
-            // Fall back to legacy order: sources first (by ID), then ads by position
             $ordered_items = array();
-            foreach ( $sources_by_id as $source ) {
-                $ordered_items[] = array( 'type' => 'source', 'id' => $source['id'] );
-            }
-            // Legacy ad slots use position index, add them at the end for now
-            // (they will be inserted by position in the legacy code path below)
         }
 
         // Use legacy ad slot handling if no custom order
-        $adslots = $collection_order ? array() : $this->get_ad_slots( $article_set );
+        $adslots = $use_custom_order ? array() : $this->get_ad_slots( $article_set );
 
         // When using custom order, we'll build articles directly with interleaved ads
         $articles_with_order = array();
-        $use_custom_order = ! empty( $collection_order );
 
-        // Process sources in order (custom order iterates via ordered_items, legacy uses sources_by_id)
-        $sources_to_process = $use_custom_order ? array() : $sources_by_id;
-
-        // Build sources_to_process from ordered_items for custom order
+        // Process sources in order
         if ( $use_custom_order ) {
+            // Custom order: look up sources by ID from ordered_items
+            $sources_to_process = array();
             foreach ( $ordered_items as $item ) {
                 if ( $item['type'] === 'source' && isset( $sources_by_id[ $item['id'] ] ) ) {
                     $sources_to_process[ $item['id'] ] = $sources_by_id[ $item['id'] ];
                 }
             }
+        } else {
+            // Legacy: use all matching sources (preserves duplicates with same ID)
+            $sources_to_process = $matching_sources;
         }
 
         foreach ( $sources_to_process as $source ) {

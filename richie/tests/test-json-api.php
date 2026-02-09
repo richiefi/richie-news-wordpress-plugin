@@ -404,7 +404,7 @@ class Test_JSON_API extends WP_UnitTestCase {
         );
 
         $sources[2] = array(
-            'id'                => 1,
+            'id'                => 2,
             'name'              => 'test source 2',
             'number_of_posts'   => 3,
             'order_by'          => 'date',
