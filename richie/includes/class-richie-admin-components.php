@@ -385,7 +385,7 @@ class Richie_Admin_Components {
         $rest_url = rtrim( $rest_url, '/' );
 
         ?>
-        <div class="richie-api-endpoints">
+        <div class="richie-api-endpoints" style="margin-top: 1em;">
             <p class="description">
                 <?php esc_html_e( 'Copy these endpoint URLs to use in your API client or documentation. Replace placeholders with actual values.', 'richie' ); ?>
             </p>
@@ -414,7 +414,7 @@ class Richie_Admin_Components {
             <div class="richie-api-endpoint">
                 <h4><?php esc_html_e( 'Single Article', 'richie' ); ?></h4>
                 <p class="description">
-                    <?php esc_html_e( 'Get a single article by ID. Replace <article-id> with a WordPress post ID.', 'richie' ); ?>
+                    <?php esc_html_e( 'Get a single article by ID. Replace <article-id> with the article ID from the news feed response.', 'richie' ); ?>
                 </p>
                 <?php
                 $this->api_endpoint_field(

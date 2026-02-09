@@ -10,7 +10,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2020-04-01T12:11:10+00:00\n"
-"PO-Revision-Date: 2026-02-06 16:00+0000\n"
+"PO-Revision-Date: 2026-02-09 06:56+0000\n"
 "X-Generator: Loco https://localise.biz/\n"
 "X-Domain: richie\n"
 "Language: fi\n"
@@ -594,10 +594,11 @@ msgstr "Yleiset asetukset"
 
 #: includes/class-richie-admin-components.php:417
 msgid ""
-"Get a single article by ID. Replace <article-id> with a WordPress post ID."
+"Get a single article by ID. Replace <article-id> with the article ID from "
+"the news feed response."
 msgstr ""
-"Hae yksittäinen artikkeli ID:llä. Korvaa <article-id> WordPress-artikkelin "
-"ID:llä."
+"Hae yksittäinen artikkeli. Vaihda <article-id> id-numerolla joka tulee news-"
+"rajapinnan vastauksesta."
 
 #: includes/class-richie-admin-components.php:397
 msgid ""

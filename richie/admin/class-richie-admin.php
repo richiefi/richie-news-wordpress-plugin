@@ -786,23 +786,6 @@ class Richie_Admin {
             )
         );
 
-        // API Endpoints section.
-        $api_section = new Richie_Settings_Section(
-            'richie_api_endpoints',
-            __( 'API Endpoints', 'richie' ),
-            $this->settings_option_name
-        );
-
-        $api_section->add_field(
-            'api_endpoints_description',
-            '',
-            'api_endpoints_list',
-            array(
-                'access_token' => $options['access_token'],
-                'rest_url'     => rest_url(),
-            )
-        );
-
         // Create source section.
         $source_section = new Richie_Settings_Section( $sources_section_name, __( 'Basic data', 'richie' ), $this->sources_option_name );
         $source_section->add_field( 'source_name', __( 'Name', 'richie' ), 'input_field' );

@@ -24,6 +24,7 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'editor';
     <h2 class="nav-tab-wrapper">
         <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=editor' ) ?>" class="nav-tab <?php echo $active_tab == 'editor' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Feed Editor', 'richie') ?></a>
         <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=settings' ) ?>" class="nav-tab <?php echo $active_tab == 'settings' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Settings', 'richie') ?></a>
+        <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=api' ) ?>" class="nav-tab <?php echo $active_tab == 'api' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('API', 'richie') ?></a>
         <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=sources' ) ?>" class="nav-tab <?php echo $active_tab == 'sources' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Advanced: Sources', 'richie') ?></a>
         <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=adslots' ) ?>" class="nav-tab <?php echo $active_tab == 'adslots' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Advanced: Ad Slots', 'richie') ?></a>
         <a href="<?php echo admin_url( 'options-general.php?page=' . $this->settings_page_slug . '&tab=assets' ) ?>" class="nav-tab <?php echo $active_tab == 'assets' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('News assets', 'richie') ?></a>
@@ -42,6 +43,18 @@ $active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'editor';
 
             <?php submit_button(esc_html__('Save all changes', 'richie'), 'primary','submit', TRUE); ?>
         </form>
+
+    <?php elseif ( $active_tab === 'api' ) : ?>
+        <?php
+            $options  = get_option( $this->settings_option_name );
+            $components = new Richie_Admin_Components();
+            $components->api_endpoints_list(
+                array(
+                    'access_token' => isset( $options['access_token'] ) ? $options['access_token'] : '',
+                    'rest_url'     => rest_url(),
+                )
+            );
+        ?>
 
     <?php elseif ($active_tab === 'sources') : ?>
         <h3><?php _e('News sources', 'richie') ?></h3>
