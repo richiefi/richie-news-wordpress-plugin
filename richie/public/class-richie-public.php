@@ -383,16 +383,14 @@ class Richie_Public {
 
     public function get_section_article( $article ) {
         $section_article = array(
-            'publisher_id'         => $article['id'],
-            'article_full_version' => $article['last_updated'], // TODO: Undocumented field - verify if still needed.
             'layout'               => $article['article_attributes']['list_layout_style'],
-            'is_premium'           => false,
         );
 
         if ( 'ad' !== $article['article_attributes']['list_layout_style'] ) {
             $post              = $article['original_post'];
             $article_instance  = new Richie_Article( $this->richie_options );
             $generated_article = $article_instance->generate_article( $post, Richie_Article::EXCLUDE_CONTENT );
+            $section_article['publisher_id'] = $article['id'];
 
             $premium_categories = isset( $this->richie_options['premium_categories'] ) ? (array) $this->richie_options['premium_categories'] : array();
             if ( ! empty( $premium_categories ) ) {
