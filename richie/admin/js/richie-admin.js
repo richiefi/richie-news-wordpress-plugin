@@ -199,7 +199,7 @@
         });
       }
 
-      $('.richie-notice a#publish-sources').on('click', function() {
+      $('.richie-notice a#publish-sources, a#publish-sources-legacy').on('click', function() {
         var data = {
           action: 'publish_source_changes',
           security: richie_ajax.security

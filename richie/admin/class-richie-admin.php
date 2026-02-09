@@ -1187,7 +1187,7 @@ class Richie_Admin {
             <?php if ( ! empty( $options['published_at'] ) ) : ?>
             <span><?php esc_html_e( 'Last publish time:', 'richie' ); ?> <em><?php echo esc_html( get_date_from_gmt( date( 'Y-m-d H:i:s', $options['published_at'] ), get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) ) ); ?></em></span>
             <?php endif; ?>
-            <a class="button-primary" style="float:right; margin-bottom: 1em;" href="#" id="publish-sources"><?php esc_html_e( 'Publish', 'richie' ); ?></a>
+            <a class="button-primary" style="float:right; margin-bottom: 1em;" href="#" id="publish-sources-legacy"><?php esc_html_e( 'Publish', 'richie' ); ?></a>
             <table class="widefat feed-source-list sortable-list">
                 <thead>
                     <th style="width: 30px;"></th>
