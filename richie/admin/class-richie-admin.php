@@ -858,6 +858,40 @@ class Richie_Admin {
         if ( count( $current_list ) === count( $new_list ) && empty( array_diff_key( $current_list, $new_list ) ) ) {
             $option['sources'] = $new_list;
             $option['updated'] = time();
+
+            // Sync collection_order entries to match new source ordering.
+            if ( ! empty( $option['collection_order'] ) ) {
+                foreach ( $option['collection_order'] as $collection_id => $order_items ) {
+                    // Separate ad slots from the existing order.
+                    $ad_items = array();
+                    foreach ( $order_items as $idx => $item ) {
+                        if ( isset( $item['type'] ) && 'ad' === $item['type'] ) {
+                            $ad_items[ $idx ] = $item;
+                        }
+                    }
+
+                    // Build new source order from the reordered sources array.
+                    $new_source_items = array();
+                    foreach ( $new_list as $source ) {
+                        if ( isset( $source['article_set'] ) && intval( $source['article_set'] ) === intval( $collection_id ) ) {
+                            $new_source_items[] = array(
+                                'type' => 'source',
+                                'id'   => $source['id'],
+                            );
+                        }
+                    }
+
+                    // Re-insert ad slots at their original positions.
+                    $new_order_items = $new_source_items;
+                    foreach ( $ad_items as $original_idx => $ad_item ) {
+                        $insert_at = min( $original_idx, count( $new_order_items ) );
+                        array_splice( $new_order_items, $insert_at, 0, array( $ad_item ) );
+                    }
+
+                    $option['collection_order'][ $collection_id ] = $new_order_items;
+                }
+            }
+
             // Skip validate source.
             remove_filter( 'sanitize_option_' . $this->sources_option_name, array( $this, 'validate_source' ) );
             $updated = update_option( $this->sources_option_name, $option );
@@ -1173,7 +1207,12 @@ class Richie_Admin {
                 </thead>
                 <tbody>
                 <?php
-                foreach ( $options['sources'] as $key => $source ) {
+                // Reorder sources to match collection_order when present.
+                $display_sources = $options['sources'];
+                if ( ! empty( $options['collection_order'] ) ) {
+                    $display_sources = $this->sort_sources_by_collection_order( $display_sources, $options['collection_order'] );
+                }
+                foreach ( $display_sources as $key => $source ) {
                     $category_names = array();
                     if ( ! empty( $source['categories'] ) ) {
                         $categories = get_categories(
@@ -1240,6 +1279,91 @@ class Richie_Admin {
         else :
             printf( '<em>%s</em>', esc_html__( 'No sources configured. Add news feed sources with the form below.', 'richie' ) );
         endif;
+    }
+
+    /**
+     * Sort sources array to match collection_order entries.
+     *
+     * For each collection that has a collection_order entry, sources belonging
+     * to that collection are reordered to match. Sources in collections without
+     * a collection_order entry keep their original relative positions.
+     *
+     * @param array $sources        The sources array (keyed by source ID).
+     * @param array $collection_order The collection_order map (collection_id => items).
+     * @return array Reordered sources array.
+     */
+    private function sort_sources_by_collection_order( $sources, $collection_order ) {
+        // Group source keys by collection.
+        $collection_sources = array();
+        $source_positions   = array();
+        $position           = 0;
+
+        foreach ( $sources as $key => $source ) {
+            $collection_id = isset( $source['article_set'] ) ? intval( $source['article_set'] ) : 0;
+            if ( ! isset( $collection_sources[ $collection_id ] ) ) {
+                $collection_sources[ $collection_id ] = array();
+            }
+            $collection_sources[ $collection_id ][] = $key;
+            $source_positions[ $key ] = $position++;
+        }
+
+        // For collections with a collection_order, reorder their source keys.
+        foreach ( $collection_order as $collection_id => $order_items ) {
+            $collection_id = intval( $collection_id );
+            if ( ! isset( $collection_sources[ $collection_id ] ) ) {
+                continue;
+            }
+
+            $ordered_keys = array();
+            foreach ( $order_items as $item ) {
+                if ( isset( $item['type'] ) && 'source' === $item['type'] && isset( $item['id'] ) ) {
+                    $source_id = $item['id'];
+                    if ( isset( $sources[ $source_id ] ) ) {
+                        $ordered_keys[] = $source_id;
+                    }
+                }
+            }
+
+            // Append any sources in this collection not present in collection_order.
+            foreach ( $collection_sources[ $collection_id ] as $key ) {
+                if ( ! in_array( $key, $ordered_keys, true ) ) {
+                    $ordered_keys[] = $key;
+                }
+            }
+
+            $collection_sources[ $collection_id ] = $ordered_keys;
+        }
+
+        // Rebuild the sources array maintaining collection group positions.
+        $result       = array();
+        $used_keys    = array();
+        $prev_collection = null;
+
+        foreach ( $sources as $key => $source ) {
+            $collection_id = isset( $source['article_set'] ) ? intval( $source['article_set'] ) : 0;
+
+            if ( $collection_id !== $prev_collection ) {
+                // Entering a new collection group — emit all sources for this collection.
+                if ( isset( $collection_sources[ $collection_id ] ) ) {
+                    foreach ( $collection_sources[ $collection_id ] as $ordered_key ) {
+                        if ( ! isset( $used_keys[ $ordered_key ] ) ) {
+                            $result[ $ordered_key ] = $sources[ $ordered_key ];
+                            $used_keys[ $ordered_key ] = true;
+                        }
+                    }
+                }
+                $prev_collection = $collection_id;
+            }
+
+            // Skip sources already emitted.
+            if ( isset( $used_keys[ $key ] ) ) {
+                continue;
+            }
+            $result[ $key ] = $source;
+            $used_keys[ $key ] = true;
+        }
+
+        return $result;
     }
 
     /**

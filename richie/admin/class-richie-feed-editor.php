@@ -483,6 +483,44 @@ class Richie_Feed_Editor {
 		$sources_option['collection_order'][ $collection_id ] = $items;
 		$sources_option['updated'] = time();
 
+		// Sync sources array key order to match collection_order for legacy compatibility.
+		if ( isset( $sources_option['sources'] ) ) {
+			$new_source_order = array();
+			foreach ( $items as $item ) {
+				if ( isset( $item['type'] ) && 'source' === $item['type'] && isset( $item['id'] ) ) {
+					$new_source_order[] = $item['id'];
+				}
+			}
+
+			$sources            = $sources_option['sources'];
+			$reordered          = array();
+			$collection_idx     = 0;
+			$source_id_to_key   = array();
+
+			foreach ( $sources as $key => $source ) {
+				if ( isset( $source['article_set'] ) && intval( $source['article_set'] ) === $collection_id ) {
+					$source_id_to_key[ $source['id'] ] = $key;
+				}
+			}
+
+			foreach ( $sources as $key => $source ) {
+				if ( isset( $source['article_set'] ) && intval( $source['article_set'] ) === $collection_id ) {
+					// Replace with next source from new order.
+					if ( $collection_idx < count( $new_source_order ) ) {
+						$new_id = $new_source_order[ $collection_idx ];
+						if ( isset( $source_id_to_key[ $new_id ] ) ) {
+							$reordered[ $source_id_to_key[ $new_id ] ] = $sources[ $source_id_to_key[ $new_id ] ];
+						}
+					}
+					$collection_idx++;
+				} else {
+					$reordered[ $key ] = $source;
+				}
+			}
+
+			$sources_option['sources'] = $reordered;
+		}
+
 		update_option( $this->plugin_name . 'news_sources', $sources_option );
 
 		// Sync ad slot positions with custom order for legacy compatibility
