@@ -22,7 +22,7 @@ const LAYOUT_OPTIONS =
   window.richieFeedEditorSettings &&
   Array.isArray(window.richieFeedEditorSettings.layoutOptions)
     ? window.richieFeedEditorSettings.layoutOptions.map((option) => ({
-        label: option.label || option.title || option.value,
+        label: option.title || option.value,
         value: option.value
       }))
     : DEFAULT_LAYOUT_OPTIONS;

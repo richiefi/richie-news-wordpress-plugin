@@ -117,12 +117,10 @@ class Richie_Admin {
             array(
                 'value' => 'featured',
                 'title' => 'Featured',
-                'label' => 'Featured',
             ),
             array(
                 'value' => 'small',
                 'title' => 'Small',
-                'label' => 'Small',
             ),
         );
         $this->available_layout_names = array_map(
@@ -224,23 +222,12 @@ class Richie_Admin {
     }
 
     /**
-     * Get translated layout options for UI usage.
+     * Get layout options for UI usage.
      *
      * @return array
      */
     private function get_layout_options() {
-        return array(
-            array(
-                'value' => 'featured',
-                'title' => 'Featured',
-                'label' => 'Featured',
-            ),
-            array(
-                'value' => 'small',
-                'title' => 'Small',
-                'label' => 'Small',
-            ),
-        );
+        return $this->available_layout_options;
     }
 
     /**
