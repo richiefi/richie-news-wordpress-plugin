@@ -12,8 +12,6 @@
  */
 ?>
 
-<div class="wrap richie-feed-editor-page">
-	<h1><?php echo esc_html( get_admin_page_title() ); ?> - <?php esc_html_e( 'Feed Editor', 'richie' ); ?></h1>
-
+<div class="richie-feed-editor-page">
 	<div id="feed-editor-root"></div>
 </div>

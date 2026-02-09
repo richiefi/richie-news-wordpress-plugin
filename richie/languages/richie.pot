@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-02-09T06:54:50+00:00\n"
+"POT-Creation-Date: 2026-02-09T07:42:00+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: richie\n"
@@ -115,361 +115,360 @@ msgstr ""
 msgid "Entitlement value used for all premium articles. If empty, category name is used (converted to UPPER_SNAKE_CASE)."
 msgstr ""
 
-#: admin/class-richie-admin.php:792
-msgid "API Endpoints"
-msgstr ""
-
-#: admin/class-richie-admin.php:807
+#: admin/class-richie-admin.php:790
 msgid "Basic data"
 msgstr ""
 
-#: admin/class-richie-admin.php:808
+#: admin/class-richie-admin.php:791
 #: admin/feed-editor/build/index.js:1
 #: admin/feed-editor/src/components/CollectionModal.js:54
 #: admin/feed-editor/src/components/SectionModal.js:242
 msgid "Name"
 msgstr ""
 
-#: admin/class-richie-admin.php:809
-#: admin/class-richie-admin.php:832
+#: admin/class-richie-admin.php:792
+#: admin/class-richie-admin.php:815
 #: includes/class-richie-custom-taxonomies.php:49
 msgid "Article set"
 msgstr ""
 
-#: admin/class-richie-admin.php:810
+#: admin/class-richie-admin.php:793
 msgid "Number of posts"
 msgstr ""
 
-#: admin/class-richie-admin.php:810
+#: admin/class-richie-admin.php:793
 #: admin/feed-editor/build/index.js:1
 #: admin/feed-editor/src/components/SectionModal.js:264
 msgid "Number of posts included in the feed"
 msgstr ""
 
-#: admin/class-richie-admin.php:812
+#: admin/class-richie-admin.php:795
 msgid "Post type"
 msgstr ""
 
-#: admin/class-richie-admin.php:814
+#: admin/class-richie-admin.php:797
 msgid "Filters"
 msgstr ""
 
-#: admin/class-richie-admin.php:815
+#: admin/class-richie-admin.php:798
 #: admin/feed-editor/build/index.js:1
 #: admin/feed-editor/src/components/SectionModal.js:329
 msgid "Categories"
 msgstr ""
 
-#: admin/class-richie-admin.php:816
+#: admin/class-richie-admin.php:799
 msgid "Tags"
 msgstr ""
 
-#: admin/class-richie-admin.php:817
+#: admin/class-richie-admin.php:800
 msgid "Order by"
 msgstr ""
 
-#: admin/class-richie-admin.php:818
+#: admin/class-richie-admin.php:801
 msgid "Order direction"
 msgstr ""
 
-#: admin/class-richie-admin.php:819
+#: admin/class-richie-admin.php:802
 msgid "Post max age"
 msgstr ""
 
-#: admin/class-richie-admin.php:821
+#: admin/class-richie-admin.php:804
 msgid "Options"
 msgstr ""
 
-#: admin/class-richie-admin.php:822
+#: admin/class-richie-admin.php:805
 msgid "List layout"
 msgstr ""
 
-#: admin/class-richie-admin.php:823
+#: admin/class-richie-admin.php:806
 msgid "List group title"
 msgstr ""
 
-#: admin/class-richie-admin.php:823
+#: admin/class-richie-admin.php:806
 #: admin/feed-editor/build/index.js:1
 #: admin/feed-editor/src/components/SectionModal.js:371
 msgid "Header to display before the story, useful on the first small_group_item of a group"
 msgstr ""
 
-#: admin/class-richie-admin.php:824
+#: admin/class-richie-admin.php:807
 msgid "Background color"
 msgstr ""
 
-#: admin/class-richie-admin.php:824
+#: admin/class-richie-admin.php:807
 #: admin/feed-editor/build/index.js:1
 #: admin/feed-editor/src/components/SectionModal.js:420
 msgid "Background color to be used with layout types. Not all layout types support this."
 msgstr ""
 
-#: admin/class-richie-admin.php:825
+#: admin/class-richie-admin.php:808
 msgid "Allow duplicates"
 msgstr ""
 
-#: admin/class-richie-admin.php:825
+#: admin/class-richie-admin.php:808
 #: admin/feed-editor/build/index.js:1
 #: admin/feed-editor/src/components/SectionModal.js:438
 msgid "Allow duplicate articles in this source"
 msgstr ""
 
-#: admin/class-richie-admin.php:826
+#: admin/class-richie-admin.php:809
 msgid "Disable article summary"
 msgstr ""
 
-#: admin/class-richie-admin.php:826
+#: admin/class-richie-admin.php:809
 #: admin/feed-editor/build/index.js:1
 #: admin/feed-editor/src/components/SectionModal.js:452
 msgid "Do not show summary text in news list"
 msgstr ""
 
-#: admin/class-richie-admin.php:829
+#: admin/class-richie-admin.php:812
 msgid "Specify an index number for the ad slot placement in the article set feed. 1-based index, so 1 means the first item on the feed. Existing index for the article set is overwritten."
 msgstr ""
 
-#: admin/class-richie-admin.php:831
+#: admin/class-richie-admin.php:814
 msgid "Add new ad slot"
 msgstr ""
 
-#: admin/class-richie-admin.php:833
+#: admin/class-richie-admin.php:816
 msgid "Slot position"
 msgstr ""
 
-#: admin/class-richie-admin.php:835
+#: admin/class-richie-admin.php:818
 msgid "Ad provider"
 msgstr ""
 
-#: admin/class-richie-admin.php:836
+#: admin/class-richie-admin.php:819
 msgid "Ad data"
 msgstr ""
 
-#: admin/class-richie-admin.php:839
+#: admin/class-richie-admin.php:822
 msgid "Asset feed"
 msgstr ""
 
-#: admin/class-richie-admin.php:840
+#: admin/class-richie-admin.php:823
 msgid "Assets"
 msgstr ""
 
-#: admin/class-richie-admin.php:1154
+#: admin/class-richie-admin.php:1137
 msgid "Orphaned sources detected:"
 msgstr ""
 
 #. translators: %d: number of orphaned sources
-#: admin/class-richie-admin.php:1158
+#: admin/class-richie-admin.php:1141
 #, php-format
 msgid "%d source is referencing a collection that no longer exists."
 msgid_plural "%d sources are referencing collections that no longer exist."
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/class-richie-admin.php:1165
+#: admin/class-richie-admin.php:1148
 msgid "Clean up orphaned sources"
 msgstr ""
 
-#: admin/class-richie-admin.php:1171
+#: admin/class-richie-admin.php:1154
 msgid "Last publish time:"
 msgstr ""
 
-#: admin/class-richie-admin.php:1173
+#: admin/class-richie-admin.php:1156
 msgid "Publish"
 msgstr ""
 
-#: admin/class-richie-admin.php:1177
-#: admin/class-richie-admin.php:1276
+#: admin/class-richie-admin.php:1160
+#: admin/class-richie-admin.php:1259
 msgctxt "column name"
 msgid "ID"
 msgstr ""
 
-#: admin/class-richie-admin.php:1178
-#: admin/class-richie-admin.php:1274
+#: admin/class-richie-admin.php:1161
+#: admin/class-richie-admin.php:1257
 msgctxt "column name"
 msgid "Article Set"
 msgstr ""
 
-#: admin/class-richie-admin.php:1179
+#: admin/class-richie-admin.php:1162
 msgctxt "column name"
 msgid "Name"
 msgstr ""
 
-#: admin/class-richie-admin.php:1180
+#: admin/class-richie-admin.php:1163
 msgctxt "column name"
 msgid "Post type"
 msgstr ""
 
-#: admin/class-richie-admin.php:1181
+#: admin/class-richie-admin.php:1164
 msgctxt "column name"
 msgid "Categories"
 msgstr ""
 
-#: admin/class-richie-admin.php:1182
+#: admin/class-richie-admin.php:1165
 msgctxt "column name"
 msgid "Posts"
 msgstr ""
 
-#: admin/class-richie-admin.php:1183
+#: admin/class-richie-admin.php:1166
 msgctxt "column name"
 msgid "Order"
 msgstr ""
 
-#: admin/class-richie-admin.php:1184
+#: admin/class-richie-admin.php:1167
 msgctxt "column name"
 msgid "Max age"
 msgstr ""
 
-#: admin/class-richie-admin.php:1185
+#: admin/class-richie-admin.php:1168
 msgctxt "column name"
 msgid "List layout"
 msgstr ""
 
-#: admin/class-richie-admin.php:1186
+#: admin/class-richie-admin.php:1169
 msgctxt "column name"
 msgid "Background"
 msgstr ""
 
-#: admin/class-richie-admin.php:1187
+#: admin/class-richie-admin.php:1170
 msgctxt "column name"
 msgid "Disable summary"
 msgstr ""
 
-#: admin/class-richie-admin.php:1188
+#: admin/class-richie-admin.php:1171
 msgctxt "column name"
 msgid "Allow duplicates"
 msgstr ""
 
-#: admin/class-richie-admin.php:1189
-#: admin/class-richie-admin.php:1279
+#: admin/class-richie-admin.php:1172
+#: admin/class-richie-admin.php:1262
 msgctxt "column name"
 msgid "Actions"
 msgstr ""
 
-#: admin/class-richie-admin.php:1220
-#: admin/class-richie-admin.php:1297
+#: admin/class-richie-admin.php:1203
+#: admin/class-richie-admin.php:1280
 msgid "Collection not found"
 msgstr ""
 
-#: admin/class-richie-admin.php:1248
-#: admin/class-richie-admin.php:1317
+#: admin/class-richie-admin.php:1231
+#: admin/class-richie-admin.php:1300
 msgid "Remove"
 msgstr ""
 
-#: admin/class-richie-admin.php:1258
+#: admin/class-richie-admin.php:1241
 msgid "No sources configured. Add news feed sources with the form below."
 msgstr ""
 
-#: admin/class-richie-admin.php:1275
+#: admin/class-richie-admin.php:1258
 msgctxt "column name"
 msgid "Index"
 msgstr ""
 
-#: admin/class-richie-admin.php:1277
+#: admin/class-richie-admin.php:1260
 msgctxt "column name"
 msgid "Ad provider"
 msgstr ""
 
-#: admin/class-richie-admin.php:1278
+#: admin/class-richie-admin.php:1261
 msgctxt "column name"
 msgid "Ad data"
 msgstr ""
 
-#: admin/class-richie-admin.php:1316
+#: admin/class-richie-admin.php:1299
 msgid "Copy to form"
 msgstr ""
 
-#: admin/class-richie-admin.php:1328
+#: admin/class-richie-admin.php:1311
 msgid "No slots configured. Add ad slots with the form below."
 msgstr ""
 
-#: admin/class-richie-admin.php:1402
+#: admin/class-richie-admin.php:1385
 msgid "Orphaned data detected:"
 msgstr ""
 
-#: admin/class-richie-admin.php:1406
+#: admin/class-richie-admin.php:1389
 #, php-format
 msgid "%d source"
 msgid_plural "%d sources"
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/class-richie-admin.php:1411
+#: admin/class-richie-admin.php:1394
 msgid "and"
 msgstr ""
 
-#: admin/class-richie-admin.php:1415
+#: admin/class-richie-admin.php:1398
 #, php-format
 msgid "%d ad slot collection"
 msgid_plural "%d ad slot collections"
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/class-richie-admin.php:1420
+#: admin/class-richie-admin.php:1403
 msgid "are referencing collections that no longer exist."
 msgstr ""
 
-#: admin/class-richie-admin.php:1424
+#: admin/class-richie-admin.php:1407
 msgid "Clean up orphaned data"
 msgstr ""
 
-#: admin/class-richie-admin.php:1449
+#: admin/class-richie-admin.php:1432
 msgid "No orphaned sources found."
 msgstr ""
 
 #. translators: %d: number of orphaned sources cleaned up
-#: admin/class-richie-admin.php:1504
+#: admin/class-richie-admin.php:1487
 #, php-format
 msgid "Successfully cleaned up %d orphaned source(s)."
 msgstr ""
 
-#: admin/class-richie-admin.php:1531
+#: admin/class-richie-admin.php:1514
 msgid "No orphaned data found."
 msgstr ""
 
 #. translators: 1: sources count, 2: ad slots count
-#: admin/class-richie-admin.php:1609
+#: admin/class-richie-admin.php:1592
 #, php-format
 msgid "Successfully cleaned up %1$d orphaned source(s) and %2$d orphaned ad slot(s)."
 msgstr ""
 
 #: admin/partials/richie-admin-display.php:25
-#: admin/partials/richie-feed-editor.php:16
 msgid "Feed Editor"
 msgstr ""
 
 #: admin/partials/richie-admin-display.php:27
-msgid "Advanced: Sources"
+msgid "API"
 msgstr ""
 
 #: admin/partials/richie-admin-display.php:28
-msgid "Advanced: Ad Slots"
+msgid "Advanced: Sources"
 msgstr ""
 
 #: admin/partials/richie-admin-display.php:29
+msgid "Advanced: Ad Slots"
+msgstr ""
+
+#: admin/partials/richie-admin-display.php:30
 msgid "News assets"
 msgstr ""
 
-#: admin/partials/richie-admin-display.php:43
-#: admin/partials/richie-admin-display.php:76
+#: admin/partials/richie-admin-display.php:44
+#: admin/partials/richie-admin-display.php:89
 msgid "Save all changes"
 msgstr ""
 
-#: admin/partials/richie-admin-display.php:47
+#: admin/partials/richie-admin-display.php:60
 msgid "News sources"
 msgstr ""
 
-#: admin/partials/richie-admin-display.php:49
+#: admin/partials/richie-admin-display.php:62
 msgid "Add new feed source"
 msgstr ""
 
-#: admin/partials/richie-admin-display.php:55
+#: admin/partials/richie-admin-display.php:68
 msgid "Add source"
 msgstr ""
 
-#: admin/partials/richie-admin-display.php:59
+#: admin/partials/richie-admin-display.php:72
 msgid "Ad slots"
 msgstr ""
 
-#: admin/partials/richie-admin-display.php:66
+#: admin/partials/richie-admin-display.php:79
 #: admin/feed-editor/build/index.js:1
 #: admin/feed-editor/src/components/AdSlotModal.js:117
 #: admin/feed-editor/src/components/AdSlotModal.js:171
