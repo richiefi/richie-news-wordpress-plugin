@@ -125,20 +125,30 @@ Building a visual drag-and-drop editor for managing news feed sections and ad sl
      - Shows success message with cleanup details
      - Automatically refreshes collection list after deletion
 
+9. **Data Model Update** (Phase 4)
+   - ✅ `collection_order` added to `richienews_sources` option structure
+   - ✅ `class-richie-public.php` `fetch_articles()` uses new order
+   - ✅ Backward compatibility maintained (falls back to `sources` array order)
+
+10. **Ordering Sync Between Editor and Legacy Tab** (Phase 8 - Sync)
+   - ✅ Legacy tab reorder (`order_source_list`) now also rebuilds `collection_order` entries
+     - Ad slots preserved at their original positions
+   - ✅ React editor reorder (`save_order`) now also reorders `sources` array keys
+     - Only affects sources in the edited collection; others stay in place
+   - ✅ Legacy tab display (`source_list`) now sorts by `collection_order` when present
+     - Added `sort_sources_by_collection_order()` helper method
+     - Handles pre-existing out-of-sync data
+
 #### 🔄 In Progress
 
-None - Collection deletion feature is complete!
+None
 
 #### 📋 TODO
 
-8. **Data Model Update** (Phase 4)
-   - Add `collection_order` to `richienews_sources` option structure
-   - Modify `class-richie-public.php` `fetch_articles()` to use new order
-   - Maintain backward compatibility
-
-9. **Additional Testing & Documentation**
+11. **Additional Testing & Documentation**
    - Test all CRUD operations
-   - Test drag-and-drop reordering
+   - Test drag-and-drop reordering in both editor and legacy tab
+   - Verify ordering sync between editor and legacy tab
    - Test collection preview modal with various layouts
    - Verify backward compatibility
    - Update documentation
@@ -187,9 +197,11 @@ richie/includes/
 1. ✅ Create `class-richie-feed-editor.php` with all REST API endpoints
 2. ✅ Create mount point partial
 3. ✅ Modify admin class to integrate new editor
-4. ⏳ Run `npm install` and `npm run build` in `richie/admin/feed-editor/`
-5. ⏳ Test in WordPress admin
-6. Update `fetch_articles()` to use `collection_order`
+4. ✅ Run `npm install` and `npm run build` in `richie/admin/feed-editor/`
+5. ✅ Test in WordPress admin
+6. ✅ Update `fetch_articles()` to use `collection_order`
+7. ✅ Sync ordering between editor and legacy sources tab
+8. ⏳ End-to-end testing of ordering sync
 
 ---
 
