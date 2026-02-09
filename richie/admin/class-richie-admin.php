@@ -204,23 +204,23 @@ class Richie_Admin {
             wp_enqueue_code_editor( array( 'type' => 'application/json' ) );
             wp_enqueue_script( 'suggest' );
 
+            wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery', 'jquery-ui-sortable', 'wp-color-picker' ), $this->get_version_id(), false );
+
+            wp_localize_script(
+                $this->plugin_name,
+                'richie_ajax',
+                [
+                    'ajax_url' => admin_url( 'admin-ajax.php' ),
+                    'security' => wp_create_nonce( 'richie-security-nonce' ),
+                ]
+            );
+
             // Enqueue React feed editor if on editor tab
             $active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : 'editor';
             if ( $active_tab === 'editor' ) {
                 $this->enqueue_feed_editor_assets();
             }
         }
-
-        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery', 'wp-color-picker' ), $this->get_version_id(), false );
-
-        wp_localize_script(
-            $this->plugin_name,
-            'richie_ajax',
-            [
-                'ajax_url' => admin_url( 'admin-ajax.php' ),
-                'security' => wp_create_nonce( 'richie-security-nonce' ),
-            ]
-        );
     }
 
     /**
