@@ -606,6 +606,12 @@ class Richie_Public {
                 $general_assets[] = new Richie_App_Asset( $style );
             }
         }
+
+        // Reset "done" state so subsequent wp_head()/wp_footer() calls
+        // (e.g. in render_template) can still output these assets.
+        $wp_scripts->done = array();
+        $wp_styles->done  = array();
+
         $custom_assets = get_option( $this->plugin_name . '_assets' );
 
         if ( false === $custom_assets ) {
