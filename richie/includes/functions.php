@@ -261,3 +261,93 @@ function richie_force_url_scheme( $url ) {
     }
     return $url;
 }
+
+/**
+ * Build template file names for HTML templates.
+ *
+ * @param string $slug Template slug.
+ * @param string $name Template variation name.
+ * @return array
+ */
+function richie_get_html_template_names( $slug, $name = null ) {
+    $templates = array();
+    if ( isset( $name ) && $name !== '' ) {
+        $templates[] = $slug . '-' . $name . '.html';
+    }
+    $templates[] = $slug . '.html';
+
+    return $templates;
+}
+
+/**
+ * Locate a HTML template file in theme or plugin paths.
+ *
+ * @param string $slug Template slug.
+ * @param string $name Template variation name.
+ * @return string|null
+ */
+function richie_locate_html_template( $slug, $name = null ) {
+    $templates = richie_get_html_template_names( $slug, $name );
+    $theme_dir = trailingslashit( get_stylesheet_directory() ) . 'richie/';
+    $parent_dir = trailingslashit( get_template_directory() ) . 'richie/';
+    $plugin_dir = trailingslashit( Richie_PLUGIN_DIR ) . 'templates/';
+
+    $paths = array( $theme_dir, $parent_dir, $plugin_dir );
+    $paths = apply_filters( 'richie_html_template_paths', $paths, $slug, $name );
+
+    foreach ( $templates as $template_name ) {
+        foreach ( $paths as $path ) {
+            $candidate = $path . ltrim( $template_name, '/' );
+            if ( file_exists( $candidate ) ) {
+                return $candidate;
+            }
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Render a block HTML template into a full HTML document string.
+ *
+ * @param string $template_path Absolute path to the HTML template.
+ * @return string
+ */
+function richie_render_block_template_document( $template_path ) {
+    $template_contents = file_get_contents( $template_path );
+
+    if ( $template_contents === false ) {
+        return '';
+    }
+
+    $rendered = do_blocks( $template_contents );
+
+    ob_start();
+    wp_head();
+    $head_assets = ob_get_clean();
+
+    ob_start();
+    wp_footer();
+    $footer_assets = ob_get_clean();
+
+    $has_head = stripos( $rendered, '<head' ) !== false;
+    $has_body = stripos( $rendered, '<body' ) !== false;
+
+    if ( $has_head ) {
+        $rendered = preg_replace( '/<\/head>/i', $head_assets . "\n</head>", $rendered, 1 );
+    }
+
+    if ( $has_body ) {
+        $rendered = preg_replace( '/<\/body>/i', $footer_assets . "\n</body>", $rendered, 1 );
+    }
+
+    if ( ! $has_head || ! $has_body ) {
+        $rendered = "<!doctype html>\n" .
+            "<html>\n" .
+            "<head>\n" . $head_assets . "\n</head>\n" .
+            "<body>\n" . $rendered . "\n" . $footer_assets . "\n</body>\n" .
+            "</html>\n";
+    }
+
+    return $rendered;
+}

@@ -734,6 +734,12 @@ class Richie_Public {
                     $name = sanitize_title( $_GET['template'] );
                 }
 
+                $block_template = richie_locate_html_template( 'richie-news', $name );
+                if ( $block_template ) {
+                    set_query_var( 'richie_block_template_path', $block_template );
+                    return Richie_PLUGIN_DIR . 'templates/richie-news-block.php';
+                }
+
                 $richie_template_loader = new Richie_Template_Loader();
                 $template               = $richie_template_loader->get_template_part( 'richie-news', $name, false );
             }

@@ -83,6 +83,7 @@ class Richie_Article {
         global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $user_ID, $wp_styles, $wp_scripts, $wp_filter;
         require_once plugin_dir_path( __FILE__ ) . 'class-richie-template-loader.php';
         $richie_template_loader = new Richie_Template_Loader();
+        $html_template_path = richie_locate_html_template( $slug, $name );
 
         $wp_query = new WP_Query( //phpcs:ignore
             array(
@@ -98,11 +99,15 @@ class Richie_Article {
         add_filter( 'script_loader_src', 'richie_force_url_scheme' );
         add_filter( 'style_loader_src', 'richie_force_url_scheme' );
 
-        ob_start();
-        $richie_template_loader
-            ->get_template_part( $slug, $name );
+        if ( $html_template_path ) {
+            $rendered_content = richie_render_block_template_document( $html_template_path );
+        } else {
+            ob_start();
+            $richie_template_loader
+                ->get_template_part( $slug, $name );
 
-        $rendered_content = ob_get_clean();
+            $rendered_content = ob_get_clean();
+        }
         wp_reset_query(); // Reset wp query to original and resets post data also.
 
         return $rendered_content;
