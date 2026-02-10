@@ -1,0 +1,24 @@
+{
+    "translation-revision-date": "2026-02-09 07:42+0000",
+    "generator": "Loco https://localise.biz/",
+    "source": "admin/feed-editor/src/components/FeedItemList.js",
+    "domain": "richie",
+    "locale_data": {
+        "richie": {
+            "": {
+                "domain": "",
+                "lang": "fi",
+                "plural-forms": "nplurals=2; plural=n != 1;"
+            },
+            "Loading feed items\u2026": [
+                "Ladataan sy\u00f6tteen kohteita\u2026"
+            ],
+            "No sections or ad slots in this collection yet. Click \"Add section\" or \"Add ad slot\" to get started.": [
+                "T\u00e4ss\u00e4 kokoelmassa ei ole viel\u00e4 osioita tai mainospaikkoja. Aloita valitsemalla \"Lis\u00e4\u00e4 osio\" tai \"Lis\u00e4\u00e4 mainospaikka\"."
+            ],
+            "Section previews are a sample of current content. They also show duplicated articles if the same source is used in multiple sections. To see how the feed looks in the app, use the \"Preview Collection\" button above.": [
+                "Osioiden esikatselut ovat n\u00e4ytteit\u00e4 nykyisest\u00e4 sis\u00e4ll\u00f6st\u00e4. Ne n\u00e4ytt\u00e4v\u00e4t my\u00f6s duplikaattiartikkelit, jos sama l\u00e4hde on k\u00e4yt\u00f6ss\u00e4 useissa osioissa. N\u00e4et, milt\u00e4 sy\u00f6te n\u00e4ytt\u00e4\u00e4 sovelluksessa, k\u00e4ytt\u00e4m\u00e4ll\u00e4 yll\u00e4 olevaa \"Esikatsele kokoelmaa\" -painiketta."
+            ]
+        }
+    }
+}

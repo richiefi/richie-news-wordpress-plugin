@@ -12,3 +12,71 @@
   border: 1px solid #eee;
   height: 300px !important;
 }
+
+/**
+ * API Endpoints Section
+ */
+.richie-api-endpoints {
+  max-width: 900px;
+}
+
+.richie-api-endpoint {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #dcdcde;
+}
+
+.richie-api-endpoint:last-child {
+  border-bottom: none;
+}
+
+.richie-api-endpoint h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.richie-api-endpoint .description {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.richie-api-endpoint-field {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.richie-api-endpoint-field .richie-api-url {
+  flex: 1;
+  font-family: Consolas, Monaco, monospace;
+  font-size: 13px;
+  background-color: #f6f7f7;
+}
+
+.richie-copy-btn {
+  white-space: nowrap;
+}
+
+.richie-copy-btn .dashicons {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  vertical-align: text-top;
+}
+
+.richie-copy-btn:disabled {
+  opacity: 0.7;
+}
+
+/**
+ * Copy Feedback Notice
+ */
+.richie-copy-notice {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+

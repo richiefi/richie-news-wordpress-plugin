@@ -86,6 +86,62 @@
         });
       });
 
+      // Cleanup orphaned sources (legacy - for backward compatibility)
+      $('#cleanup-orphaned-sources').on('click', function() {
+        var $button = $(this);
+        var originalText = $button.text();
+        $button.prop('disabled', true).text('Cleaning up...');
+
+        var data = {
+          action: 'cleanup_orphaned_sources',
+          security: richie_ajax.security
+        };
+
+        $.post(ajaxurl, data)
+          .done(function(response) {
+            if (response.success) {
+              alert(response.data.message);
+              location.reload();
+            } else {
+              alert('Error: ' + (response.data || 'Unknown error'));
+              $button.prop('disabled', false).text(originalText);
+            }
+          })
+          .fail(function(err) {
+            console.error(err);
+            alert('Failed to cleanup orphaned sources. Please try again.');
+            $button.prop('disabled', false).text(originalText);
+          });
+      });
+
+      // Cleanup all orphaned data (sources and ad slots)
+      $(document).on('click', '#cleanup-orphaned-data', function() {
+        var $button = $(this);
+        var originalText = $button.text();
+        $button.prop('disabled', true).text('Cleaning up...');
+
+        var data = {
+          action: 'cleanup_orphaned_data',
+          security: richie_ajax.security
+        };
+
+        $.post(ajaxurl, data)
+          .done(function(response) {
+            if (response.success) {
+              alert(response.data.message);
+              location.reload();
+            } else {
+              alert('Error: ' + (response.data || 'Unknown error'));
+              $button.prop('disabled', false).text(originalText);
+            }
+          })
+          .fail(function(err) {
+            console.error(err);
+            alert('Failed to cleanup orphaned data. Please try again.');
+            $button.prop('disabled', false).text(originalText);
+          });
+      });
+
       $('.richie-settings .feed-source-list').on('click', '.disable-summary', function() {
         var data = {
           action: 'set_checkbox_field',
@@ -143,14 +199,19 @@
         });
       }
 
-      $('.richie-notice a#publish-sources').on('click', function() {
+      $('.richie-notice a#publish-sources, a#publish-sources-legacy').on('click', function() {
         var data = {
           action: 'publish_source_changes',
           security: richie_ajax.security
         }
         $.post(ajaxurl, data, function(response) {
           console.log(response);
-          location.reload();
+          if (document.getElementById('feed-editor-root')) {
+            window.dispatchEvent(new Event('richieSourcesUpdated'));
+            $('.richie-notice').remove();
+          } else {
+            location.reload();
+          }
         });
         return false;
       });
@@ -161,7 +222,12 @@
         }
         $.post(ajaxurl, data, function(response) {
           console.log(response);
-          location.reload();
+          if (document.getElementById('feed-editor-root')) {
+            window.dispatchEvent(new Event('richieSourcesUpdated'));
+            $('.richie-notice').remove();
+          } else {
+            location.reload();
+          }
         });
         return false;
       });
@@ -210,6 +276,100 @@
           // }, 1);
 
         });
+      });
+
+      /**
+       * API Endpoint Copy Functionality
+       */
+
+      /**
+       * Copy text to clipboard with fallback for older browsers.
+       */
+      function copyToClipboard(text, successMessage) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(
+            function() {
+              showCopyFeedback(successMessage);
+            },
+            function() {
+              fallbackCopy(text, successMessage);
+            }
+          );
+        } else {
+          fallbackCopy(text, successMessage);
+        }
+      }
+
+      /**
+       * Fallback copy method for older browsers.
+       */
+      function fallbackCopy(text, successMessage) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        try {
+          var successful = document.execCommand('copy');
+          if (successful) {
+            showCopyFeedback(successMessage);
+          } else {
+            alert('Failed to copy. Please copy manually: ' + text);
+          }
+        } catch (err) {
+          alert('Failed to copy. Please copy manually: ' + text);
+        }
+
+        document.body.removeChild(textarea);
+      }
+
+      /**
+       * Show visual feedback after successful copy.
+       */
+      function showCopyFeedback(message) {
+        // Create temporary notice
+        var notice = $('<div>', {
+          'class': 'notice notice-success richie-copy-notice',
+          'html': '<p>' + message + '</p>'
+        });
+
+        // Insert after page title
+        $('.wrap > h1').first().after(notice);
+
+        // Auto-dismiss after 3 seconds
+        setTimeout(function() {
+          notice.fadeOut(function() {
+            notice.remove();
+          });
+        }, 3000);
+      }
+
+      /**
+       * Wire up copy buttons on Settings page.
+       */
+      $('.richie-copy-btn').on('click', function(e) {
+        e.preventDefault();
+
+        var button = $(this);
+        var targetId = button.data('copy-target');
+        var input = $('#' + targetId);
+
+        if (input.length) {
+          var url = input.val();
+          var originalHtml = button.html();
+
+          // Update button state
+          button.prop('disabled', true).text('Copied!');
+
+          copyToClipboard(url, 'API endpoint URL copied to clipboard!');
+
+          // Reset button after 2 seconds
+          setTimeout(function() {
+            button.prop('disabled', false).html(originalHtml);
+          }, 2000);
+        }
       });
     });
 }( jQuery ) );

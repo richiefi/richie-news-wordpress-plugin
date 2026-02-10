@@ -165,6 +165,8 @@ class Richie {
         $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
         $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
         $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_plugin_admin_menu' );
+        $this->loader->add_action( 'admin_notices', $plugin_admin, 'show_orphaned_data_notice' );
+        $this->loader->add_action( 'pre_delete_term', $plugin_admin, 'cleanup_collection_on_delete', 10, 2 );
 
         // Add Settings link to the plugin.
         $plugin_basename = plugin_basename( plugin_dir_path( __DIR__ ) . $this->plugin_name . '.php' );
@@ -176,6 +178,11 @@ class Richie {
 
         // Options.
         $this->loader->add_action( 'admin_init', $plugin_admin, 'options_update' );
+
+        // Feed Editor REST API.
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-richie-feed-editor.php';
+        $feed_editor = new Richie_Feed_Editor( $this->get_plugin_name(), $this->get_version() );
+        $this->loader->add_action( 'rest_api_init', $feed_editor, 'register_routes' );
 
         // allow origin
         $this->loader->add_filter( 'allowed_http_origins', $plugin_admin, 'add_allowed_origin' );

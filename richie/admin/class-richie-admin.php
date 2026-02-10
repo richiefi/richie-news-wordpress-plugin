@@ -77,6 +77,13 @@ class Richie_Admin {
     private $available_layout_names;
 
     /**
+     * Available news list layout options
+     *
+     * @var array
+     */
+    private $available_layout_options;
+
+    /**
      * If set, dump source database
      *
      * @var boolean
@@ -106,9 +113,21 @@ class Richie_Admin {
         $this->sources_option_name    = $plugin_name . 'news_sources';
         $this->assets_option_name     = $plugin_name . '_assets';
         $this->adslots_option_name    = $plugin_name . '_adslots';
-        $this->available_layout_names = array(
-            'small',
-            'featured'
+        $this->available_layout_options = array(
+            array(
+                'value' => 'featured',
+                'title' => 'Featured',
+            ),
+            array(
+                'value' => 'small',
+                'title' => 'Small',
+            ),
+        );
+        $this->available_layout_names = array_map(
+            function( $option ) {
+                return $option['value'];
+            },
+            $this->available_layout_options
         );
         add_action( 'added_option', array( __CLASS__, 'maybe_clear_alloptions_cache' ) );
         add_action( 'updated_option', array( __CLASS__, 'maybe_clear_alloptions_cache' ) );
@@ -121,6 +140,8 @@ class Richie_Admin {
         add_action( 'wp_ajax_revert_source_changes', array( $this, 'revert_source_changes' ) );
         add_action( 'wp_ajax_remove_ad_slot', array( $this, 'remove_ad_slot' ) );
         add_action( 'wp_ajax_get_adslot_data', array( $this, 'get_adslot_data' ) );
+        add_action( 'wp_ajax_cleanup_orphaned_sources', array( $this, 'cleanup_orphaned_sources' ) );
+        add_action( 'wp_ajax_cleanup_orphaned_data', array( $this, 'cleanup_orphaned_data' ) );
 
         add_action( 'admin_notices', array( $this, 'add_admin_notices' ) );
         add_action( 'richie_plugin_add_settings_sections', array( $this, 'generate_settings' ) );
@@ -180,18 +201,111 @@ class Richie_Admin {
             add_thickbox();
             wp_enqueue_code_editor( array( 'type' => 'application/json' ) );
             wp_enqueue_script( 'suggest' );
+
+            wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery', 'jquery-ui-sortable', 'wp-color-picker' ), $this->get_version_id(), false );
+
+            wp_localize_script(
+                $this->plugin_name,
+                'richie_ajax',
+                [
+                    'ajax_url' => admin_url( 'admin-ajax.php' ),
+                    'security' => wp_create_nonce( 'richie-security-nonce' ),
+                ]
+            );
+
+            // Enqueue React feed editor if on editor tab
+            $active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : 'editor';
+            if ( $active_tab === 'editor' ) {
+                $this->enqueue_feed_editor_assets();
+            }
+        }
+    }
+
+    /**
+     * Get layout options for UI usage.
+     *
+     * @return array
+     */
+    private function get_layout_options() {
+        return $this->available_layout_options;
+    }
+
+    /**
+     * Get available ad providers.
+     *
+     * This is the single source of truth for ad providers in the system.
+     *
+     * @return array
+     */
+    public static function get_ad_providers() {
+        return array( 'smart', 'google' );
+    }
+
+    /**
+     * Get allowed feed item types for collection order entries.
+     *
+     * @return array
+     */
+    public static function get_feed_item_types() {
+        return apply_filters( 'richie_feed_item_types', array( 'source', 'ad' ) );
+    }
+
+    /**
+     * Enqueue React feed editor assets.
+     *
+     * @since    2.0.0
+     */
+    private function enqueue_feed_editor_assets() {
+        $asset_file = plugin_dir_path( __FILE__ ) . 'feed-editor/build/index.asset.php';
+
+        if ( ! file_exists( $asset_file ) ) {
+            return;
         }
 
-        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-admin.js', array( 'jquery', 'wp-color-picker' ), $this->get_version_id(), false );
+        $asset = include $asset_file;
+
+        // Enqueue the main script
+        wp_enqueue_script(
+            'richie-feed-editor',
+            plugin_dir_url( __FILE__ ) . 'feed-editor/build/index.js',
+            $asset['dependencies'],
+            $asset['version'],
+            true
+        );
+
+        // Enqueue styles
+        wp_enqueue_style(
+            'richie-feed-editor',
+            plugin_dir_url( __FILE__ ) . 'feed-editor/build/index.css',
+            array( 'wp-components' ),
+            $asset['version']
+        );
+
+        // Get plugin options for access token
+        $options = get_option( 'richie' );
+
+        // Set up wpApiSettings for WordPress REST API
+        wp_localize_script(
+            'richie-feed-editor',
+            'wpApiSettings',
+            array(
+                'root'        => esc_url_raw( rest_url() ),
+                'nonce'       => wp_create_nonce( 'wp_rest' ),
+                'accessToken' => isset( $options['access_token'] ) ? $options['access_token'] : '',
+            )
+        );
 
         wp_localize_script(
-            $this->plugin_name,
-            'richie_ajax',
-            [
-                'ajax_url' => admin_url( 'admin-ajax.php' ),
-                'security' => wp_create_nonce( 'richie-security-nonce' ),
-            ]
+            'richie-feed-editor',
+            'richieFeedEditorSettings',
+            array(
+                'layoutOptions' => $this->get_layout_options(),
+                'adProviders'   => $this->get_ad_providers(),
+            )
         );
+
+        // Set translations
+        wp_set_script_translations( 'richie-feed-editor', 'richie' );
     }
 
     /**
@@ -491,6 +605,16 @@ class Richie_Admin {
      * @return void
      */
     public function add_admin_notices() {
+        $is_editor_tab = false;
+        if ( isset( $_GET['page'] ) && 'richie' === $_GET['page'] ) {
+            $active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : 'editor';
+            $is_editor_tab = ( 'editor' === $active_tab );
+        }
+
+        if ( $is_editor_tab ) {
+            return;
+        }
+
         if ( $this->has_unpublished_changes() ) {
             ?>
             <div class="richie-notice notice notice-warning">
@@ -635,7 +759,7 @@ class Richie_Admin {
         // Create search settings section.
         $section  = new Richie_Settings_Section( $search_section_name, __( 'Search API settings', 'richie' ), $this->settings_option_name );
         $selected = isset( $options['search_list_layout_style'] ) ? $options['search_list_layout_style'] : 'none';
-        $section->add_field( 'search_list_layout_style', __( 'Search list layout', 'richie' ), 'select_field', array( 'options' => $this->available_layout_names, 'selected' => $selected, 'required' => true ) );
+        $section->add_field( 'search_list_layout_style', __( 'Search list layout', 'richie' ), 'select_field', array( 'options' => $this->get_layout_options(), 'selected' => $selected, 'required' => true ) );
 
         // Access Control section.
         $access_section = new Richie_Settings_Section( 'richie_access_control', __( 'Access Control', 'richie' ), $this->settings_option_name );
@@ -674,7 +798,7 @@ class Richie_Admin {
         $source_filters->add_field( 'max_age', __( 'Post max age', 'richie' ), 'max_age' );
 
         $source_options = new Richie_Settings_Section( $sources_section_name . 'options', __( 'Options', 'richie' ), $this->sources_option_name );
-        $source_options->add_field( 'list_layout_style', __( 'List layout', 'richie' ), 'select_field', array( 'options' => $this->available_layout_names, 'required' => true ) );
+        $source_options->add_field( 'list_layout_style', __( 'List layout', 'richie' ), 'select_field', array( 'options' => $this->get_layout_options(), 'required' => true ) );
         $source_options->add_field( 'list_group_title', __( 'List group title', 'richie' ), 'input_field', array( 'description' => __( 'Header to display before the story, useful on the first small_group_item of a group', 'richie' ) ) );
         $source_options->add_field( 'background_color', __( 'Background color', 'richie' ), 'color_picker', array( 'description' => __( 'Background color to be used with layout types. Not all layout types support this.', 'richie' ) ) );
         $source_options->add_field( 'allow_duplicates', __( 'Allow duplicates', 'richie' ), 'checkbox', array( 'description' => __( 'Allow duplicate articles in this source', 'richie' ) ) );
@@ -687,8 +811,7 @@ class Richie_Admin {
         $section->add_field( 'richie_article_set', __( 'Article set', 'richie' ), 'article_set' );
         $section->add_field( 'adslot_position_index', __( 'Slot position', 'richie' ), 'input_field', array( 'description' => $slot_index_description, 'class' => '' ) );
 
-        $ad_providers = array( 'smart', 'google' );
-        $section->add_field( 'adslot_provider', __( 'Ad provider', 'richie' ), 'select_field', array( 'options' => $ad_providers ) );
+        $section->add_field( 'adslot_provider', __( 'Ad provider', 'richie' ), 'select_field', array( 'options' => self::get_ad_providers() ) );
         $section->add_field( 'adslot_ad_data', __( 'Ad data', 'richie' ), 'adslot_ad_data_editor' );
 
         // Create assets section.
@@ -731,6 +854,40 @@ class Richie_Admin {
         if ( count( $current_list ) === count( $new_list ) && empty( array_diff_key( $current_list, $new_list ) ) ) {
             $option['sources'] = $new_list;
             $option['updated'] = time();
+
+            // Sync collection_order entries to match new source ordering.
+            if ( ! empty( $option['collection_order'] ) ) {
+                foreach ( $option['collection_order'] as $collection_id => $order_items ) {
+                    // Separate ad slots from the existing order.
+                    $ad_items = array();
+                    foreach ( $order_items as $idx => $item ) {
+                        if ( isset( $item['type'] ) && 'ad' === $item['type'] ) {
+                            $ad_items[ $idx ] = $item;
+                        }
+                    }
+
+                    // Build new source order from the reordered sources array.
+                    $new_source_items = array();
+                    foreach ( $new_list as $source ) {
+                        if ( isset( $source['article_set'] ) && intval( $source['article_set'] ) === intval( $collection_id ) ) {
+                            $new_source_items[] = array(
+                                'type' => 'source',
+                                'id'   => $source['id'],
+                            );
+                        }
+                    }
+
+                    // Re-insert ad slots at their original positions.
+                    $new_order_items = $new_source_items;
+                    foreach ( $ad_items as $original_idx => $ad_item ) {
+                        $insert_at = min( $original_idx, count( $new_order_items ) );
+                        array_splice( $new_order_items, $insert_at, 0, array( $ad_item ) );
+                    }
+
+                    $option['collection_order'][ $collection_id ] = $new_order_items;
+                }
+            }
+
             // Skip validate source.
             remove_filter( 'sanitize_option_' . $this->sources_option_name, array( $this, 'validate_source' ) );
             $updated = update_option( $this->sources_option_name, $option );
@@ -845,10 +1002,11 @@ class Richie_Admin {
             wp_send_json_error( 'Unauthorized', 403 );
         }
 
-        $option                 = get_option( $this->sources_option_name );
-        $sources                = ! empty( $option['sources'] ) ? $option['sources'] : array();
-        $option['published']    = $sources;
-        $option['published_at'] = time();
+        $option                          = get_option( $this->sources_option_name );
+        $sources                         = ! empty( $option['sources'] ) ? $option['sources'] : array();
+        $option['published']             = $sources;
+        $option['published_at']          = time();
+        $option['published_collection_order'] = isset( $option['collection_order'] ) ? $option['collection_order'] : array();
 
         remove_filter( 'sanitize_option_' . $this->sources_option_name, array( $this, 'validate_source' ) );
         $updated = update_option( $this->sources_option_name, $option );
@@ -874,6 +1032,12 @@ class Richie_Admin {
         $published_sources = ! empty( $option['published'] ) ? $option['published'] : array();
         $option['sources'] = $published_sources;
 
+        if ( isset( $option['published_collection_order'] ) ) {
+            $option['collection_order'] = $option['published_collection_order'];
+        } else {
+            unset( $option['collection_order'] );
+        }
+
         remove_filter( 'sanitize_option_' . $this->sources_option_name, array( $this, 'validate_source' ) );
         $updated = update_option( $this->sources_option_name, $option );
         add_filter( 'sanitize_option_' . $this->sources_option_name, array( $this, 'validate_source' ) );
@@ -889,7 +1053,24 @@ class Richie_Admin {
         $sources = get_option( $this->sources_option_name );
 
         if ( $sources !== false && isset( $sources['sources'] ) ) {
-            if ( empty( $sources['published'] ) || $sources['sources'] !== $sources['published'] ) {
+            // Only show unpublished changes if draft differs from published.
+            // If published doesn't exist, only show changes if draft has content.
+            if ( ! isset( $sources['published'] ) ) {
+                return ! empty( $sources['sources'] );
+            }
+
+            // Both sources and published exist - compare them.
+            $draft_sources     = isset( $sources['sources'] ) ? $sources['sources'] : array();
+            $published_sources = isset( $sources['published'] ) ? $sources['published'] : array();
+
+            if ( $draft_sources !== $published_sources ) {
+                return true;
+            }
+
+            $draft_order     = isset( $sources['collection_order'] ) ? $sources['collection_order'] : array();
+            $published_order = isset( $sources['published_collection_order'] ) ? $sources['published_collection_order'] : array();
+
+            if ( $draft_order !== $published_order ) {
                 return true;
             }
         }
@@ -978,11 +1159,31 @@ class Richie_Admin {
             echo '</pre>';
         }
         if ( isset( $options['sources'] ) && ! empty( $options['sources'] ) ) :
+            $orphaned_sources = $this->get_orphaned_sources();
             ?>
+            <?php if ( ! empty( $orphaned_sources ) ) : ?>
+            <div class="notice notice-warning" style="margin: 0 0 1em 0; padding: 12px;">
+                <p>
+                    <strong><?php esc_html_e( 'Orphaned sources detected:', 'richie' ); ?></strong>
+                    <?php
+                    printf(
+                        /* translators: %d: number of orphaned sources */
+                        esc_html( _n( '%d source is referencing a collection that no longer exists.', '%d sources are referencing collections that no longer exist.', count( $orphaned_sources ), 'richie' ) ),
+                        count( $orphaned_sources )
+                    );
+                    ?>
+                </p>
+                <p>
+                    <button type="button" class="button button-secondary" id="cleanup-orphaned-sources">
+                        <?php esc_html_e( 'Clean up orphaned sources', 'richie' ); ?>
+                    </button>
+                </p>
+            </div>
+            <?php endif; ?>
             <?php if ( ! empty( $options['published_at'] ) ) : ?>
             <span><?php esc_html_e( 'Last publish time:', 'richie' ); ?> <em><?php echo esc_html( get_date_from_gmt( date( 'Y-m-d H:i:s', $options['published_at'] ), get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) ) ); ?></em></span>
             <?php endif; ?>
-            <a class="button-primary" style="float:right; margin-bottom: 1em;" href="#" id="publish-sources"><?php esc_html_e( 'Publish', 'richie' ); ?></a>
+            <a class="button-primary" style="float:right; margin-bottom: 1em;" href="#" id="publish-sources-legacy"><?php esc_html_e( 'Publish', 'richie' ); ?></a>
             <table class="widefat feed-source-list sortable-list">
                 <thead>
                     <th style="width: 30px;"></th>
@@ -1002,7 +1203,12 @@ class Richie_Admin {
                 </thead>
                 <tbody>
                 <?php
-                foreach ( $options['sources'] as $key => $source ) {
+                // Reorder sources to match collection_order when present.
+                $display_sources = $options['sources'];
+                if ( ! empty( $options['collection_order'] ) ) {
+                    $display_sources = $this->sort_sources_by_collection_order( $display_sources, $options['collection_order'] );
+                }
+                foreach ( $display_sources as $key => $source ) {
                     $category_names = array();
                     if ( ! empty( $source['categories'] ) ) {
                         $categories = get_categories(
@@ -1018,15 +1224,23 @@ class Richie_Admin {
                     }
 
                     $article_set     = get_term( $source['article_set'] );
-
+                    $is_orphaned     = is_wp_error( $article_set ) || ! $article_set;
 
                     $post_type = isset( $source['post_type'] ) ? $source['post_type'] : 'post';
 
                     ?>
-                    <tr id="source-<?php echo esc_attr( $source['id'] ); ?>" data-source-id="<?php echo esc_attr( $source['id'] ); ?>" class="source-item">
+                    <tr id="source-<?php echo esc_attr( $source['id'] ); ?>" data-source-id="<?php echo esc_attr( $source['id'] ); ?>" class="source-item<?php echo $is_orphaned ? ' orphaned-source' : ''; ?>">
                         <td><span class="dashicons dashicons-menu"></span></td>
                         <td><?php echo esc_html( $source['id'] ); ?></td>
-                        <td><?php echo esc_html( $article_set->name ); ?></td>
+                        <td>
+                            <?php
+                            if ( $is_orphaned ) {
+                                echo '<span style="color: #b32d2e;">' . esc_html__( 'Collection not found', 'richie' ) . '</span>';
+                            } else {
+                                echo esc_html( $article_set->name );
+                            }
+                            ?>
+                        </td>
                         <td><?php echo esc_html( $source['name'] ); ?></td>
                         <td><?php echo esc_html( $post_type ); ?></td>
                         <td>
@@ -1064,6 +1278,91 @@ class Richie_Admin {
     }
 
     /**
+     * Sort sources array to match collection_order entries.
+     *
+     * For each collection that has a collection_order entry, sources belonging
+     * to that collection are reordered to match. Sources in collections without
+     * a collection_order entry keep their original relative positions.
+     *
+     * @param array $sources        The sources array (keyed by source ID).
+     * @param array $collection_order The collection_order map (collection_id => items).
+     * @return array Reordered sources array.
+     */
+    private function sort_sources_by_collection_order( $sources, $collection_order ) {
+        // Group source keys by collection.
+        $collection_sources = array();
+        $source_positions   = array();
+        $position           = 0;
+
+        foreach ( $sources as $key => $source ) {
+            $collection_id = isset( $source['article_set'] ) ? intval( $source['article_set'] ) : 0;
+            if ( ! isset( $collection_sources[ $collection_id ] ) ) {
+                $collection_sources[ $collection_id ] = array();
+            }
+            $collection_sources[ $collection_id ][] = $key;
+            $source_positions[ $key ] = $position++;
+        }
+
+        // For collections with a collection_order, reorder their source keys.
+        foreach ( $collection_order as $collection_id => $order_items ) {
+            $collection_id = intval( $collection_id );
+            if ( ! isset( $collection_sources[ $collection_id ] ) ) {
+                continue;
+            }
+
+            $ordered_keys = array();
+            foreach ( $order_items as $item ) {
+                if ( isset( $item['type'] ) && 'source' === $item['type'] && isset( $item['id'] ) ) {
+                    $source_id = $item['id'];
+                    if ( isset( $sources[ $source_id ] ) ) {
+                        $ordered_keys[] = $source_id;
+                    }
+                }
+            }
+
+            // Append any sources in this collection not present in collection_order.
+            foreach ( $collection_sources[ $collection_id ] as $key ) {
+                if ( ! in_array( $key, $ordered_keys, true ) ) {
+                    $ordered_keys[] = $key;
+                }
+            }
+
+            $collection_sources[ $collection_id ] = $ordered_keys;
+        }
+
+        // Rebuild the sources array maintaining collection group positions.
+        $result       = array();
+        $used_keys    = array();
+        $prev_collection = null;
+
+        foreach ( $sources as $key => $source ) {
+            $collection_id = isset( $source['article_set'] ) ? intval( $source['article_set'] ) : 0;
+
+            if ( $collection_id !== $prev_collection ) {
+                // Entering a new collection group — emit all sources for this collection.
+                if ( isset( $collection_sources[ $collection_id ] ) ) {
+                    foreach ( $collection_sources[ $collection_id ] as $ordered_key ) {
+                        if ( ! isset( $used_keys[ $ordered_key ] ) ) {
+                            $result[ $ordered_key ] = $sources[ $ordered_key ];
+                            $used_keys[ $ordered_key ] = true;
+                        }
+                    }
+                }
+                $prev_collection = $collection_id;
+            }
+
+            // Skip sources already emitted.
+            if ( isset( $used_keys[ $key ] ) ) {
+                continue;
+            }
+            $result[ $key ] = $source;
+            $used_keys[ $key ] = true;
+        }
+
+        return $result;
+    }
+
+    /**
      * Render adslot list
      *
      * @return void
@@ -1086,13 +1385,24 @@ class Richie_Admin {
                 <?php
                 foreach ( $options['slots'] as $article_set_id => $slots ) {
                     $article_set = get_term( $article_set_id );
+                    $is_orphaned = is_wp_error( $article_set ) || ! $article_set;
+                    $id_prefix   = $is_orphaned ? 'orphaned-' . $article_set_id : $article_set->slug;
+
                     ksort( $slots ); // Sort by array key, so ui shows ad slots ordered by index.
                     foreach ( $slots as $slot ) {
                         $attributes = $slot['attributes'];
-                        $id         = $article_set->slug . '-slot-' . $slot['index'];
+                        $id         = $id_prefix . '-slot-' . $slot['index'];
                         ?>
-                        <tr id="<?php echo esc_attr( $id ); ?>" data-slot-article-set="<?php echo esc_attr( $article_set_id ); ?>" data-slot-id="<?php echo esc_attr( $slot['index'] ); ?>" class="slot-item">
-                            <td><?php echo esc_html( $article_set->name ); ?></td>
+                        <tr id="<?php echo esc_attr( $id ); ?>" data-slot-article-set="<?php echo esc_attr( $article_set_id ); ?>" data-slot-id="<?php echo esc_attr( $slot['index'] ); ?>" class="slot-item<?php echo $is_orphaned ? ' orphaned-slot' : ''; ?>">
+                            <td>
+                                <?php
+                                if ( $is_orphaned ) {
+                                    echo '<span style="color: #b32d2e;">' . esc_html__( 'Collection not found', 'richie' ) . '</span>';
+                                } else {
+                                    echo esc_html( $article_set->name );
+                                }
+                                ?>
+                            </td>
                             <td><?php echo esc_html( $slot['index'] ); ?></td>
                             <td><?php echo esc_html( $attributes['id'] ); ?></td>
                             <td><?php echo esc_html( $attributes['ad_provider'] ); ?></td>
@@ -1120,5 +1430,370 @@ class Richie_Admin {
         else :
             printf( '<em>%s</em>', esc_html__( 'No slots configured. Add ad slots with the form below.', 'richie' ) );
         endif;
+    }
+
+    /**
+     * Get orphaned sources (sources referencing non-existent collections).
+     *
+     * @since    1.0.0
+     * @return   array    Array of orphaned source IDs.
+     */
+    public function get_orphaned_sources() {
+        $sources_data = get_option( $this->sources_option_name, array() );
+        $sources      = isset( $sources_data['sources'] ) ? $sources_data['sources'] : array();
+        $orphaned     = array();
+
+        foreach ( $sources as $source_id => $source ) {
+            if ( isset( $source['article_set'] ) ) {
+                $term = get_term( $source['article_set'], 'richie_article_set' );
+                // Check if term doesn't exist (null, false, or WP_Error).
+                if ( is_wp_error( $term ) || ! $term || null === $term ) {
+                    $orphaned[] = $source_id;
+                }
+            }
+        }
+
+        return $orphaned;
+    }
+
+    /**
+     * Get orphaned ad slots (ad slots referencing non-existent collections).
+     *
+     * @since    1.0.0
+     * @return   array    Array of collection IDs that have orphaned ad slots.
+     */
+    public function get_orphaned_adslots() {
+        $adslots_data = get_option( $this->adslots_option_name, array() );
+        $slots        = isset( $adslots_data['slots'] ) ? $adslots_data['slots'] : array();
+        $orphaned     = array();
+
+        foreach ( $slots as $collection_id => $collection_slots ) {
+            $term = get_term( $collection_id, 'richie_article_set' );
+            // Check if term doesn't exist (null, false, or WP_Error).
+            if ( is_wp_error( $term ) || ! $term || null === $term ) {
+                $orphaned[] = $collection_id;
+            }
+        }
+
+        return $orphaned;
+    }
+
+    /**
+     * Display orphaned data notification on all admin pages.
+     *
+     * @since    1.0.0
+     * @return   void
+     */
+    public function show_orphaned_data_notice() {
+        // Only show on our plugin pages.
+        $screen = get_current_screen();
+        if ( ! $screen || strpos( $screen->id, 'richie' ) === false ) {
+            return;
+        }
+
+        $orphaned_sources = $this->get_orphaned_sources();
+        $orphaned_adslots = $this->get_orphaned_adslots();
+
+        if ( empty( $orphaned_sources ) && empty( $orphaned_adslots ) ) {
+            return;
+        }
+
+        $total_orphaned = count( $orphaned_sources ) + count( $orphaned_adslots );
+        ?>
+        <div class="notice notice-warning">
+            <p>
+                <strong><?php esc_html_e( 'Orphaned data detected:', 'richie' ); ?></strong>
+                <?php
+                if ( ! empty( $orphaned_sources ) ) {
+                    printf(
+                        esc_html( _n( '%d source', '%d sources', count( $orphaned_sources ), 'richie' ) ),
+                        count( $orphaned_sources )
+                    );
+                }
+                if ( ! empty( $orphaned_sources ) && ! empty( $orphaned_adslots ) ) {
+                    echo ' ' . esc_html__( 'and', 'richie' ) . ' ';
+                }
+                if ( ! empty( $orphaned_adslots ) ) {
+                    printf(
+                        esc_html( _n( '%d ad slot collection', '%d ad slot collections', count( $orphaned_adslots ), 'richie' ) ),
+                        count( $orphaned_adslots )
+                    );
+                }
+                ?>
+                <?php esc_html_e( 'are referencing collections that no longer exist.', 'richie' ); ?>
+            </p>
+            <p>
+                <button type="button" class="button button-secondary" id="cleanup-orphaned-data">
+                    <?php esc_html_e( 'Clean up orphaned data', 'richie' ); ?>
+                </button>
+            </p>
+        </div>
+        <?php
+    }
+
+    /**
+     * Clean up orphaned sources via AJAX.
+     *
+     * @since    1.0.0
+     * @return   void
+     */
+    public function cleanup_orphaned_sources() {
+        if ( ! check_ajax_referer( 'richie-security-nonce', 'security', false ) ) {
+            wp_send_json_error( 'Invalid security token sent.' );
+        }
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
+        }
+
+        $orphaned_ids = $this->get_orphaned_sources();
+
+        if ( empty( $orphaned_ids ) ) {
+            wp_send_json_success( array( 'message' => __( 'No orphaned sources found.', 'richie' ) ) );
+            return;
+        }
+
+        $sources_data = get_option( $this->sources_option_name, array() );
+        $sources      = isset( $sources_data['sources'] ) ? $sources_data['sources'] : array();
+        $published    = isset( $sources_data['published'] ) ? $sources_data['published'] : array();
+
+        // Remove orphaned sources from both draft and published.
+        foreach ( $orphaned_ids as $source_id ) {
+            unset( $sources[ $source_id ] );
+            unset( $published[ $source_id ] );
+        }
+
+        $sources_data['sources']   = $sources;
+        $sources_data['published'] = $published;
+        $sources_data['updated']   = time();
+
+        // Clean up collection_order entries for orphaned sources.
+        if ( isset( $sources_data['collection_order'] ) ) {
+            foreach ( $sources_data['collection_order'] as $collection_id => $order ) {
+                $sources_data['collection_order'][ $collection_id ] = array_filter(
+                    $order,
+                    function( $item ) use ( $orphaned_ids ) {
+                        return ! ( $item['type'] === 'source' && in_array( $item['id'], $orphaned_ids, true ) );
+                    }
+                );
+                // Re-index array.
+                $sources_data['collection_order'][ $collection_id ] = array_values( $sources_data['collection_order'][ $collection_id ] );
+            }
+        }
+
+        // Clean up published_collection_order too.
+        if ( isset( $sources_data['published_collection_order'] ) ) {
+            foreach ( $sources_data['published_collection_order'] as $collection_id => $order ) {
+                $sources_data['published_collection_order'][ $collection_id ] = array_filter(
+                    $order,
+                    function( $item ) use ( $orphaned_ids ) {
+                        return ! ( $item['type'] === 'source' && in_array( $item['id'], $orphaned_ids, true ) );
+                    }
+                );
+                // Re-index array.
+                $sources_data['published_collection_order'][ $collection_id ] = array_values( $sources_data['published_collection_order'][ $collection_id ] );
+            }
+        }
+
+        // Skip validate source filter (same as remove_source_item).
+        remove_filter( 'sanitize_option_' . $this->sources_option_name, array( $this, 'validate_source' ) );
+        update_option( $this->sources_option_name, $sources_data );
+        add_filter( 'sanitize_option_' . $this->sources_option_name, array( $this, 'validate_source' ) );
+
+        wp_send_json_success(
+            array(
+                'message' => sprintf(
+                    /* translators: %d: number of orphaned sources cleaned up */
+                    __( 'Successfully cleaned up %d orphaned source(s).', 'richie' ),
+                    count( $orphaned_ids )
+                ),
+                'count'   => count( $orphaned_ids ),
+            )
+        );
+    }
+
+    /**
+     * Clean up all orphaned data (sources and ad slots) via AJAX.
+     *
+     * @since    1.0.0
+     * @return   void
+     */
+    public function cleanup_orphaned_data() {
+        if ( ! check_ajax_referer( 'richie-security-nonce', 'security', false ) ) {
+            wp_send_json_error( 'Invalid security token sent.' );
+        }
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
+        }
+
+        $orphaned_sources = $this->get_orphaned_sources();
+        $orphaned_adslots = $this->get_orphaned_adslots();
+
+        if ( empty( $orphaned_sources ) && empty( $orphaned_adslots ) ) {
+            wp_send_json_success( array( 'message' => __( 'No orphaned data found.', 'richie' ) ) );
+            return;
+        }
+
+        $sources_deleted = 0;
+        $adslots_deleted = 0;
+
+        // Clean up orphaned sources.
+        if ( ! empty( $orphaned_sources ) ) {
+            $sources_data = get_option( $this->sources_option_name, array() );
+            $sources      = isset( $sources_data['sources'] ) ? $sources_data['sources'] : array();
+            $published    = isset( $sources_data['published'] ) ? $sources_data['published'] : array();
+
+            foreach ( $orphaned_sources as $source_id ) {
+                unset( $sources[ $source_id ] );
+                unset( $published[ $source_id ] );
+            }
+
+            $sources_data['sources']   = $sources;
+            $sources_data['published'] = $published;
+            $sources_data['updated']   = time();
+
+            // Clean up collection_order entries.
+            if ( isset( $sources_data['collection_order'] ) ) {
+                foreach ( $sources_data['collection_order'] as $collection_id => $order ) {
+                    $sources_data['collection_order'][ $collection_id ] = array_filter(
+                        $order,
+                        function( $item ) use ( $orphaned_sources ) {
+                            return ! ( $item['type'] === 'source' && in_array( $item['id'], $orphaned_sources, true ) );
+                        }
+                    );
+                    $sources_data['collection_order'][ $collection_id ] = array_values( $sources_data['collection_order'][ $collection_id ] );
+                }
+            }
+
+            if ( isset( $sources_data['published_collection_order'] ) ) {
+                foreach ( $sources_data['published_collection_order'] as $collection_id => $order ) {
+                    $sources_data['published_collection_order'][ $collection_id ] = array_filter(
+                        $order,
+                        function( $item ) use ( $orphaned_sources ) {
+                            return ! ( $item['type'] === 'source' && in_array( $item['id'], $orphaned_sources, true ) );
+                        }
+                    );
+                    $sources_data['published_collection_order'][ $collection_id ] = array_values( $sources_data['published_collection_order'][ $collection_id ] );
+                }
+            }
+
+            remove_filter( 'sanitize_option_' . $this->sources_option_name, array( $this, 'validate_source' ) );
+            update_option( $this->sources_option_name, $sources_data );
+            add_filter( 'sanitize_option_' . $this->sources_option_name, array( $this, 'validate_source' ) );
+
+            $sources_deleted = count( $orphaned_sources );
+        }
+
+        // Clean up orphaned ad slots.
+        if ( ! empty( $orphaned_adslots ) ) {
+            $adslots_data = get_option( $this->adslots_option_name, array() );
+            $slots        = isset( $adslots_data['slots'] ) ? $adslots_data['slots'] : array();
+
+            foreach ( $orphaned_adslots as $collection_id ) {
+                if ( isset( $slots[ $collection_id ] ) ) {
+                    $adslots_deleted += count( $slots[ $collection_id ] );
+                    unset( $slots[ $collection_id ] );
+                }
+            }
+
+            $adslots_data['slots']   = $slots;
+            $adslots_data['updated'] = time();
+
+            remove_filter( 'sanitize_option_' . $this->adslots_option_name, array( $this, 'validate_adslot' ) );
+            update_option( $this->adslots_option_name, $adslots_data );
+            add_filter( 'sanitize_option_' . $this->adslots_option_name, array( $this, 'validate_adslot' ) );
+        }
+
+        wp_send_json_success(
+            array(
+                'message' => sprintf(
+                    /* translators: 1: sources count, 2: ad slots count */
+                    __( 'Successfully cleaned up %1$d orphaned source(s) and %2$d orphaned ad slot(s).', 'richie' ),
+                    $sources_deleted,
+                    $adslots_deleted
+                ),
+                'sources_deleted' => $sources_deleted,
+                'adslots_deleted' => $adslots_deleted,
+            )
+        );
+    }
+
+    /**
+     * Clean up associated data when a collection is deleted.
+     *
+     * This hook fires before the term is deleted from WordPress,
+     * allowing us to clean up all associated sources and ad slots.
+     *
+     * @since    1.0.0
+     * @param int    $term     Term ID.
+     * @param string $taxonomy Taxonomy name.
+     */
+    public function cleanup_collection_on_delete( $term, $taxonomy ) {
+        if ( 'richie_article_set' !== $taxonomy ) {
+            return;
+        }
+
+        // Clean up sources.
+        $sources_data = get_option( $this->sources_option_name, array() );
+        if ( ! empty( $sources_data ) ) {
+            $sources   = isset( $sources_data['sources'] ) ? $sources_data['sources'] : array();
+            $published = isset( $sources_data['published'] ) ? $sources_data['published'] : array();
+
+            $changed = false;
+
+            // Remove sources for this collection.
+            foreach ( $sources as $id => $source ) {
+                if ( isset( $source['article_set'] ) && (int) $source['article_set'] === (int) $term ) {
+                    unset( $sources[ $id ] );
+                    $changed = true;
+                }
+            }
+
+            foreach ( $published as $id => $source ) {
+                if ( isset( $source['article_set'] ) && (int) $source['article_set'] === (int) $term ) {
+                    unset( $published[ $id ] );
+                    $changed = true;
+                }
+            }
+
+            // Clean up collection order.
+            if ( isset( $sources_data['collection_order'][ $term ] ) ) {
+                unset( $sources_data['collection_order'][ $term ] );
+                $changed = true;
+            }
+            if ( isset( $sources_data['published_collection_order'][ $term ] ) ) {
+                unset( $sources_data['published_collection_order'][ $term ] );
+                $changed = true;
+            }
+
+            if ( $changed ) {
+                $sources_data['sources']   = $sources;
+                $sources_data['published'] = $published;
+                $sources_data['updated']   = time();
+
+                // Remove validation filter before updating.
+                remove_filter( 'sanitize_option_' . $this->sources_option_name, array( $this, 'validate_source' ) );
+                update_option( $this->sources_option_name, $sources_data );
+                add_filter( 'sanitize_option_' . $this->sources_option_name, array( $this, 'validate_source' ) );
+            }
+        }
+
+        // Clean up ad slots.
+        $adslots_data = get_option( $this->adslots_option_name, array() );
+        if ( ! empty( $adslots_data ) ) {
+            $slots = isset( $adslots_data['slots'] ) ? $adslots_data['slots'] : array();
+
+            if ( isset( $slots[ $term ] ) ) {
+                unset( $slots[ $term ] );
+                $adslots_data['slots']   = $slots;
+                $adslots_data['updated'] = time();
+
+                // Remove validation filter before updating.
+                remove_filter( 'sanitize_option_' . $this->adslots_option_name, array( $this, 'validate_adslot' ) );
+                update_option( $this->adslots_option_name, $adslots_data );
+                add_filter( 'sanitize_option_' . $this->adslots_option_name, array( $this, 'validate_adslot' ) );
+            }
+        }
     }
 }

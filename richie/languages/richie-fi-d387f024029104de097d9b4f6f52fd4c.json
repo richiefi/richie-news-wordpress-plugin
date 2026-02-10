@@ -1,0 +1,282 @@
+{
+    "translation-revision-date": "2026-02-09 07:42+0000",
+    "generator": "Loco https://localise.biz/",
+    "source": "admin/feed-editor/build/index.js",
+    "domain": "richie",
+    "locale_data": {
+        "richie": {
+            "": {
+                "domain": "",
+                "lang": "fi",
+                "plural-forms": "nplurals=2; plural=n != 1;"
+            },
+            "%1$d article (%2$d available)": [
+                "%1$d artikkeli (%2$d saatavilla)",
+                "%1$d artikkelia (%2$d saatavilla)"
+            ],
+            "%d article": [
+                "%d artikkeli",
+                "%d artikkelia"
+            ],
+            "%d day": [
+                "%d p\u00e4iv\u00e4",
+                "%d p\u00e4iv\u00e4\u00e4"
+            ],
+            "%d month": [
+                "%d kuukausi",
+                "%d kuukautta"
+            ],
+            "%d week": [
+                "%d viikko",
+                "%d viikkoa"
+            ],
+            "%d year": [
+                "%d vuosi",
+                "%d vuotta"
+            ],
+            "AD": [
+                "Mainos"
+            ],
+            "Ad Data (JSON)": [
+                "Mainostiedot (JSON)"
+            ],
+            "Ad Provider": [
+                "Mainospalvelu"
+            ],
+            "Ad Slot": [
+                "Mainospaikka"
+            ],
+            "Add ad slot": [
+                "Lis\u00e4\u00e4 mainospaikka"
+            ],
+            "Add collection": [
+                "Lis\u00e4\u00e4 kokoelma"
+            ],
+            "Add section": [
+                "Lis\u00e4\u00e4 osio"
+            ],
+            "Advertisement": [
+                "Mainos"
+            ],
+            "All time": [
+                "Kaikki"
+            ],
+            "Allow duplicate articles in this source": [
+                "Salli duplikaattiartikkelit t\u00e4ss\u00e4 l\u00e4hteess\u00e4"
+            ],
+            "Allow Duplicates": [
+                "Salli duplikaatit"
+            ],
+            "Are you sure you want to delete this ad slot?": [
+                "Haluatko varmasti poistaa t\u00e4m\u00e4n mainospaikan?"
+            ],
+            "Are you sure you want to delete this collection? This will permanently remove all news sources and ad slots associated with it.": [
+                "Haluatko varmasti poistaa t\u00e4m\u00e4n kokoelman? T\u00e4m\u00e4 poistaa pysyv\u00e4sti kaikki siihen liittyv\u00e4t uutisl\u00e4hteet ja mainospaikat."
+            ],
+            "Are you sure you want to delete this section?": [
+                "Haluatko varmasti poistaa t\u00e4m\u00e4n osion?"
+            ],
+            "Ascending": [
+                "Nouseva"
+            ],
+            "Author": [
+                "Kirjoittaja"
+            ],
+            "Background Color": [
+                "Taustav\u00e4ri"
+            ],
+            "Background color to be used with layout types. Not all layout types support this.": [
+                "Taustav\u00e4ri jota voidaan k\u00e4ytt\u00e4\u00e4 artikkelipohjissa. Kaikki pohjat eiv\u00e4t t\u00e4t\u00e4 tue."
+            ],
+            "Cancel": [
+                "Peruuta"
+            ],
+            "Categories": [
+                "Kategoriat"
+            ],
+            "Clear": [
+                "Tyhjenn\u00e4"
+            ],
+            "Close": [
+                "Sulje"
+            ],
+            "Collection": [
+                "Kokoelma"
+            ],
+            "Collection Preview": [
+                "Kokoelman esikatselu"
+            ],
+            "Copied!": [
+                "Kopioitu!"
+            ],
+            "Copy Feed URL": [
+                "Kopioi sy\u00f6tteen URL"
+            ],
+            "Copy this URL: ": [
+                "Kopioi t\u00e4m\u00e4 URL: "
+            ],
+            "Date": [
+                "P\u00e4iv\u00e4m\u00e4\u00e4r\u00e4"
+            ],
+            "Delete": [
+                "Poista"
+            ],
+            "Delete collection": [
+                "Poista kokoelma"
+            ],
+            "Descending": [
+                "Laskeva"
+            ],
+            "Disable Summary": [
+                "Piilota yhteenveto"
+            ],
+            "Do not show summary text in news list": [
+                "\u00c4l\u00e4 n\u00e4yt\u00e4 artikkelin yhteenvetoa uutislistauksessa"
+            ],
+            "Edit": [
+                "Muokkaa"
+            ],
+            "Edit ad slot": [
+                "Muokkaa mainospaikkaa"
+            ],
+            "Edit collection": [
+                "Muokkaa kokoelmaa"
+            ],
+            "Edit section": [
+                "Muokkaa osiota"
+            ],
+            "Enter tag slugs separated by commas": [
+                "Sy\u00f6t\u00e4 tunnisteiden polkutunnukset pilkuilla eroteltuna"
+            ],
+            "Failed to copy. URL: ": [
+                "Kopiointi ep\u00e4onnistui. URL: "
+            ],
+            "Failed to delete collection. Please try again.": [
+                "Kokoelman poistaminen ep\u00e4onnistui. Yrit\u00e4 uudelleen."
+            ],
+            "Group Title": [
+                "Ryhm\u00e4n otsikko"
+            ],
+            "Header to display before the story, useful on the first small_group_item of a group": [
+                "Otsikko, joka n\u00e4ytet\u00e4\u00e4n ennen artikkelia."
+            ],
+            "ID": [
+                "ID"
+            ],
+            "Insert example": [
+                "Lis\u00e4\u00e4 esimerkki"
+            ],
+            "Invalid JSON:": [
+                "Virheellinen JSON:"
+            ],
+            "Layout Style": [
+                "Asettelu"
+            ],
+            "Loading collections...": [
+                "Ladataan kokoelmia..."
+            ],
+            "Loading feed items\u2026": [
+                "Ladataan sy\u00f6tteen kohteita\u2026"
+            ],
+            "Loading preview...": [
+                "Ladataan esikatselua..."
+            ],
+            "Max Age": [
+                "Enimm\u00e4isik\u00e4"
+            ],
+            "Modified": [
+                "Muokattu"
+            ],
+            "more": [
+                "lis\u00e4\u00e4"
+            ],
+            "Name": [
+                "Nimi"
+            ],
+            "No articles found": [
+                "Ei artikkeleita l\u00f6ytynyt"
+            ],
+            "No articles in this collection": [
+                "Ei artikkeleita t\u00e4ss\u00e4 kokoelmassa"
+            ],
+            "No sections or ad slots in this collection yet. Click \"Add section\" or \"Add ad slot\" to get started.": [
+                "T\u00e4ss\u00e4 kokoelmassa ei ole viel\u00e4 osioita tai mainospaikkoja. Aloita valitsemalla \"Lis\u00e4\u00e4 osio\" tai \"Lis\u00e4\u00e4 mainospaikka\"."
+            ],
+            "Number of Articles": [
+                "Artikkelien m\u00e4\u00e4r\u00e4"
+            ],
+            "Number of posts included in the feed": [
+                "Sy\u00f6tteeseen mukaanotettavien artikkelien m\u00e4\u00e4r\u00e4"
+            ],
+            "Optional JSON configuration for the ad": [
+                "Valinnainen JSON-asetus mainokselle"
+            ],
+            "Order By": [
+                "J\u00e4rjest\u00e4"
+            ],
+            "Order Direction": [
+                "J\u00e4rjestyssuunta"
+            ],
+            "Post Type": [
+                "Artikkelityyppi"
+            ],
+            "Preview Collection": [
+                "Esikatsele kokoelmaa"
+            ],
+            "Preview shows the feed structure and layout types. Actual appearance depends on the native app configuration.": [
+                "Esikatselu n\u00e4ytt\u00e4\u00e4 sy\u00f6tteen rakenteen ja asettelutyypit. Todellinen ulkoasu riippuu natiivisovelluksen konfiguraatiosta."
+            ],
+            "Provider:": [
+                "Tarjoaja:"
+            ],
+            "Publish now": [
+                "Julkaise nyt"
+            ],
+            "Revert changes": [
+                "Peruuta muutokset"
+            ],
+            "Section previews are a sample of current content. They also show duplicated articles if the same source is used in multiple sections. To see how the feed looks in the app, use the \"Preview Collection\" button above.": [
+                "Osioiden esikatselut ovat n\u00e4ytteit\u00e4 nykyisest\u00e4 sis\u00e4ll\u00f6st\u00e4. Ne n\u00e4ytt\u00e4v\u00e4t my\u00f6s duplikaattiartikkelit, jos sama l\u00e4hde on k\u00e4yt\u00f6ss\u00e4 useissa osioissa. N\u00e4et, milt\u00e4 sy\u00f6te n\u00e4ytt\u00e4\u00e4 sovelluksessa, k\u00e4ytt\u00e4m\u00e4ll\u00e4 yll\u00e4 olevaa \"Esikatsele kokoelmaa\" -painiketta."
+            ],
+            "Select a collection above to manage its feed items.": [
+                "Valitse yll\u00e4 oleva kokoelma hallitaksesi sen sy\u00f6tteen kohteita."
+            ],
+            "Select color": [
+                "Valitse v\u00e4ri"
+            ],
+            "Show less": [
+                "N\u00e4yt\u00e4 v\u00e4hemm\u00e4n"
+            ],
+            "Slug": [
+                "Polkutunnus"
+            ],
+            "Tags (comma-separated)": [
+                "Asiasanat (pilkuilla eroteltuna)"
+            ],
+            "Title": [
+                "Otsikko"
+            ],
+            "Untitled": [
+                "Nimet\u00f6n"
+            ],
+            "Update ad slot": [
+                "P\u00e4ivit\u00e4 mainospaikka"
+            ],
+            "Update collection": [
+                "P\u00e4ivit\u00e4 kokoelma"
+            ],
+            "Update section": [
+                "P\u00e4ivit\u00e4 osio"
+            ],
+            "Used in feed URL (optional)": [
+                "K\u00e4ytet\u00e4\u00e4n sy\u00f6tteen URL-osoitteessa (valinnainen)"
+            ],
+            "You have unpublished changes.": [
+                "Sinulla on julkaisemattomia muutoksia."
+            ],
+            "\u2014 Select a collection \u2014": [
+                "\u2014 Valitse kokoelma \u2014"
+            ]
+        }
+    }
+}

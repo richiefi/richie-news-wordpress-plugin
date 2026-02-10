@@ -87,16 +87,78 @@ class Richie_Public {
         $found_ids   = array();
         $errors      = array();
 
-        $sources = array_filter(
+        // Check for custom collection order
+        if ( $unpublished ) {
+            $collection_order = isset( $sourcelist['collection_order'][ $article_set->term_id ] )
+                ? $sourcelist['collection_order'][ $article_set->term_id ]
+                : null;
+        } else {
+            $published_orders = isset( $sourcelist['published_collection_order'] )
+                ? $sourcelist['published_collection_order']
+                : array();
+
+            $collection_order = isset( $published_orders[ $article_set->term_id ] )
+                ? $published_orders[ $article_set->term_id ]
+                : ( isset( $sourcelist['collection_order'][ $article_set->term_id ] )
+                    ? $sourcelist['collection_order'][ $article_set->term_id ]
+                    : null );
+        }
+
+        // Filter sources matching this article set.
+        $matching_sources = array_filter(
             $richie_news_sources,
-            function( $source ) use ( $article_set ) {
-                return $article_set->term_id === $source['article_set'];
+            function ( $source ) use ( $article_set ) {
+                return isset( $source['article_set'] ) && $article_set->term_id === $source['article_set'];
             }
         );
 
-        $adslots = $this->get_ad_slots($article_set);
+        // Index sources by ID for quick lookup when using custom order
+        $sources_by_id = array();
+        foreach ( $matching_sources as $source ) {
+            $sources_by_id[ $source['id'] ] = $source;
+        }
 
-        foreach ( $sources as $source ) {
+        // Get ad slots indexed by UUID
+        $adslots_option = get_option( $this->plugin_name . '_adslots' );
+        $adslots_raw = isset( $adslots_option['slots'][ $article_set->term_id ] )
+            ? $adslots_option['slots'][ $article_set->term_id ]
+            : array();
+        $adslots_by_uuid = array();
+        foreach ( $adslots_raw as $slot ) {
+            if ( isset( $slot['attributes']['id'] ) ) {
+                $adslots_by_uuid[ $slot['attributes']['id'] ] = $slot;
+            }
+        }
+
+        // Determine iteration order
+        $use_custom_order = ! empty( $collection_order );
+        if ( $use_custom_order ) {
+            $ordered_items = $collection_order;
+        } else {
+            $ordered_items = array();
+        }
+
+        // Use legacy ad slot handling if no custom order
+        $adslots = $use_custom_order ? array() : $this->get_ad_slots( $article_set );
+
+        // When using custom order, we'll build articles directly with interleaved ads
+        $articles_with_order = array();
+
+        // Process sources in order
+        if ( $use_custom_order ) {
+            // Custom order: look up sources by ID from ordered_items
+            $sources_to_process = array();
+            foreach ( $ordered_items as $item ) {
+                if ( $item['type'] === 'source' && isset( $sources_by_id[ $item['id'] ] ) ) {
+                    $sources_to_process[ $item['id'] ] = $sources_by_id[ $item['id'] ];
+                }
+            }
+        } else {
+            // Legacy: use all matching sources (preserves duplicates with same ID)
+            $sources_to_process = $matching_sources;
+        }
+
+        foreach ( $sources_to_process as $source ) {
             $args = array(
                 'posts_per_page' => $source['number_of_posts'],
                 'post__not_in'   => array(),
@@ -191,6 +253,7 @@ class Richie_Public {
                             'id'                 => $p->ID,
                             'post_data'          => $p,
                             'article_attributes' => $article_attributes,
+                            'source_id'          => $source['id'],
                         )
                     );
 
@@ -205,56 +268,113 @@ class Richie_Public {
 
         $articles = array();
 
-        foreach ( $posts as $key => $p ) {
-            // Check available adslot, adslot index is 1-based.
-            if ( isset( $adslots[ $key + 1 ] ) ) {
-                $slot                  = $adslots[ $key + 1 ];
-                $attributes            = $slot['attributes'];
-                $attributes['updated'] = date( 'c', $slot['updated'] );
-
-                // We have adslots for the index, include it first.
-                array_push(
-                    $articles,
-                    array(
-                        'id'                 => $attributes['id'],
-                        'last_updated'       => date( 'c', $slot['updated'] ),
-                        'article_attributes' => $attributes,
-                    )
-                );
-                unset( $adslots[ $key + 1 ] );
-            }
-            $content_post = $p['post_data'];
-            $date         = ( new DateTime( $content_post->post_date_gmt ) )->format( 'c' );
-            $updated_date = ( new DateTime( $content_post->post_modified_gmt ) )->format( 'c' );
-
-            $article = array(
-                'id'                 => strval( $content_post->ID ),
-                'fetch_id'           => $content_post->ID,
-                'last_updated'       => max( $date, $updated_date ),
-                'article_attributes' => $p['article_attributes'],
-            );
-
-            if ( $include_original ) {
-                $article['original_post'] = $content_post;
+        // Custom order: build articles by iterating through ordered_items with interleaved ads
+        if ( $use_custom_order ) {
+            // Index posts by source_id for lookup
+            $posts_by_source = array();
+            foreach ( $posts as $p ) {
+                $source_id = $p['source_id'];
+                if ( ! isset( $posts_by_source[ $source_id ] ) ) {
+                    $posts_by_source[ $source_id ] = array();
+                }
+                $posts_by_source[ $source_id ][] = $p;
             }
 
-            array_push(
-                $articles,
-                $article
-            );
-        }
+            foreach ( $ordered_items as $item ) {
+                if ( $item['type'] === 'source' ) {
+                    $source_id = $item['id'];
+                    if ( isset( $posts_by_source[ $source_id ] ) ) {
+                        foreach ( $posts_by_source[ $source_id ] as $p ) {
+                            $content_post = $p['post_data'];
+                            $date         = ( new DateTime( $content_post->post_date_gmt ) )->format( 'c' );
+                            $updated_date = ( new DateTime( $content_post->post_modified_gmt ) )->format( 'c' );
 
-        if ( ! empty( $adslots ) ) {
-            // We have slots left, include them at the end.
-            foreach ( $adslots as $slot ) {
+                            $article = array(
+                                'id'                 => strval( $content_post->ID ),
+                                'fetch_id'           => $content_post->ID,
+                                'last_updated'       => max( $date, $updated_date ),
+                                'article_attributes' => $p['article_attributes'],
+                            );
+
+                            if ( $include_original ) {
+                                $article['original_post'] = $content_post;
+                            }
+
+                            array_push( $articles, $article );
+                        }
+                    }
+                } elseif ( $item['type'] === 'ad' ) {
+                    $ad_id = $item['id'];
+                    if ( isset( $adslots_by_uuid[ $ad_id ] ) ) {
+                        $slot       = $adslots_by_uuid[ $ad_id ];
+                        $attributes = $slot['attributes'];
+                        $attributes['updated'] = date( 'c', $slot['updated'] );
+
+                        array_push(
+                            $articles,
+                            array(
+                                'id'                 => $attributes['id'],
+                                'last_updated'       => date( 'c', $slot['updated'] ),
+                                'article_attributes' => $attributes,
+                            )
+                        );
+                    }
+                }
+            }
+        } else {
+            // Legacy order: position-based ad insertion
+            foreach ( $posts as $key => $p ) {
+                // Check available adslot, adslot index is 1-based.
+                if ( isset( $adslots[ $key + 1 ] ) ) {
+                    $slot                  = $adslots[ $key + 1 ];
+                    $attributes            = $slot['attributes'];
+                    $attributes['updated'] = date( 'c', $slot['updated'] );
+
+                    // We have adslots for the index, include it first.
+                    array_push(
+                        $articles,
+                        array(
+                            'id'                 => $attributes['id'],
+                            'last_updated'       => date( 'c', $slot['updated'] ),
+                            'article_attributes' => $attributes,
+                        )
+                    );
+                    unset( $adslots[ $key + 1 ] );
+                }
+                $content_post = $p['post_data'];
+                $date         = ( new DateTime( $content_post->post_date_gmt ) )->format( 'c' );
+                $updated_date = ( new DateTime( $content_post->post_modified_gmt ) )->format( 'c' );
+
+                $article = array(
+                    'id'                 => strval( $content_post->ID ),
+                    'fetch_id'           => $content_post->ID,
+                    'last_updated'       => max( $date, $updated_date ),
+                    'article_attributes' => $p['article_attributes'],
+                );
+
+                if ( $include_original ) {
+                    $article['original_post'] = $content_post;
+                }
+
                 array_push(
                     $articles,
-                    array(
-                        'id'                 => $slot['attributes']['id'],
-                        'last_updated'       => date( 'c', $slot['updated'] ),
-                        'article_attributes' => $attributes,
-                    )
+                    $article
                 );
+            }
+
+            if ( ! empty( $adslots ) ) {
+                // We have slots left, include them at the end.
+                foreach ( $adslots as $slot ) {
+                    $attributes = $slot['attributes'];
+                    array_push(
+                        $articles,
+                        array(
+                            'id'                 => $slot['attributes']['id'],
+                            'last_updated'       => date( 'c', $slot['updated'] ),
+                            'article_attributes' => $attributes,
+                        )
+                    );
+                }
             }
         }
 
@@ -263,8 +383,6 @@ class Richie_Public {
 
     public function get_section_article( $article ) {
         $section_article = array(
-            'publisher_id'         => $article['id'],
-            'article_full_version' => $article['last_updated'], // TODO: Undocumented field - verify if still needed.
             'layout'               => $article['article_attributes']['list_layout_style'],
         );
 
@@ -272,6 +390,13 @@ class Richie_Public {
             $post              = $article['original_post'];
             $article_instance  = new Richie_Article( $this->richie_options );
             $generated_article = $article_instance->generate_article( $post, Richie_Article::EXCLUDE_CONTENT );
+            $section_article['publisher_id'] = $article['id'];
+
+            $premium_categories = isset( $this->richie_options['premium_categories'] ) ? (array) $this->richie_options['premium_categories'] : array();
+            if ( ! empty( $premium_categories ) ) {
+                $post_categories              = wp_get_post_categories( $post->ID );
+                $section_article['is_premium'] = ! empty( array_intersect( $post_categories, $premium_categories ) );
+            }
 
             $summary_disabled = false;
             if ( array_key_exists( 'summary', $article['article_attributes'] ) && null === $article['article_attributes']['summary'] ) {

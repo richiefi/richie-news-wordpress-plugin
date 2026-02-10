@@ -1,0 +1,27 @@
+{
+    "translation-revision-date": "2026-02-09 07:42+0000",
+    "generator": "Loco https://localise.biz/",
+    "source": "admin/feed-editor/src/App.js",
+    "domain": "richie",
+    "locale_data": {
+        "richie": {
+            "": {
+                "domain": "",
+                "lang": "fi",
+                "plural-forms": "nplurals=2; plural=n != 1;"
+            },
+            "Publish now": [
+                "Julkaise nyt"
+            ],
+            "Revert changes": [
+                "Peruuta muutokset"
+            ],
+            "Select a collection above to manage its feed items.": [
+                "Valitse yll\u00e4 oleva kokoelma hallitaksesi sen sy\u00f6tteen kohteita."
+            ],
+            "You have unpublished changes.": [
+                "Sinulla on julkaisemattomia muutoksia."
+            ]
+        }
+    }
+}
