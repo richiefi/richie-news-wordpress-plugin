@@ -308,6 +308,62 @@ function richie_locate_html_template( $slug, $name = null ) {
 }
 
 /**
+ * Locate a HTML template file in the active theme or parent theme only.
+ *
+ * @param string $slug Template slug.
+ * @param string $name Template variation name.
+ * @return string|null
+ */
+function richie_locate_theme_html_template( $slug, $name = null ) {
+    $templates  = richie_get_html_template_names( $slug, $name );
+    $theme_dir  = trailingslashit( get_stylesheet_directory() ) . 'richie/';
+    $parent_dir = trailingslashit( get_template_directory() ) . 'richie/';
+
+    $paths = array( $theme_dir, $parent_dir );
+
+    foreach ( $templates as $template_name ) {
+        foreach ( $paths as $path ) {
+            $candidate = $path . ltrim( $template_name, '/' );
+            if ( file_exists( $candidate ) ) {
+                return $candidate;
+            }
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Locate a PHP template file in the active theme or parent theme only.
+ *
+ * @param string $slug Template slug.
+ * @param string $name Template variation name.
+ * @return string|null
+ */
+function richie_locate_theme_php_template( $slug, $name = null ) {
+    $templates = array();
+    if ( isset( $name ) && $name !== '' ) {
+        $templates[] = $slug . '-' . $name . '.php';
+    }
+    $templates[] = $slug . '.php';
+
+    $theme_dir  = trailingslashit( get_stylesheet_directory() ) . 'richie/';
+    $parent_dir = trailingslashit( get_template_directory() ) . 'richie/';
+    $paths      = array( $theme_dir, $parent_dir );
+
+    foreach ( $templates as $template_name ) {
+        foreach ( $paths as $path ) {
+            $candidate = $path . ltrim( $template_name, '/' );
+            if ( file_exists( $candidate ) ) {
+                return $candidate;
+            }
+        }
+    }
+
+    return null;
+}
+
+/**
  * Render a block HTML template into a full HTML document string.
  *
  * @param string $template_path Absolute path to the HTML template.
@@ -317,6 +373,20 @@ function richie_render_block_template_document( $template_path ) {
     $template_contents = file_get_contents( $template_path );
 
     if ( $template_contents === false ) {
+        return '';
+    }
+
+    return richie_render_block_template_document_from_content( $template_contents );
+}
+
+/**
+ * Render block template content into a full HTML document string.
+ *
+ * @param string $template_contents Block template markup.
+ * @return string
+ */
+function richie_render_block_template_document_from_content( $template_contents ) {
+    if ( $template_contents === '' ) {
         return '';
     }
 
@@ -350,4 +420,68 @@ function richie_render_block_template_document( $template_path ) {
     }
 
     return $rendered;
+}
+
+/**
+ * Get the block template slug used for Richie articles.
+ *
+ * @return string
+ */
+function richie_get_block_template_slug() {
+    return 'richie-article';
+}
+
+/**
+ * Find a block template by slug, preferring custom templates.
+ *
+ * @param string $slug Template slug.
+ * @return WP_Block_Template|null
+ */
+function richie_get_block_template_by_slug( $slug ) {
+    if ( ! function_exists( 'get_block_templates' ) ) {
+        return null;
+    }
+
+    $templates = get_block_templates(
+        array(
+            'slug__in' => array( $slug ),
+        ),
+        'wp_template'
+    );
+
+    if ( empty( $templates ) ) {
+        return null;
+    }
+
+    $priority = array(
+        'custom' => 0,
+        'theme'  => 1,
+        'plugin' => 2,
+    );
+
+    usort(
+        $templates,
+        function( $a, $b ) use ( $priority ) {
+            $a_priority = isset( $priority[ $a->source ] ) ? $priority[ $a->source ] : 99;
+            $b_priority = isset( $priority[ $b->source ] ) ? $priority[ $b->source ] : 99;
+            return $a_priority <=> $b_priority;
+        }
+    );
+
+    return $templates[0];
+}
+
+/**
+ * Render a block template by slug into a full HTML document.
+ *
+ * @param string $slug Template slug.
+ * @return string
+ */
+function richie_render_block_template_by_slug( $slug ) {
+    $template = richie_get_block_template_by_slug( $slug );
+    if ( ! $template || empty( $template->content ) ) {
+        return '';
+    }
+
+    return richie_render_block_template_document_from_content( $template->content );
 }

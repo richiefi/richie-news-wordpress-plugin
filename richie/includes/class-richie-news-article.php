@@ -84,6 +84,8 @@ class Richie_Article {
         require_once plugin_dir_path( __FILE__ ) . 'class-richie-template-loader.php';
         $richie_template_loader = new Richie_Template_Loader();
         $html_template_path = richie_locate_html_template( $slug, $name );
+        $theme_html_template_path = richie_locate_theme_html_template( $slug, $name );
+        $theme_php_template_path = richie_locate_theme_php_template( $slug, $name );
 
         $wp_query = new WP_Query( //phpcs:ignore
             array(
@@ -99,9 +101,28 @@ class Richie_Article {
         add_filter( 'script_loader_src', 'richie_force_url_scheme' );
         add_filter( 'style_loader_src', 'richie_force_url_scheme' );
 
-        if ( $html_template_path ) {
+        if ( $theme_html_template_path ) {
+            $rendered_content = richie_render_block_template_document( $theme_html_template_path );
+        }
+
+        $use_block_template = is_array( $this->news_options ) && ! empty( $this->news_options['use_block_template'] );
+        if ( empty( $rendered_content ) && $use_block_template && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+            $rendered_content = richie_render_block_template_by_slug( richie_get_block_template_slug() );
+        }
+
+        if ( empty( $rendered_content ) && $html_template_path ) {
             $rendered_content = richie_render_block_template_document( $html_template_path );
-        } else {
+        }
+
+        if ( empty( $rendered_content ) && $theme_php_template_path ) {
+            ob_start();
+            $richie_template_loader
+                ->get_template_part( $slug, $name );
+
+            $rendered_content = ob_get_clean();
+        }
+
+        if ( empty( $rendered_content ) ) {
             ob_start();
             $richie_template_loader
                 ->get_template_part( $slug, $name );
@@ -453,8 +474,10 @@ class Richie_Article {
                 }
             }
 
+            $template_name = 'article';
+
             // Render locally to get assets.
-            $local_rendered_content = $this->render_template( 'richie-news', 'article', $my_post );
+            $local_rendered_content = $this->render_template( 'richie-news', $template_name, $my_post );
 
             if ( $use_local_render ) {
                 $rendered_content = $local_rendered_content;

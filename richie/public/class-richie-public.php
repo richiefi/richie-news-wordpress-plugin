@@ -734,6 +734,27 @@ class Richie_Public {
                     $name = sanitize_title( $_GET['template'] );
                 }
 
+                $theme_html_template_path = richie_locate_theme_html_template( 'richie-news', $name );
+                $theme_php_template_path = richie_locate_theme_php_template( 'richie-news', $name );
+                if ( $theme_html_template_path ) {
+                    set_query_var( 'richie_block_template_path', $theme_html_template_path );
+                    return Richie_PLUGIN_DIR . 'templates/richie-news-block.php';
+                }
+                if ( $theme_php_template_path ) {
+                    $richie_template_loader = new Richie_Template_Loader();
+                    $template               = $richie_template_loader->get_template_part( 'richie-news', $name, false );
+                    return $template;
+                }
+
+                $use_block_template = is_array( $this->richie_options ) && ! empty( $this->richie_options['use_block_template'] );
+                if ( $use_block_template && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+                    $block_slug = richie_get_block_template_slug();
+                    if ( richie_get_block_template_by_slug( $block_slug ) ) {
+                        set_query_var( 'richie_block_template_slug', $block_slug );
+                        return Richie_PLUGIN_DIR . 'templates/richie-news-block.php';
+                    }
+                }
+
                 $block_template = richie_locate_html_template( 'richie-news', $name );
                 if ( $block_template ) {
                     set_query_var( 'richie_block_template_path', $block_template );
@@ -774,6 +795,48 @@ class Richie_Public {
      */
     public function register_shortcodes() {
 
+    }
+
+    /**
+     * Register block templates for block themes.
+     */
+    public function register_block_templates() {
+        if ( ! function_exists( 'register_block_template' ) ) {
+            return;
+        }
+
+        if ( ! function_exists( 'wp_is_block_theme' ) || ! wp_is_block_theme() ) {
+            return;
+        }
+
+        $template_path = Richie_PLUGIN_DIR . 'templates/block-templates/' . richie_get_block_template_slug() . '.html';
+        if ( ! file_exists( $template_path ) ) {
+            return;
+        }
+
+        $content = file_get_contents( $template_path );
+        if ( $content === false ) {
+            return;
+        }
+
+        if ( function_exists( 'parse_blocks' ) && function_exists( 'serialize_blocks' ) ) {
+            $parsed = parse_blocks( $content );
+            if ( ! empty( $parsed ) ) {
+                $content = serialize_blocks( $parsed );
+            }
+        }
+
+        $template_id = $this->plugin_name . '//' . richie_get_block_template_slug();
+        register_block_template(
+            $template_id,
+            array(
+                'title'       => __( 'Richie Article', 'richie' ),
+                'description' => __( 'Richie news article template.', 'richie' ),
+                'content'     => $content,
+                'post_types'  => array( 'post' ),
+                'template_types' => array( 'single' ),
+            )
+        );
     }
 }
 
