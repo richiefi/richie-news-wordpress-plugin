@@ -383,7 +383,11 @@ class Richie_Admin {
             $valid['access_token'] = sanitize_text_field( $input['access_token'] );
         }
 
-        $valid['search_list_layout_style']    = in_array( $input['search_list_layout_style'], $this->available_layout_names, true ) ? sanitize_text_field( $input['search_list_layout_style'] ) : 'small';
+        if ( isset( $input['search_list_layout_style'] ) && in_array( $input['search_list_layout_style'], $this->available_layout_names, true ) ) {
+            $valid['search_list_layout_style'] = sanitize_text_field( $input['search_list_layout_style'] );
+        } else {
+            $valid['search_list_layout_style'] = 'small';
+        }
 
         $valid['premium_categories'] = array();
         if ( isset( $input['premium_categories'] ) && is_array( $input['premium_categories'] ) ) {
@@ -671,9 +675,7 @@ class Richie_Admin {
      * @return bool
      */
     private function has_block_template_override() {
-        $slug = function_exists( 'richie_get_block_template_slug' )
-            ? richie_get_block_template_slug()
-            : 'richie-article';
+        $slug = richie_get_block_template_slug();
 
         if ( function_exists( 'get_block_templates' ) ) {
             $templates = get_block_templates(
@@ -690,16 +692,12 @@ class Richie_Admin {
             }
         }
 
-        if ( function_exists( 'richie_locate_theme_html_template' ) ) {
-            if ( richie_locate_theme_html_template( 'richie-news', 'article' ) || richie_locate_theme_html_template( 'richie-news' ) ) {
-                return true;
-            }
+        if ( richie_locate_theme_html_template( 'richie-news', 'article' ) || richie_locate_theme_html_template( 'richie-news' ) ) {
+            return true;
         }
 
-        if ( function_exists( 'richie_locate_theme_php_template' ) ) {
-            if ( richie_locate_theme_php_template( 'richie-news', 'article' ) || richie_locate_theme_php_template( 'richie-news' ) ) {
-                return true;
-            }
+        if ( richie_locate_theme_php_template( 'richie-news', 'article' ) || richie_locate_theme_php_template( 'richie-news' ) ) {
+            return true;
         }
 
         return false;

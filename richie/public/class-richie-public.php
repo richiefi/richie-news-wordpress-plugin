@@ -547,7 +547,8 @@ class Richie_Public {
         if ( empty( $post ) ) {
             return new WP_Error( 'no_id', 'Invalid article id', array( 'status' => 404 ) );
         } else {
-            $generated_article = $article->generate_article( $post, $version >= 3 ? Richie_Article::EXCLUDE_METADATA : Richie_Article::EXCLUDE_NONE );
+            $template_name     = isset( $data['template'] ) ? $data['template'] : 'article';
+            $generated_article = $article->generate_article( $post, $version >= 3 ? Richie_Article::EXCLUDE_METADATA : Richie_Article::EXCLUDE_NONE, $template_name );
             return $generated_article;
         }
     }
@@ -702,10 +703,14 @@ class Richie_Public {
                 'callback'            => array( $this, 'article_route_handler_v3' ),
                 'permission_callback' => array( $this, 'check_permission' ),
                 'args'                => array(
-                    'id' => array(
+                    'id'       => array(
                         'validate_callback' => function( $param ) {
                             return is_numeric( $param );
                         },
+                    ),
+                    'template' => array(
+                        'sanitize_callback' => 'sanitize_title',
+                        'default'           => 'article',
                     ),
                 ),
             )

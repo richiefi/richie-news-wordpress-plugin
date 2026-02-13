@@ -83,9 +83,9 @@ class Richie_Article {
         global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $user_ID, $wp_styles, $wp_scripts, $wp_filter;
         require_once plugin_dir_path( __FILE__ ) . 'class-richie-template-loader.php';
         $richie_template_loader = new Richie_Template_Loader();
-        $html_template_path = richie_locate_html_template( $slug, $name );
         $theme_html_template_path = richie_locate_theme_html_template( $slug, $name );
-        $theme_php_template_path = richie_locate_theme_php_template( $slug, $name );
+        $theme_php_template_path  = richie_locate_theme_php_template( $slug, $name );
+        $html_template_path       = richie_locate_html_template( $slug, $name );
 
         $wp_query = new WP_Query( //phpcs:ignore
             array(
@@ -101,32 +101,35 @@ class Richie_Article {
         add_filter( 'script_loader_src', 'richie_force_url_scheme' );
         add_filter( 'style_loader_src', 'richie_force_url_scheme' );
 
+        $rendered_content = '';
+
+        // 1. Theme HTML template override.
         if ( $theme_html_template_path ) {
             $rendered_content = richie_render_block_template_document( $theme_html_template_path );
         }
 
+        // 2. Theme PHP template override.
+        if ( empty( $rendered_content ) && $theme_php_template_path ) {
+            ob_start();
+            $richie_template_loader->get_template_part( $slug, $name );
+            $rendered_content = ob_get_clean();
+        }
+
+        // 3. Site Editor block template.
         $use_block_template = is_array( $this->news_options ) && ! empty( $this->news_options['use_block_template'] );
         if ( empty( $rendered_content ) && $use_block_template && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
             $rendered_content = richie_render_block_template_by_slug( richie_get_block_template_slug() );
         }
 
+        // 4. Plugin HTML template fallback.
         if ( empty( $rendered_content ) && $html_template_path ) {
             $rendered_content = richie_render_block_template_document( $html_template_path );
         }
 
-        if ( empty( $rendered_content ) && $theme_php_template_path ) {
-            ob_start();
-            $richie_template_loader
-                ->get_template_part( $slug, $name );
-
-            $rendered_content = ob_get_clean();
-        }
-
+        // 5. Legacy PHP template fallback.
         if ( empty( $rendered_content ) ) {
             ob_start();
-            $richie_template_loader
-                ->get_template_part( $slug, $name );
-
+            $richie_template_loader->get_template_part( $slug, $name );
             $rendered_content = ob_get_clean();
         }
         wp_reset_query(); // Reset wp query to original and resets post data also.
@@ -252,7 +255,7 @@ class Richie_Article {
         return $results;
     }
 
-    public function generate_article( $original_post, $exclude = self::EXCLUDE_NONE ) {
+    public function generate_article( $original_post, $exclude = self::EXCLUDE_NONE, $template_name = 'article' ) {
         if ( empty( $original_post ) ) {
             return new stdClass(); // Return empty object.
         }
@@ -423,13 +426,14 @@ class Richie_Article {
                 $token = '';
             }
 
-            $content_url = add_query_arg(
-                array(
-                    'richie_news' => 1,
-                    'token'       => $token,
-                ),
-                get_permalink( $post_id )
+            $content_args = array(
+                'richie_news' => 1,
+                'token'       => $token,
             );
+            if ( 'article' !== $template_name ) {
+                $content_args['template'] = $template_name;
+            }
+            $content_url = add_query_arg( $content_args, get_permalink( $post_id ) );
 
             $content_url = $this->append_wpp_shadow( $content_url );
 
@@ -473,8 +477,6 @@ class Richie_Article {
                     $article->from_cache = true; // TODO: Undocumented field - verify if still needed.
                 }
             }
-
-            $template_name = 'article';
 
             // Render locally to get assets.
             $local_rendered_content = $this->render_template( 'richie-news', $template_name, $my_post );
