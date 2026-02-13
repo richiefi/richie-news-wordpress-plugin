@@ -397,7 +397,7 @@ function richie_locate_theme_php_template( $slug, $name = null ) {
 function richie_render_block_template_document( $template_path ) {
     $template_contents = file_get_contents( $template_path );
 
-    if ( $template_contents === false ) {
+    if ( false === $template_contents ) {
         return '';
     }
 
