@@ -471,6 +471,14 @@ function richie_use_block_template( $options = null ) {
  * @return array Template descriptor.
  */
 function richie_resolve_template( $slug, $name, $options = null ) {
+    // 0. Explicit block template request — skip theme overrides.
+    if ( 'block' === $name && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+        $block_slug = richie_get_block_template_slug();
+        if ( richie_get_block_template_by_slug( $block_slug ) ) {
+            return array( 'type' => 'block_slug', 'slug' => $block_slug );
+        }
+    }
+
     // 1. Theme HTML template override.
     $theme_html = richie_locate_theme_html_template( $slug, $name );
     if ( $theme_html ) {
