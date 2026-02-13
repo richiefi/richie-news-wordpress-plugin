@@ -2,7 +2,7 @@
 Tags: rest, feed, api
 Requires at least: 6.0
 Tested up to: 6.9
-Stable tag: 1.7.3
+Stable tag: 2.0.0
 Requires PHP: 7.4
 License: Copyright Richie Oy
 
@@ -24,11 +24,14 @@ Richie News Platform plugin provides JSON feeds to be used in Richie News Platfo
 
 == Changelog ==
 = WIP =
+
+= 2.0.0 (13.02.2026) =
 * support php 8.3 and wp 6.9
 * consolidated api versioning to v1 only
 * removed pmpro plugin support (we don't want to maintain custom plugins, we will provide own solution later)
 * removed all maggio support (Richie Editions), since it's now provided by separate plugin
 * removed special support for herald theme
+
 
 = 1.7.3 (21.03.2022) =
 * Fix external url in v1 api
