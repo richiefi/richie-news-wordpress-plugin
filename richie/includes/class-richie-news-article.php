@@ -101,6 +101,10 @@ class Richie_Article {
         add_filter( 'script_loader_src', 'richie_force_url_scheme' );
         add_filter( 'style_loader_src', 'richie_force_url_scheme' );
 
+        // Remove jquery-migrate from article output — not needed for rendered articles.
+        wp_deregister_script( 'jquery-migrate' );
+        wp_register_script( 'jquery-migrate', false, array(), false, false );
+
         $rendered_content = '';
 
         // 1. Theme HTML template override.

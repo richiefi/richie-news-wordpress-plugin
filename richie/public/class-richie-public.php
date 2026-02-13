@@ -732,6 +732,9 @@ class Richie_Public {
     public function richie_template( $template ) {
         if ( isset( $_GET['token'] ) && ! empty( $this->richie_options['access_token'] ) && hash_equals( $this->richie_options['access_token'], sanitize_text_field( wp_unslash( $_GET['token'] ) ) ) ) {
             if ( isset( $_GET['richie_news'] ) ) {
+                // Remove jquery-migrate from article output.
+                wp_deregister_script( 'jquery-migrate' );
+                wp_register_script( 'jquery-migrate', false, array(), false, false );
 
                 $name = 'article';
 
