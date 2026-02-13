@@ -6,7 +6,7 @@ module.exports = {
     tagName: "v${version}",
     tagAnnotation: "Release richie ${version}",
     requireCleanWorkingDir: true,
-    push: true,
+    push: true
   },
   github: {
     release: true,
@@ -47,7 +47,7 @@ module.exports = {
     },
   },
   hooks: {
-    "before:release": "npm run build:feed-editor && node scripts/sync-wp-version.mjs richie ${version} && npm run -w richie plugin-zip && mkdir -p releases && mv richie/richie.zip releases/richie-news-${version}.zip",
-    "before:git:commit": "git add richie/admin/feed-editor/build",
+    "after:bump": "npm run build:feed-editor && node scripts/sync-wp-version.mjs richie ${version}",
+    "before:release": "npm run -w richie plugin-zip && mkdir -p releases && mv richie/richie.zip releases/richie-news-${version}.zip"
   },
 };
