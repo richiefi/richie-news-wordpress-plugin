@@ -14,11 +14,11 @@ import CollectionPreviewModal from './components/CollectionPreviewModal';
 import useFeedItems from './hooks/useFeedItems';
 
 export default function App() {
-  const [selectedCollection, setSelectedCollection] = useState(null);
-  const [sectionModalOpen, setSectionModalOpen] = useState(false);
-  const [adSlotModalOpen, setAdSlotModalOpen] = useState(false);
-  const [previewModalOpen, setPreviewModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
+  const [ selectedCollection, setSelectedCollection ] = useState( null );
+  const [ sectionModalOpen, setSectionModalOpen ] = useState( false );
+  const [ adSlotModalOpen, setAdSlotModalOpen ] = useState( false );
+  const [ previewModalOpen, setPreviewModalOpen ] = useState( false );
+  const [ editingItem, setEditingItem ] = useState( null );
 
   const {
     items,
@@ -35,201 +35,191 @@ export default function App() {
     deleteAdSlot,
     refreshItems,
     publishSources,
-    revertSources
-  } = useFeedItems(selectedCollection);
+    revertSources,
+  } = useFeedItems( selectedCollection );
 
-  const handleCollectionChange = useCallback((collection) => {
-    setSelectedCollection(collection);
-  }, []);
+  const handleCollectionChange = useCallback( ( collection ) => {
+    setSelectedCollection( collection );
+  }, [] );
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const collectionParam = params.get('collection');
-    const storedCollection = window.localStorage.getItem(
-      'richie_selected_collection'
-    );
+  useEffect( () => {
+    const params = new URLSearchParams( window.location.search );
+    const collectionParam = params.get( 'collection' );
+    const storedCollection = window.localStorage.getItem( 'richie_selected_collection' );
 
     const candidate = collectionParam || storedCollection;
-    if (candidate) {
-      const parsed = parseInt(candidate, 10);
-      if (!Number.isNaN(parsed)) {
-        setSelectedCollection(parsed);
+    if ( candidate ) {
+      const parsed = parseInt( candidate, 10 );
+      if ( ! Number.isNaN( parsed ) ) {
+        setSelectedCollection( parsed );
       }
     }
-  }, []);
+  }, [] );
 
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    if (selectedCollection) {
-      url.searchParams.set('collection', String(selectedCollection));
-      window.localStorage.setItem(
-        'richie_selected_collection',
-        String(selectedCollection)
-      );
+  useEffect( () => {
+    const url = new URL( window.location.href );
+    if ( selectedCollection ) {
+      url.searchParams.set( 'collection', String( selectedCollection ) );
+      window.localStorage.setItem( 'richie_selected_collection', String( selectedCollection ) );
     } else {
-      url.searchParams.delete('collection');
-      window.localStorage.removeItem('richie_selected_collection');
+      url.searchParams.delete( 'collection' );
+      window.localStorage.removeItem( 'richie_selected_collection' );
     }
-    window.history.replaceState({}, '', url);
-  }, [selectedCollection]);
+    window.history.replaceState( {}, '', url );
+  }, [ selectedCollection ] );
 
-  const handleAddSection = useCallback(() => {
-    setEditingItem(null);
-    setSectionModalOpen(true);
-  }, []);
+  const handleAddSection = useCallback( () => {
+    setEditingItem( null );
+    setSectionModalOpen( true );
+  }, [] );
 
-  const handleAddAdSlot = useCallback(() => {
-    setEditingItem(null);
-    setAdSlotModalOpen(true);
-  }, []);
+  const handleAddAdSlot = useCallback( () => {
+    setEditingItem( null );
+    setAdSlotModalOpen( true );
+  }, [] );
 
-  const handleEditSection = useCallback((section) => {
-    setEditingItem(section);
-    setSectionModalOpen(true);
-  }, []);
+  const handleEditSection = useCallback( ( section ) => {
+    setEditingItem( section );
+    setSectionModalOpen( true );
+  }, [] );
 
-  const handleEditAdSlot = useCallback((adSlot) => {
-    setEditingItem(adSlot);
-    setAdSlotModalOpen(true);
-  }, []);
+  const handleEditAdSlot = useCallback( ( adSlot ) => {
+    setEditingItem( adSlot );
+    setAdSlotModalOpen( true );
+  }, [] );
 
-  const handleSectionModalClose = useCallback(() => {
-    setSectionModalOpen(false);
-    setEditingItem(null);
-  }, []);
+  const handleSectionModalClose = useCallback( () => {
+    setSectionModalOpen( false );
+    setEditingItem( null );
+  }, [] );
 
-  const handleAdSlotModalClose = useCallback(() => {
-    setAdSlotModalOpen(false);
-    setEditingItem(null);
-  }, []);
+  const handleAdSlotModalClose = useCallback( () => {
+    setAdSlotModalOpen( false );
+    setEditingItem( null );
+  }, [] );
 
-  const handlePreview = useCallback(() => {
-    setPreviewModalOpen(true);
-  }, []);
+  const handlePreview = useCallback( () => {
+    setPreviewModalOpen( true );
+  }, [] );
 
-  const handlePreviewModalClose = useCallback(() => {
-    setPreviewModalOpen(false);
-  }, []);
+  const handlePreviewModalClose = useCallback( () => {
+    setPreviewModalOpen( false );
+  }, [] );
 
   const handleSectionSave = useCallback(
-    (sectionData) => {
+    ( sectionData ) => {
       const promise = editingItem
-        ? updateSection(editingItem.id, sectionData)
-        : addSection(sectionData);
+        ? updateSection( editingItem.id, sectionData )
+        : addSection( sectionData );
 
-      promise.then(() => {
+      promise.then( () => {
         handleSectionModalClose();
-      });
+      } );
     },
-    [editingItem, updateSection, addSection, handleSectionModalClose]
+    [ editingItem, updateSection, addSection, handleSectionModalClose ]
   );
 
   const handleAdSlotSave = useCallback(
-    (adSlotData) => {
+    ( adSlotData ) => {
       const promise = editingItem
-        ? updateAdSlot(editingItem.id, adSlotData)
-        : addAdSlot(adSlotData);
+        ? updateAdSlot( editingItem.id, adSlotData )
+        : addAdSlot( adSlotData );
 
-      promise.then(() => {
+      promise.then( () => {
         handleAdSlotModalClose();
-      });
+      } );
     },
-    [editingItem, updateAdSlot, addAdSlot, handleAdSlotModalClose]
+    [ editingItem, updateAdSlot, addAdSlot, handleAdSlotModalClose ]
   );
 
-  useEffect(() => {
+  useEffect( () => {
     const handleSourcesUpdated = () => {
-      if (selectedCollection) {
+      if ( selectedCollection ) {
         refreshItems();
       }
     };
 
-    window.addEventListener('richieSourcesUpdated', handleSourcesUpdated);
+    window.addEventListener( 'richieSourcesUpdated', handleSourcesUpdated );
     return () => {
-      window.removeEventListener('richieSourcesUpdated', handleSourcesUpdated);
+      window.removeEventListener( 'richieSourcesUpdated', handleSourcesUpdated );
     };
-  }, [selectedCollection, refreshItems]);
+  }, [ selectedCollection, refreshItems ] );
 
   return (
     <div className="richie-feed-editor">
       <div className="feed-editor-header">
         <CollectionSelector
-          value={selectedCollection}
-          onChange={handleCollectionChange}
-          onUnpublishedChangesUpdate={setHasUnpublishedChanges}
-          onPreview={handlePreview}
-          onAddSection={handleAddSection}
-          onAddAdSlot={handleAddAdSlot}
+          value={ selectedCollection }
+          onChange={ handleCollectionChange }
+          onUnpublishedChangesUpdate={ setHasUnpublishedChanges }
+          onPreview={ handlePreview }
+          onAddSection={ handleAddSection }
+          onAddAdSlot={ handleAddAdSlot }
         />
       </div>
 
-      {error && (
-        <Notice status="error" isDismissible={false}>
-          {error}
+      { error && (
+        <Notice status="error" isDismissible={ false }>
+          { error }
         </Notice>
-      )}
+      ) }
 
-      {hasUnpublishedChanges && (
-        <Notice status="warning" isDismissible={false}>
-          {__('You have unpublished changes.', 'richie')}
-          {hasUnpublishedChanges && (
-            <Button variant="link" onClick={publishSources}>
-              {__('Publish now', 'richie')}
+      { hasUnpublishedChanges && (
+        <Notice status="warning" isDismissible={ false }>
+          { __( 'You have unpublished changes.', 'richie' ) }
+          { hasUnpublishedChanges && (
+            <Button variant="link" onClick={ publishSources }>
+              { __( 'Publish now', 'richie' ) }
             </Button>
-          )}
-          {hasUnpublishedChanges && (
-            <Button variant="link" onClick={revertSources}>
-              {__('Revert changes', 'richie')}
+          ) }
+          { hasUnpublishedChanges && (
+            <Button variant="link" onClick={ revertSources }>
+              { __( 'Revert changes', 'richie' ) }
             </Button>
-          )}
+          ) }
         </Notice>
-      )}
+      ) }
 
-      {selectedCollection ? (
+      { selectedCollection ? (
         <FeedItemList
-          items={items}
-          isLoading={isLoading}
-          onReorder={reorderItems}
-          onEditSection={handleEditSection}
-          onDeleteSection={deleteSection}
-          onEditAdSlot={handleEditAdSlot}
-          onDeleteAdSlot={deleteAdSlot}
+          items={ items }
+          isLoading={ isLoading }
+          onReorder={ reorderItems }
+          onEditSection={ handleEditSection }
+          onDeleteSection={ deleteSection }
+          onEditAdSlot={ handleEditAdSlot }
+          onDeleteAdSlot={ deleteAdSlot }
         />
       ) : (
         <div className="feed-editor-empty">
-          <p>
-            {__(
-              'Select a collection above to manage its feed items.',
-              'richie'
-            )}
-          </p>
+          <p>{ __( 'Select a collection above to manage its feed items.', 'richie' ) }</p>
         </div>
-      )}
+      ) }
 
-      {sectionModalOpen && (
+      { sectionModalOpen && (
         <SectionModal
-          section={editingItem}
-          collectionId={selectedCollection}
-          onSave={handleSectionSave}
-          onClose={handleSectionModalClose}
+          section={ editingItem }
+          collectionId={ selectedCollection }
+          onSave={ handleSectionSave }
+          onClose={ handleSectionModalClose }
         />
-      )}
+      ) }
 
-      {adSlotModalOpen && (
+      { adSlotModalOpen && (
         <AdSlotModal
-          adSlot={editingItem}
-          collectionId={selectedCollection}
-          onSave={handleAdSlotSave}
-          onClose={handleAdSlotModalClose}
+          adSlot={ editingItem }
+          collectionId={ selectedCollection }
+          onSave={ handleAdSlotSave }
+          onClose={ handleAdSlotModalClose }
         />
-      )}
+      ) }
 
-      {previewModalOpen && (
+      { previewModalOpen && (
         <CollectionPreviewModal
-          collectionId={selectedCollection}
-          onClose={handlePreviewModalClose}
+          collectionId={ selectedCollection }
+          onClose={ handlePreviewModalClose }
         />
-      )}
+      ) }
     </div>
   );
 }

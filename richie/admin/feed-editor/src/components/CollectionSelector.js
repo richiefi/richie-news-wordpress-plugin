@@ -10,88 +10,88 @@ import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import CollectionModal from './CollectionModal';
 
-export default function CollectionSelector({
+export default function CollectionSelector( {
   value,
   onChange,
   onUnpublishedChangesUpdate,
   onPreview,
   onAddSection,
-  onAddAdSlot
-}) {
-  const [collections, setCollections] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCollection, setEditingCollection] = useState(null);
-  const [isCopied, setIsCopied] = useState(false);
+  onAddAdSlot,
+} ) {
+  const [ collections, setCollections ] = useState( [] );
+  const [ isLoading, setIsLoading ] = useState( true );
+  const [ isSaving, setIsSaving ] = useState( false );
+  const [ isModalOpen, setIsModalOpen ] = useState( false );
+  const [ editingCollection, setEditingCollection ] = useState( null );
+  const [ isCopied, setIsCopied ] = useState( false );
 
-  const fetchCollections = useCallback(() => {
-    setIsLoading(true);
-    return apiFetch({
-      path: '/richie/v1/editor/collections'
-    })
-      .then((response) => {
-        setCollections(response || []);
+  const fetchCollections = useCallback( () => {
+    setIsLoading( true );
+    return apiFetch( {
+      path: '/richie/v1/editor/collections',
+    } )
+      .then( ( response ) => {
+        setCollections( response || [] );
 
         // If current selection no longer exists, clear it.
-        if (value && response && response.length > 0) {
-          const exists = response.some((c) => c.id === value);
-          if (!exists) {
-            onChange(null);
+        if ( value && response && response.length > 0 ) {
+          const exists = response.some( ( c ) => c.id === value );
+          if ( ! exists ) {
+            onChange( null );
           }
         }
-      })
-      .catch((err) => {
-        console.error('Failed to fetch collections:', err);
-        setCollections([]);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [value, onChange]);
+      } )
+      .catch( ( err ) => {
+        console.error( 'Failed to fetch collections:', err );
+        setCollections( [] );
+      } )
+      .finally( () => {
+        setIsLoading( false );
+      } );
+  }, [ value, onChange ] );
 
-  useEffect(() => {
+  useEffect( () => {
     fetchCollections();
-  }, [fetchCollections]);
+  }, [ fetchCollections ] );
 
-  if (isLoading) {
+  if ( isLoading ) {
     return (
       <div className="collection-selector collection-selector--loading">
         <Spinner />
-        <span>{__('Loading collections...', 'richie')}</span>
+        <span>{ __( 'Loading collections…', 'richie' ) }</span>
       </div>
     );
   }
 
   const options = [
-    { label: __('— Select a collection —', 'richie'), value: '' },
-    ...collections.map((collection) => ({
+    { label: __( '— Select a collection —', 'richie' ), value: '' },
+    ...collections.map( ( collection ) => ( {
       label: collection.name,
-      value: collection.id.toString()
-    }))
+      value: collection.id.toString(),
+    } ) ),
   ];
 
   const openAddModal = () => {
-    setEditingCollection(null);
-    setIsModalOpen(true);
+    setEditingCollection( null );
+    setIsModalOpen( true );
   };
 
   const openEditModal = () => {
-    if (!value) {
+    if ( ! value ) {
       return;
     }
-    const current = collections.find((collection) => collection.id === value);
-    setEditingCollection(current || null);
-    setIsModalOpen(true);
+    const current = collections.find( ( collection ) => collection.id === value );
+    setEditingCollection( current || null );
+    setIsModalOpen( true );
   };
 
   const handleDeleteCollection = () => {
-    if (!value) {
+    if ( ! value ) {
       return;
     }
 
-    const current = collections.find((collection) => collection.id === value);
-    if (!current) {
+    const current = collections.find( ( collection ) => collection.id === value );
+    if ( ! current ) {
       return;
     }
 
@@ -103,113 +103,113 @@ export default function CollectionSelector({
       )
     );
 
-    if (!confirmed) {
+    if ( ! confirmed ) {
       return;
     }
 
-    setIsSaving(true);
-    apiFetch({
-      path: `/richie/v1/editor/collection/${value}`,
-      method: 'DELETE'
-    })
-      .then((response) => {
+    setIsSaving( true );
+    apiFetch( {
+      path: `/richie/v1/editor/collection/${ value }`,
+      method: 'DELETE',
+    } )
+      .then( ( response ) => {
         // eslint-disable-next-line no-alert
-        if (response.success) {
+        if ( response.success ) {
           // Show success message if sources or ad slots were deleted
           if (
             response.deleted &&
-            (response.deleted.sources > 0 || response.deleted.ad_slots > 0)
+            ( response.deleted.sources > 0 || response.deleted.ad_slots > 0 )
           ) {
             // eslint-disable-next-line no-alert
-            alert(response.message);
+            alert( response.message );
           }
           // Update unpublished changes flag if provided in response
           if (
             onUnpublishedChangesUpdate &&
             typeof response.has_unpublished_changes !== 'undefined'
           ) {
-            onUnpublishedChangesUpdate(response.has_unpublished_changes);
+            onUnpublishedChangesUpdate( response.has_unpublished_changes );
           }
-          onChange(null);
+          onChange( null );
           return fetchCollections();
         }
-      })
-      .catch((err) => {
-        console.error('Failed to delete collection:', err);
+      } )
+      .catch( ( err ) => {
+        console.error( 'Failed to delete collection:', err );
         // eslint-disable-next-line no-alert
-        alert(__('Failed to delete collection. Please try again.', 'richie'));
-      })
-      .finally(() => {
-        setIsSaving(false);
-      });
+        alert( __( 'Failed to delete collection. Please try again.', 'richie' ) );
+      } )
+      .finally( () => {
+        setIsSaving( false );
+      } );
   };
 
   const handleModalClose = () => {
-    setIsModalOpen(false);
-    setEditingCollection(null);
+    setIsModalOpen( false );
+    setEditingCollection( null );
   };
 
-  const handleModalSave = (data) => {
-    setIsSaving(true);
+  const handleModalSave = ( data ) => {
+    setIsSaving( true );
     const request = editingCollection
-      ? apiFetch({
+      ? apiFetch( {
           path: '/wp/v2/richie_article_set/' + editingCollection.id,
           method: 'PUT',
-          data
-        })
-      : apiFetch({
+          data,
+        } )
+      : apiFetch( {
           path: '/wp/v2/richie_article_set',
           method: 'POST',
-          data
-        });
+          data,
+        } );
 
     return request
-      .then((response) => {
-        return fetchCollections().then(() => {
-          if (response && response.id) {
-            onChange(response.id);
+      .then( ( response ) => {
+        return fetchCollections().then( () => {
+          if ( response && response.id ) {
+            onChange( response.id );
           }
-        });
-      })
-      .catch((err) => {
-        console.error('Failed to save collection:', err);
-      })
-      .finally(() => {
-        setIsSaving(false);
+        } );
+      } )
+      .catch( ( err ) => {
+        console.error( 'Failed to save collection:', err );
+      } )
+      .finally( () => {
+        setIsSaving( false );
         handleModalClose();
-      });
+      } );
   };
 
   const handleCopyFeedUrl = () => {
-    if (!value) {
+    if ( ! value ) {
       return;
     }
 
-    const current = collections.find((collection) => collection.id === value);
-    if (!current || !current.slug) {
+    const current = collections.find( ( collection ) => collection.id === value );
+    if ( ! current || ! current.slug ) {
       return;
     }
 
     // Construct feed URL with unpublished parameter
-    const feedUrl = `${window.wpApiSettings.root}richie/v1/news/${current.slug}?token=${window.wpApiSettings.accessToken}&unpublished=1`;
+    const feedUrl = `${ window.wpApiSettings.root }richie/v1/news/${ current.slug }?token=${ window.wpApiSettings.accessToken }&unpublished=1`;
 
     // Copy to clipboard
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(feedUrl).then(
+    if ( navigator.clipboard && navigator.clipboard.writeText ) {
+      navigator.clipboard.writeText( feedUrl ).then(
         () => {
-          setIsCopied(true);
-          setTimeout(() => setIsCopied(false), 2000);
+          setIsCopied( true );
+          setTimeout( () => setIsCopied( false ), 2000 );
         },
         () => {
           // Fallback to alert if clipboard API fails
           // eslint-disable-next-line no-alert
-          alert(__('Failed to copy. URL: ', 'richie') + feedUrl);
+          alert( __( 'Failed to copy. URL: ', 'richie' ) + feedUrl );
         }
       );
     } else {
       // Fallback for browsers without Clipboard API
       // eslint-disable-next-line no-alert
-      alert(__('Copy this URL: ', 'richie') + feedUrl);
+      alert( __( 'Copy this URL: ', 'richie' ) + feedUrl );
     }
   };
 
@@ -217,71 +217,65 @@ export default function CollectionSelector({
     <div className="collection-selector">
       <div className="collection-selector__row">
         <SelectControl
-          label={__('Collection', 'richie')}
-          value={value || ''}
-          options={options}
-          onChange={(newValue) =>
-            onChange(newValue ? parseInt(newValue, 10) : null)
-          }
+          label={ __( 'Collection', 'richie' ) }
+          value={ value || '' }
+          options={ options }
+          onChange={ ( newValue ) => onChange( newValue ? parseInt( newValue, 10 ) : null ) }
           __next40pxDefaultSize
           __nextHasNoMarginBottom
         />
         <Button
           variant="secondary"
           size="compact"
-          onClick={handleCopyFeedUrl}
-          disabled={isSaving || !value}
+          onClick={ handleCopyFeedUrl }
+          disabled={ isSaving || ! value }
         >
-          {isCopied ? __('Copied!', 'richie') : __('Copy Feed URL', 'richie')}
+          { isCopied ? __( 'Copied!', 'richie' ) : __( 'Copy Feed URL', 'richie' ) }
         </Button>
       </div>
       <div className="collection-selector__actions">
         <div className="collection-selector__actions-group">
           <Button
             variant="secondary"
-            onClick={openAddModal}
-            isBusy={isSaving}
-            disabled={isSaving}
+            onClick={ openAddModal }
+            isBusy={ isSaving }
+            disabled={ isSaving }
           >
-            {__('Add collection', 'richie')}
+            { __( 'Add collection', 'richie' ) }
           </Button>
-          <Button
-            variant="secondary"
-            onClick={openEditModal}
-            disabled={isSaving || !value}
-          >
-            {__('Edit collection', 'richie')}
+          <Button variant="secondary" onClick={ openEditModal } disabled={ isSaving || ! value }>
+            { __( 'Edit collection', 'richie' ) }
           </Button>
           <Button
             variant="secondary"
             isDestructive
-            onClick={handleDeleteCollection}
-            disabled={isSaving || !value}
+            onClick={ handleDeleteCollection }
+            disabled={ isSaving || ! value }
           >
-            {__('Delete collection', 'richie')}
+            { __( 'Delete collection', 'richie' ) }
           </Button>
         </div>
-        {value && (
+        { value && (
           <div className="collection-selector__actions-group">
-            <Button variant="secondary" onClick={onPreview}>
-              {__('Preview Collection', 'richie')}
+            <Button variant="secondary" onClick={ onPreview }>
+              { __( 'Preview Collection', 'richie' ) }
             </Button>
-            <Button variant="secondary" onClick={onAddSection}>
-              {__('Add section', 'richie')}
+            <Button variant="secondary" onClick={ onAddSection }>
+              { __( 'Add section', 'richie' ) }
             </Button>
-            <Button variant="secondary" onClick={onAddAdSlot}>
-              {__('Add ad slot', 'richie')}
+            <Button variant="secondary" onClick={ onAddAdSlot }>
+              { __( 'Add ad slot', 'richie' ) }
             </Button>
           </div>
-        )}
+        ) }
       </div>
 
       <CollectionModal
-        isOpen={isModalOpen}
-        collection={editingCollection}
-        isSaving={isSaving}
-        onSave={handleModalSave}
-        onClose={handleModalClose}
+        isOpen={ isModalOpen }
+        collection={ editingCollection }
+        isSaving={ isSaving }
+        onSave={ handleModalSave }
+        onClose={ handleModalClose }
       />
     </div>
   );

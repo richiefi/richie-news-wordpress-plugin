@@ -5,26 +5,21 @@
  */
 
 import { useState, useEffect } from '@wordpress/element';
-import {
-  Modal,
-  Button,
-  SelectControl,
-  TextareaControl
-} from '@wordpress/components';
+import { Modal, Button, SelectControl, TextareaControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
 // Get ad providers from PHP (single source of truth)
 const AD_PROVIDERS = window.richieFeedEditorSettings?.adProviders || [];
 
 // Convert provider values to select options with proper labels
-const PROVIDER_OPTIONS = AD_PROVIDERS.map((provider) => ({
-  label: provider.charAt(0).toUpperCase() + provider.slice(1),
-  value: provider
-}));
+const PROVIDER_OPTIONS = AD_PROVIDERS.map( ( provider ) => ( {
+  label: provider.charAt( 0 ).toUpperCase() + provider.slice( 1 ),
+  value: provider,
+} ) );
 
 const defaultFormData = {
   ad_provider: 'smart',
-  ad_data: ''
+  ad_data: '',
 };
 
 const exampleAdData = `{
@@ -42,36 +37,36 @@ const exampleAdData = `{
   ]
 }`;
 
-export default function AdSlotModal({ adSlot, collectionId, onSave, onClose }) {
-  const [formData, setFormData] = useState(defaultFormData);
-  const [isSaving, setIsSaving] = useState(false);
-  const [jsonError, setJsonError] = useState(null);
+export default function AdSlotModal( { adSlot, collectionId, onSave, onClose } ) {
+  const [ formData, setFormData ] = useState( defaultFormData );
+  const [ isSaving, setIsSaving ] = useState( false );
+  const [ jsonError, setJsonError ] = useState( null );
 
-  const isEditing = !!adSlot;
+  const isEditing = !! adSlot;
 
   // Populate form when editing
-  useEffect(() => {
-    if (adSlot) {
-      setFormData({
+  useEffect( () => {
+    if ( adSlot ) {
+      setFormData( {
         ad_provider: adSlot.ad_provider || 'smart',
-        ad_data: adSlot.ad_data ? JSON.stringify(adSlot.ad_data, null, 2) : ''
-      });
+        ad_data: adSlot.ad_data ? JSON.stringify( adSlot.ad_data, null, 2 ) : '',
+      } );
     }
-  }, [adSlot]);
+  }, [ adSlot ] );
 
-  const updateField = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const updateField = ( field, value ) => {
+    setFormData( ( prev ) => ( { ...prev, [ field ]: value } ) );
 
     // Validate JSON when ad_data changes
-    if (field === 'ad_data') {
-      if (value.trim() === '') {
-        setJsonError(null);
+    if ( field === 'ad_data' ) {
+      if ( value.trim() === '' ) {
+        setJsonError( null );
       } else {
         try {
-          JSON.parse(value);
-          setJsonError(null);
-        } catch (e) {
-          setJsonError(e.message);
+          JSON.parse( value );
+          setJsonError( null );
+        } catch ( e ) {
+          setJsonError( e.message );
         }
       }
     }
@@ -80,48 +75,46 @@ export default function AdSlotModal({ adSlot, collectionId, onSave, onClose }) {
   const handleSubmit = () => {
     // Validate JSON before saving
     let parsedAdData = null;
-    if (formData.ad_data.trim()) {
+    if ( formData.ad_data.trim() ) {
       try {
-        parsedAdData = JSON.parse(formData.ad_data);
-      } catch (e) {
-        setJsonError(e.message);
+        parsedAdData = JSON.parse( formData.ad_data );
+      } catch ( e ) {
+        setJsonError( e.message );
         return;
       }
     }
 
-    setIsSaving(true);
-    onSave({
+    setIsSaving( true );
+    onSave( {
       ad_provider: formData.ad_provider,
       ad_data: parsedAdData,
-      article_set: collectionId
-    })
-      .catch((err) => {
-        console.error('Failed to save ad slot:', err);
-      })
-      .finally(() => {
-        setIsSaving(false);
-      });
+      article_set: collectionId,
+    } )
+      .catch( ( err ) => {
+        console.error( 'Failed to save ad slot:', err );
+      } )
+      .finally( () => {
+        setIsSaving( false );
+      } );
   };
 
   const insertExample = () => {
-    updateField('ad_data', exampleAdData);
+    updateField( 'ad_data', exampleAdData );
   };
 
   return (
     <Modal
-      title={
-        isEditing ? __('Edit ad slot', 'richie') : __('Add ad slot', 'richie')
-      }
-      onRequestClose={onClose}
+      title={ isEditing ? __( 'Edit ad slot', 'richie' ) : __( 'Add ad slot', 'richie' ) }
+      onRequestClose={ onClose }
       className="adslot-modal"
     >
       <div className="adslot-modal-content">
         <div className="adslot-modal-row">
           <SelectControl
-            label={__('Ad Provider', 'richie')}
-            value={formData.ad_provider}
-            options={PROVIDER_OPTIONS}
-            onChange={(value) => updateField('ad_provider', value)}
+            label={ __( 'Ad Provider', 'richie' ) }
+            value={ formData.ad_provider }
+            options={ PROVIDER_OPTIONS }
+            onChange={ ( value ) => updateField( 'ad_provider', value ) }
             __next40pxDefaultSize
             __nextHasNoMarginBottom
           />
@@ -129,39 +122,37 @@ export default function AdSlotModal({ adSlot, collectionId, onSave, onClose }) {
 
         <div className="adslot-modal-row">
           <TextareaControl
-            label={__('Ad Data (JSON)', 'richie')}
-            value={formData.ad_data}
-            onChange={(value) => updateField('ad_data', value)}
-            rows={10}
+            label={ __( 'Ad Data (JSON)', 'richie' ) }
+            value={ formData.ad_data }
+            onChange={ ( value ) => updateField( 'ad_data', value ) }
+            rows={ 10 }
             help={
               jsonError ? (
                 <span className="adslot-json-error">
-                  {__('Invalid JSON:', 'richie')} {jsonError}
+                  { __( 'Invalid JSON:', 'richie' ) } { jsonError }
                 </span>
               ) : (
-                __('Optional JSON configuration for the ad', 'richie')
+                __( 'Optional JSON configuration for the ad', 'richie' )
               )
             }
           />
-          <Button variant="link" onClick={insertExample}>
-            {__('Insert example', 'richie')}
+          <Button variant="link" onClick={ insertExample }>
+            { __( 'Insert example', 'richie' ) }
           </Button>
         </div>
       </div>
 
       <div className="modal-footer adslot-modal-footer">
-        <Button variant="secondary" onClick={onClose}>
-          {__('Cancel', 'richie')}
+        <Button variant="secondary" onClick={ onClose }>
+          { __( 'Cancel', 'richie' ) }
         </Button>
         <Button
           variant="primary"
-          onClick={handleSubmit}
-          isBusy={isSaving}
-          disabled={isSaving || !!jsonError}
+          onClick={ handleSubmit }
+          isBusy={ isSaving }
+          disabled={ isSaving || !! jsonError }
         >
-          {isEditing
-            ? __('Update ad slot', 'richie')
-            : __('Add ad slot', 'richie')}
+          { isEditing ? __( 'Update ad slot', 'richie' ) : __( 'Add ad slot', 'richie' ) }
         </Button>
       </div>
     </Modal>

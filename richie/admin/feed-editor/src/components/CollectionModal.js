@@ -8,79 +8,67 @@ import { useState, useEffect } from '@wordpress/element';
 import { Modal, Button, TextControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
-export default function CollectionModal({
-  isOpen,
-  collection,
-  isSaving,
-  onSave,
-  onClose
-}) {
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
+export default function CollectionModal( { isOpen, collection, isSaving, onSave, onClose } ) {
+  const [ name, setName ] = useState( '' );
+  const [ slug, setSlug ] = useState( '' );
 
-  useEffect(() => {
-    if (collection) {
-      setName(collection.name || '');
-      setSlug(collection.slug || '');
+  useEffect( () => {
+    if ( collection ) {
+      setName( collection.name || '' );
+      setSlug( collection.slug || '' );
     } else {
-      setName('');
-      setSlug('');
+      setName( '' );
+      setSlug( '' );
     }
-  }, [collection]);
+  }, [ collection ] );
 
-  if (!isOpen) {
+  if ( ! isOpen ) {
     return null;
   }
 
   const handleSubmit = () => {
-    if (!name) {
+    if ( ! name ) {
       return;
     }
-    onSave({ name, slug: slug || undefined });
+    onSave( { name, slug: slug || undefined } );
   };
 
   return (
     <Modal
-      title={
-        collection
-          ? __('Edit collection', 'richie')
-          : __('Add collection', 'richie')
-      }
-      onRequestClose={onClose}
+      title={ collection ? __( 'Edit collection', 'richie' ) : __( 'Add collection', 'richie' ) }
+      onRequestClose={ onClose }
       className="collection-modal"
     >
       <div className="collection-modal-content">
         <TextControl
-          label={__('Name', 'richie')}
-          value={name}
-          onChange={setName}
+          label={ __( 'Name', 'richie' ) }
+          value={ name }
+          onChange={ setName }
           __next40pxDefaultSize
           __nextHasNoMarginBottom
           required
         />
         <TextControl
-          label={__('Slug', 'richie')}
-          value={slug}
-          onChange={setSlug}
+          label={ __( 'Slug', 'richie' ) }
+          value={ slug }
+          onChange={ setSlug }
           __next40pxDefaultSize
           __nextHasNoMarginBottom
-          help={__('Used in feed URL (optional)', 'richie')}
+          help={ __( 'Used in feed URL (optional)', 'richie' ) }
         />
       </div>
 
       <div className="modal-footer collection-modal-footer">
-        <Button variant="secondary" onClick={onClose}>
-          {__('Cancel', 'richie')}
+        <Button variant="secondary" onClick={ onClose }>
+          { __( 'Cancel', 'richie' ) }
         </Button>
         <Button
           variant="primary"
-          onClick={handleSubmit}
-          isBusy={isSaving}
-          disabled={isSaving || !name}
+          onClick={ handleSubmit }
+          isBusy={ isSaving }
+          disabled={ isSaving || ! name }
         >
-          {collection
-            ? __('Update collection', 'richie')
-            : __('Add collection', 'richie')}
+          { collection ? __( 'Update collection', 'richie' ) : __( 'Add collection', 'richie' ) }
         </Button>
       </div>
     </Modal>
