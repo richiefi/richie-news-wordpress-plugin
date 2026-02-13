@@ -742,34 +742,22 @@ class Richie_Public {
                     $name = sanitize_title( $_GET['template'] );
                 }
 
-                $theme_html_template_path = richie_locate_theme_html_template( 'richie-news', $name );
-                $theme_php_template_path = richie_locate_theme_php_template( 'richie-news', $name );
-                if ( $theme_html_template_path ) {
-                    set_query_var( 'richie_block_template_path', $theme_html_template_path );
-                    return Richie_PLUGIN_DIR . 'templates/richie-news-block.php';
-                }
-                if ( $theme_php_template_path ) {
-                    $richie_template_loader = new Richie_Template_Loader();
-                    $template               = $richie_template_loader->get_template_part( 'richie-news', $name, false );
-                    return $template;
-                }
+                $resolved = richie_resolve_template( 'richie-news', $name, $this->richie_options );
 
-                if ( richie_use_block_template( $this->richie_options ) && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
-                    $block_slug = richie_get_block_template_slug();
-                    if ( richie_get_block_template_by_slug( $block_slug ) ) {
-                        set_query_var( 'richie_block_template_slug', $block_slug );
+                switch ( $resolved['type'] ) {
+                    case 'block_path':
+                        set_query_var( 'richie_block_template_path', $resolved['path'] );
                         return Richie_PLUGIN_DIR . 'templates/richie-news-block.php';
-                    }
-                }
 
-                $block_template = richie_locate_html_template( 'richie-news', $name );
-                if ( $block_template ) {
-                    set_query_var( 'richie_block_template_path', $block_template );
-                    return Richie_PLUGIN_DIR . 'templates/richie-news-block.php';
-                }
+                    case 'block_slug':
+                        set_query_var( 'richie_block_template_slug', $resolved['slug'] );
+                        return Richie_PLUGIN_DIR . 'templates/richie-news-block.php';
 
-                $richie_template_loader = new Richie_Template_Loader();
-                $template               = $richie_template_loader->get_template_part( 'richie-news', $name, false );
+                    case 'php':
+                        $richie_template_loader = new Richie_Template_Loader();
+                        $template               = $richie_template_loader->get_template_part( $resolved['slug'], $resolved['name'], false );
+                        break;
+                }
             }
         }
         return $template;

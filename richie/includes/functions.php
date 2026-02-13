@@ -458,6 +458,50 @@ function richie_use_block_template( $options = null ) {
 }
 
 /**
+ * Resolve which template should be used for rendering, without actually rendering.
+ *
+ * Returns a descriptor array with 'type' and additional keys depending on the type:
+ *   - { type: 'block_path', path: string }  — HTML block template file to render with do_blocks().
+ *   - { type: 'block_slug', slug: string }   — Site Editor template to render by slug.
+ *   - { type: 'php', slug: string, name: string } — PHP template to load via Richie_Template_Loader.
+ *
+ * @param string     $slug    Template slug (e.g. 'richie-news').
+ * @param string     $name    Template variation name (e.g. 'article').
+ * @param array|null $options Plugin options array. If null, reads from database.
+ * @return array Template descriptor.
+ */
+function richie_resolve_template( $slug, $name, $options = null ) {
+    // 1. Theme HTML template override.
+    $theme_html = richie_locate_theme_html_template( $slug, $name );
+    if ( $theme_html ) {
+        return array( 'type' => 'block_path', 'path' => $theme_html );
+    }
+
+    // 2. Theme PHP template override.
+    $theme_php = richie_locate_theme_php_template( $slug, $name );
+    if ( $theme_php ) {
+        return array( 'type' => 'php', 'slug' => $slug, 'name' => $name );
+    }
+
+    // 3. Site Editor block template (block themes only).
+    if ( richie_use_block_template( $options ) && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+        $block_slug = richie_get_block_template_slug();
+        if ( richie_get_block_template_by_slug( $block_slug ) ) {
+            return array( 'type' => 'block_slug', 'slug' => $block_slug );
+        }
+    }
+
+    // 4. Plugin HTML template fallback.
+    $plugin_html = richie_locate_html_template( $slug, $name );
+    if ( $plugin_html ) {
+        return array( 'type' => 'block_path', 'path' => $plugin_html );
+    }
+
+    // 5. Legacy PHP template fallback.
+    return array( 'type' => 'php', 'slug' => $slug, 'name' => $name );
+}
+
+/**
  * Get the block template slug used for Richie articles.
  *
  * @return string

@@ -82,10 +82,6 @@ class Richie_Article {
     public function render_template( $slug, $name, $post_obj ) {
         global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $user_ID, $wp_styles, $wp_scripts, $wp_filter;
         require_once plugin_dir_path( __FILE__ ) . 'class-richie-template-loader.php';
-        $richie_template_loader = new Richie_Template_Loader();
-        $theme_html_template_path = richie_locate_theme_html_template( $slug, $name );
-        $theme_php_template_path  = richie_locate_theme_php_template( $slug, $name );
-        $html_template_path       = richie_locate_html_template( $slug, $name );
 
         $wp_query = new WP_Query( //phpcs:ignore
             array(
@@ -105,36 +101,26 @@ class Richie_Article {
         wp_deregister_script( 'jquery-migrate' );
         wp_register_script( 'jquery-migrate', false, array(), false, false );
 
+        $resolved         = richie_resolve_template( $slug, $name, $this->news_options );
         $rendered_content = '';
 
-        // 1. Theme HTML template override.
-        if ( $theme_html_template_path ) {
-            $rendered_content = richie_render_block_template_document( $theme_html_template_path );
+        switch ( $resolved['type'] ) {
+            case 'block_path':
+                $rendered_content = richie_render_block_template_document( $resolved['path'] );
+                break;
+
+            case 'block_slug':
+                $rendered_content = richie_render_block_template_by_slug( $resolved['slug'] );
+                break;
+
+            case 'php':
+                $richie_template_loader = new Richie_Template_Loader();
+                ob_start();
+                $richie_template_loader->get_template_part( $resolved['slug'], $resolved['name'] );
+                $rendered_content = ob_get_clean();
+                break;
         }
 
-        // 2. Theme PHP template override.
-        if ( empty( $rendered_content ) && $theme_php_template_path ) {
-            ob_start();
-            $richie_template_loader->get_template_part( $slug, $name );
-            $rendered_content = ob_get_clean();
-        }
-
-        // 3. Site Editor block template.
-        if ( empty( $rendered_content ) && richie_use_block_template( $this->news_options ) && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
-            $rendered_content = richie_render_block_template_by_slug( richie_get_block_template_slug() );
-        }
-
-        // 4. Plugin HTML template fallback.
-        if ( empty( $rendered_content ) && $html_template_path ) {
-            $rendered_content = richie_render_block_template_document( $html_template_path );
-        }
-
-        // 5. Legacy PHP template fallback.
-        if ( empty( $rendered_content ) ) {
-            ob_start();
-            $richie_template_loader->get_template_part( $slug, $name );
-            $rendered_content = ob_get_clean();
-        }
         wp_reset_query(); // Reset wp query to original and resets post data also.
 
         return $rendered_content;
