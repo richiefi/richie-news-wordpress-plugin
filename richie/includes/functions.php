@@ -280,6 +280,27 @@ function richie_get_html_template_names( $slug, $name = null ) {
 }
 
 /**
+ * Validate that a resolved template path is within one of the allowed base directories.
+ *
+ * @param string $candidate Resolved template path.
+ * @param array  $allowed_dirs Allowed base directories.
+ * @return bool
+ */
+function richie_is_valid_template_path( $candidate, $allowed_dirs ) {
+    $real = realpath( $candidate );
+    if ( false === $real ) {
+        return false;
+    }
+    foreach ( $allowed_dirs as $dir ) {
+        $real_dir = realpath( $dir );
+        if ( false !== $real_dir && 0 === strpos( $real, $real_dir . DIRECTORY_SEPARATOR ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Locate a HTML template file in theme or plugin paths.
  *
  * @param string $slug Template slug.
@@ -287,8 +308,8 @@ function richie_get_html_template_names( $slug, $name = null ) {
  * @return string|null
  */
 function richie_locate_html_template( $slug, $name = null ) {
-    $templates = richie_get_html_template_names( $slug, $name );
-    $theme_dir = trailingslashit( get_stylesheet_directory() ) . 'richie/';
+    $templates  = richie_get_html_template_names( $slug, $name );
+    $theme_dir  = trailingslashit( get_stylesheet_directory() ) . 'richie/';
     $parent_dir = trailingslashit( get_template_directory() ) . 'richie/';
     $plugin_dir = trailingslashit( Richie_PLUGIN_DIR ) . 'templates/';
 
@@ -298,7 +319,7 @@ function richie_locate_html_template( $slug, $name = null ) {
     foreach ( $templates as $template_name ) {
         foreach ( $paths as $path ) {
             $candidate = $path . ltrim( $template_name, '/' );
-            if ( file_exists( $candidate ) ) {
+            if ( file_exists( $candidate ) && richie_is_valid_template_path( $candidate, $paths ) ) {
                 return $candidate;
             }
         }
@@ -324,7 +345,7 @@ function richie_locate_theme_html_template( $slug, $name = null ) {
     foreach ( $templates as $template_name ) {
         foreach ( $paths as $path ) {
             $candidate = $path . ltrim( $template_name, '/' );
-            if ( file_exists( $candidate ) ) {
+            if ( file_exists( $candidate ) && richie_is_valid_template_path( $candidate, $paths ) ) {
                 return $candidate;
             }
         }
@@ -354,7 +375,7 @@ function richie_locate_theme_php_template( $slug, $name = null ) {
     foreach ( $templates as $template_name ) {
         foreach ( $paths as $path ) {
             $candidate = $path . ltrim( $template_name, '/' );
-            if ( file_exists( $candidate ) ) {
+            if ( file_exists( $candidate ) && richie_is_valid_template_path( $candidate, $paths ) ) {
                 return $candidate;
             }
         }
@@ -386,7 +407,7 @@ function richie_render_block_template_document( $template_path ) {
  * @return string
  */
 function richie_render_block_template_document_from_content( $template_contents ) {
-    if ( $template_contents === '' ) {
+    if ( empty( $template_contents ) ) {
         return '';
     }
 
