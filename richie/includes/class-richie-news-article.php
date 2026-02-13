@@ -120,8 +120,7 @@ class Richie_Article {
         }
 
         // 3. Site Editor block template.
-        $use_block_template = is_array( $this->news_options ) && ! empty( $this->news_options['use_block_template'] );
-        if ( empty( $rendered_content ) && $use_block_template && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+        if ( empty( $rendered_content ) && richie_use_block_template( $this->news_options ) && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
             $rendered_content = richie_render_block_template_by_slug( richie_get_block_template_slug() );
         }
 

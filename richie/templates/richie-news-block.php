@@ -14,11 +14,8 @@ if ( ! $template_path || ! file_exists( $template_path ) ) {
 }
 
 // Validate path is within allowed directories.
-$allowed_dirs = array(
-    trailingslashit( get_stylesheet_directory() ) . 'richie/',
-    trailingslashit( get_template_directory() ) . 'richie/',
-    trailingslashit( Richie_PLUGIN_DIR ) . 'templates/',
-);
+$allowed_dirs   = richie_get_theme_template_dirs();
+$allowed_dirs[] = trailingslashit( Richie_PLUGIN_DIR ) . 'templates/';
 if ( ! richie_is_valid_template_path( $template_path, $allowed_dirs ) ) {
     return;
 }

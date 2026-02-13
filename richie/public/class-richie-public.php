@@ -754,8 +754,7 @@ class Richie_Public {
                     return $template;
                 }
 
-                $use_block_template = is_array( $this->richie_options ) && ! empty( $this->richie_options['use_block_template'] );
-                if ( $use_block_template && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+                if ( richie_use_block_template( $this->richie_options ) && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
                     $block_slug = richie_get_block_template_slug();
                     if ( richie_get_block_template_by_slug( $block_slug ) ) {
                         set_query_var( 'richie_block_template_slug', $block_slug );
@@ -822,16 +821,9 @@ class Richie_Public {
             return;
         }
 
-        $content = file_get_contents( $template_path );
-        if ( $content === false ) {
+        $content = file_get_contents( $template_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reading local plugin file.
+        if ( false === $content ) {
             return;
-        }
-
-        if ( function_exists( 'parse_blocks' ) && function_exists( 'serialize_blocks' ) ) {
-            $parsed = parse_blocks( $content );
-            if ( ! empty( $parsed ) ) {
-                $content = serialize_blocks( $parsed );
-            }
         }
 
         $template_id = $this->plugin_name . '//' . richie_get_block_template_slug();

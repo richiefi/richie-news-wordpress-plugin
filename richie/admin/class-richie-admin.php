@@ -638,10 +638,7 @@ class Richie_Admin {
             return;
         }
 
-        $options = get_option( $this->settings_option_name );
-        $use_block_template = is_array( $options ) && ! empty( $options['use_block_template'] );
-
-        if ( ! $use_block_template ) {
+        if ( ! richie_use_block_template() ) {
             return;
         }
 
