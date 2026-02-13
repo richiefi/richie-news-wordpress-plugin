@@ -161,6 +161,9 @@ class Richie_Article {
      */
     public function add_mraid_tag( $dom ) {
         $head = $dom->querySelector('head');
+        if ( ! $head ) {
+            return;
+        }
         $first_script = $head->getElementsByTagName('script')->item(0);
         $mraid_tag = $dom->createElement('script');
         $mraid_tag->setAttribute('src', 'mraid.js');
