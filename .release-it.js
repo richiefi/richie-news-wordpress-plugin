@@ -47,7 +47,7 @@ module.exports = {
     },
   },
   hooks: {
-    "before:release": "node scripts/sync-wp-version.mjs richie ${version} && npm run plugin-zip && mkdir -p releases && mv richie.zip releases/richie-news-${version}.zip",
-    "before:git:commit": "npm run build:feed-editor && git add richie/admin/feed-editor/build",
+    "before:release": "npm run build:feed-editor && node scripts/sync-wp-version.mjs richie ${version} && npm run -w richie plugin-zip && mkdir -p releases && mv richie/richie.zip releases/richie-news-${version}.zip",
+    "before:git:commit": "git add richie/admin/feed-editor/build",
   },
 };

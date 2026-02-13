@@ -1,0 +1,36 @@
+{
+  "name": "richie",
+  "private": true,
+  "scripts": {
+    "plugin-zip": "wp-scripts plugin-zip"
+  },
+  "files": [
+    "admin/class-richie-admin.php",
+    "admin/class-richie-feed-editor.php",
+    "admin/css/**",
+    "admin/index.php",
+    "admin/js/**",
+    "admin/partials/**",
+    "admin/feed-editor/build/**",
+    "build/**",
+    "includes/**",
+    "languages/*.json",
+    "languages/*.l10n.php",
+    "languages/*.mo",
+    "languages/*.po",
+    "languages/*.pot",
+    "public/**",
+    "templates/*.php",
+    "templates/block-templates/**",
+    "vendor/**",
+    "richie.php",
+    "uninstall.php",
+    "index.php",
+    "block.json",
+    "composer.json",
+    "composer.lock",
+    "changelog.*",
+    "license.*",
+    "readme.*"
+  ]
+}
