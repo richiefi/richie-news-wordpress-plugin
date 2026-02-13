@@ -36,6 +36,7 @@ if ( ! defined( 'WPINC' ) ) {
  */
 define( 'Richie_VERSION', '1.8.0' );
 define( 'Richie_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( 'Richie_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 /**
  * Define plugin constants

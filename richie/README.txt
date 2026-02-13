@@ -271,8 +271,76 @@ Plugin provides following rest apis:
 `/wp-json/richie/v1/search?q=<search_query>&token=<configured_token>`
 
 `news` endpoint returns an array of articles for the specific article set, using configured sources.
-`article` endpoint returns details for specific article, including rendered html content
+`article` endpoint returns details for specific article, including rendered html content. Accepts optional `template` parameter to select a template variant (e.g. `&template=premium` uses `richie-news-premium.html`).
 `assets` endpoint returns configured assets (in plugin settings)
 
-Rendering is done using a template system. Theme may provide an template for this content by placing `richie-news-article.php?`
-inside `<theme_path>/richie` folder. It should return full html page starting from doctype.
+== Article Templates ==
+
+Richie renders articles as full HTML pages. The template system supports both block (HTML) and legacy PHP templates.
+
+= Template Resolution Order =
+
+Templates are resolved in this priority:
+
+1. **Theme HTML template** — `<theme>/richie/richie-news-article.html`
+2. **Theme PHP template** — `<theme>/richie/richie-news-article.php`
+3. **Site Editor template** — The `richie-article` template from Appearance > Editor (block themes only)
+4. **Plugin HTML template** — `richie/templates/richie-news.html` (plugin fallback)
+5. **Plugin PHP template** — Built-in legacy template via `Richie_Template_Loader`
+
+The first match wins. This applies to both the REST API article endpoint and the frontend `?richie_news` template loader.
+
+= Block Templates (Recommended) =
+
+With a block theme (e.g. Twenty Twenty-Five), Richie registers a `richie-article` template in the Site Editor. This is enabled by default via the **"Use Site Editor template"** checkbox under Richie > Settings > General.
+
+To customize:
+
+1. Go to **Appearance > Editor > Templates**
+2. Find and edit the **Richie Article** template
+3. Use standard blocks: Post Title, Post Content, Post Featured Image, Post Date, etc.
+
+The template is rendered with `do_blocks()` and wrapped in a full HTML document including `wp_head()` and `wp_footer()` assets.
+
+= Theme HTML Override =
+
+Place a block markup file at:
+
+`wp-content/themes/<your-theme>/richie/richie-news-article.html`
+
+This takes the highest priority. The file should contain block markup (no `<html>` wrapper needed — the plugin adds it automatically).
+
+Example:
+
+```
+<!-- wp:group {"tagName":"main"} -->
+<main class="wp-block-group">
+  <!-- wp:post-title {"level":1} /-->
+  <!-- wp:post-content /-->
+</main>
+<!-- /wp:group -->
+```
+
+= Legacy PHP Override =
+
+Place a PHP template at:
+
+`wp-content/themes/<your-theme>/richie/richie-news-article.php`
+
+This template should output a full HTML page starting from `<!doctype html>`. The post is available via the global `$post` variable.
+
+= Custom Template Variant =
+
+Both the article REST API and the frontend template loader support a `template` parameter to select a variant.
+
+- REST API: `/wp-json/richie/v1/article/<id>?token=...&template=premium`
+- Frontend: `?richie_news&token=...&template=premium`
+
+This changes the template lookup from the default `richie-news-article.html` (or `.php`) to `richie-news-premium.html` (or `.php`) in the theme's `richie/` directory. If no matching variant is found, the normal resolution cascade applies.
+
+= Admin Notices =
+
+The Richie settings page shows notices when:
+
+- Block templates are enabled but the active theme is not a block theme
+- A custom theme template override is detected (which takes priority over the Site Editor template)

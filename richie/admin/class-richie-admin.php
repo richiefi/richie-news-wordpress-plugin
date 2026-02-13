@@ -383,7 +383,11 @@ class Richie_Admin {
             $valid['access_token'] = sanitize_text_field( $input['access_token'] );
         }
 
-        $valid['search_list_layout_style']    = in_array( $input['search_list_layout_style'], $this->available_layout_names, true ) ? sanitize_text_field( $input['search_list_layout_style'] ) : 'small';
+        if ( isset( $input['search_list_layout_style'] ) && in_array( $input['search_list_layout_style'], $this->available_layout_names, true ) ) {
+            $valid['search_list_layout_style'] = sanitize_text_field( $input['search_list_layout_style'] );
+        } else {
+            $valid['search_list_layout_style'] = 'small';
+        }
 
         $valid['premium_categories'] = array();
         if ( isset( $input['premium_categories'] ) && is_array( $input['premium_categories'] ) ) {
@@ -394,6 +398,7 @@ class Richie_Admin {
         if ( isset( $input['default_entitlement'] ) && ! empty( $input['default_entitlement'] ) ) {
             $valid['default_entitlement'] = sanitize_text_field( $input['default_entitlement'] );
         }
+        $valid['use_block_template'] = isset( $input['use_block_template'] ) && intval( $input['use_block_template'] ) === 1;
 
         return $valid;
     }
@@ -629,6 +634,70 @@ class Richie_Admin {
             <?php
         }
 
+        if ( ! isset( $_GET['page'] ) || 'richie' !== $_GET['page'] ) {
+            return;
+        }
+
+        if ( ! richie_use_block_template() ) {
+            return;
+        }
+
+        if ( function_exists( 'wp_is_block_theme' ) && ! wp_is_block_theme() ) {
+            ?>
+            <div class="richie-notice notice notice-warning">
+            <p>
+                <strong>Richie: <?php esc_html_e( 'Block templates are enabled, but the active theme does not support the Site Editor.', 'richie' ); ?></strong>
+                <span><?php esc_html_e( 'Richie will continue to use the legacy templates until a block theme is active.', 'richie' ); ?></span>
+            </p>
+            </div>
+            <?php
+        }
+
+        if ( $this->has_block_template_override() ) {
+            ?>
+            <div class="richie-notice notice notice-info">
+            <p>
+                <strong>Richie: <?php esc_html_e( 'A custom Richie article template is detected.', 'richie' ); ?></strong>
+                <span><?php esc_html_e( 'The Site Editor template will not take effect until the custom template is removed.', 'richie' ); ?></span>
+            </p>
+            </div>
+            <?php
+        }
+
+    }
+
+    /**
+     * Check whether a theme or custom template overrides the plugin block template.
+     *
+     * @return bool
+     */
+    private function has_block_template_override() {
+        $slug = richie_get_block_template_slug();
+
+        if ( function_exists( 'get_block_templates' ) ) {
+            $templates = get_block_templates(
+                array(
+                    'slug__in' => array( $slug ),
+                ),
+                'wp_template'
+            );
+
+            foreach ( $templates as $template ) {
+                if ( isset( $template->source ) && in_array( $template->source, array( 'custom', 'theme' ), true ) ) {
+                    return true;
+                }
+            }
+        }
+
+        if ( richie_locate_theme_html_template( 'richie-news', 'article' ) || richie_locate_theme_html_template( 'richie-news' ) ) {
+            return true;
+        }
+
+        if ( richie_locate_theme_php_template( 'richie-news', 'article' ) || richie_locate_theme_php_template( 'richie-news' ) ) {
+            return true;
+        }
+
+        return false;
     }
 
 
@@ -735,6 +804,11 @@ class Richie_Admin {
             update_option( $this->settings_option_name, $options );
         }
 
+        if ( ! isset( $options['use_block_template'] ) ) {
+            $options['use_block_template'] = true;
+            update_option( $this->settings_option_name, $options );
+        }
+
     }
 
     /**
@@ -755,6 +829,15 @@ class Richie_Admin {
         // Create general section.
         $section = new Richie_Settings_Section( $general_section_name, __( 'General settings', 'richie' ), $this->settings_option_name );
         $section->add_field( 'access_token', __( 'Access token', 'richie' ), 'input_field', array( 'value' => $options['access_token'] ) );
+        $section->add_field(
+            'use_block_template',
+            __( 'Use Site Editor template', 'richie' ),
+            'checkbox',
+            array(
+                'checked'     => ! empty( $options['use_block_template'] ),
+                'description' => __( 'Use the Richie Article template from the Site Editor when a block theme is active.', 'richie' ),
+            )
+        );
 
         // Create search settings section.
         $section  = new Richie_Settings_Section( $search_section_name, __( 'Search API settings', 'richie' ), $this->settings_option_name );

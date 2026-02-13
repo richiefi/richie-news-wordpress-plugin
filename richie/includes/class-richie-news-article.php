@@ -82,7 +82,6 @@ class Richie_Article {
     public function render_template( $slug, $name, $post_obj ) {
         global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $user_ID, $wp_styles, $wp_scripts, $wp_filter;
         require_once plugin_dir_path( __FILE__ ) . 'class-richie-template-loader.php';
-        $richie_template_loader = new Richie_Template_Loader();
 
         $wp_query = new WP_Query( //phpcs:ignore
             array(
@@ -98,11 +97,30 @@ class Richie_Article {
         add_filter( 'script_loader_src', 'richie_force_url_scheme' );
         add_filter( 'style_loader_src', 'richie_force_url_scheme' );
 
-        ob_start();
-        $richie_template_loader
-            ->get_template_part( $slug, $name );
+        // Remove jquery-migrate from article output — not needed for rendered articles.
+        wp_deregister_script( 'jquery-migrate' );
+        wp_register_script( 'jquery-migrate', false, array(), false, false );
 
-        $rendered_content = ob_get_clean();
+        $resolved         = richie_resolve_template( $slug, $name, $this->news_options );
+        $rendered_content = '';
+
+        switch ( $resolved['type'] ) {
+            case 'block_path':
+                $rendered_content = richie_render_block_template_document( $resolved['path'] );
+                break;
+
+            case 'block_slug':
+                $rendered_content = richie_render_block_template_by_slug( $resolved['slug'] );
+                break;
+
+            case 'php':
+                $richie_template_loader = new Richie_Template_Loader();
+                ob_start();
+                $richie_template_loader->get_template_part( $resolved['slug'], $resolved['name'] );
+                $rendered_content = ob_get_clean();
+                break;
+        }
+
         wp_reset_query(); // Reset wp query to original and resets post data also.
 
         return $rendered_content;
@@ -143,6 +161,9 @@ class Richie_Article {
      */
     public function add_mraid_tag( $dom ) {
         $head = $dom->querySelector('head');
+        if ( ! $head ) {
+            return;
+        }
         $first_script = $head->getElementsByTagName('script')->item(0);
         $mraid_tag = $dom->createElement('script');
         $mraid_tag->setAttribute('src', 'mraid.js');
@@ -226,7 +247,7 @@ class Richie_Article {
         return $results;
     }
 
-    public function generate_article( $original_post, $exclude = self::EXCLUDE_NONE ) {
+    public function generate_article( $original_post, $exclude = self::EXCLUDE_NONE, $template_name = 'article' ) {
         if ( empty( $original_post ) ) {
             return new stdClass(); // Return empty object.
         }
@@ -397,13 +418,14 @@ class Richie_Article {
                 $token = '';
             }
 
-            $content_url = add_query_arg(
-                array(
-                    'richie_news' => 1,
-                    'token'       => $token,
-                ),
-                get_permalink( $post_id )
+            $content_args = array(
+                'richie_news' => 1,
+                'token'       => $token,
             );
+            if ( 'article' !== $template_name ) {
+                $content_args['template'] = $template_name;
+            }
+            $content_url = add_query_arg( $content_args, get_permalink( $post_id ) );
 
             $content_url = $this->append_wpp_shadow( $content_url );
 
@@ -449,7 +471,7 @@ class Richie_Article {
             }
 
             // Render locally to get assets.
-            $local_rendered_content = $this->render_template( 'richie-news', 'article', $my_post );
+            $local_rendered_content = $this->render_template( 'richie-news', $template_name, $my_post );
 
             if ( $use_local_render ) {
                 $rendered_content = $local_rendered_content;

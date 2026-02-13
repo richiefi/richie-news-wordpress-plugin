@@ -261,3 +261,314 @@ function richie_force_url_scheme( $url ) {
     }
     return $url;
 }
+
+/**
+ * Build template file names for HTML templates.
+ *
+ * @param string $slug Template slug.
+ * @param string $name Template variation name.
+ * @return array
+ */
+function richie_get_html_template_names( $slug, $name = null ) {
+    return richie_get_template_names( $slug, $name, '.html' );
+}
+
+/**
+ * Validate that a resolved template path is within one of the allowed base directories.
+ *
+ * @param string $candidate Resolved template path.
+ * @param array  $allowed_dirs Allowed base directories.
+ * @return bool
+ */
+function richie_is_valid_template_path( $candidate, $allowed_dirs ) {
+    $real = realpath( $candidate );
+    if ( false === $real ) {
+        return false;
+    }
+    foreach ( $allowed_dirs as $dir ) {
+        $real_dir = realpath( $dir );
+        if ( false !== $real_dir && 0 === strpos( $real, $real_dir . DIRECTORY_SEPARATOR ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Locate a template file in the given directories.
+ *
+ * @param array $template_names Filenames to look for, in priority order.
+ * @param array $paths          Directories to search, in priority order.
+ * @return string|null Absolute path to the first match, or null.
+ */
+function richie_locate_template_file( $template_names, $paths ) {
+    foreach ( $template_names as $template_name ) {
+        foreach ( $paths as $path ) {
+            $candidate = $path . ltrim( $template_name, '/' );
+            if ( file_exists( $candidate ) && richie_is_valid_template_path( $candidate, $paths ) ) {
+                return $candidate;
+            }
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Get the standard theme directories for Richie templates.
+ *
+ * @return array
+ */
+function richie_get_theme_template_dirs() {
+    return array(
+        trailingslashit( get_stylesheet_directory() ) . 'richie/',
+        trailingslashit( get_template_directory() ) . 'richie/',
+    );
+}
+
+/**
+ * Build template file names for a given extension.
+ *
+ * @param string $slug      Template slug.
+ * @param string $name      Template variation name.
+ * @param string $extension File extension including dot (e.g. '.html').
+ * @return array
+ */
+function richie_get_template_names( $slug, $name = null, $extension = '.html' ) {
+    $templates = array();
+    if ( isset( $name ) && '' !== $name ) {
+        $templates[] = $slug . '-' . $name . $extension;
+    }
+    $templates[] = $slug . $extension;
+
+    return $templates;
+}
+
+/**
+ * Locate a HTML template file in theme or plugin paths.
+ *
+ * @param string $slug Template slug.
+ * @param string $name Template variation name.
+ * @return string|null
+ */
+function richie_locate_html_template( $slug, $name = null ) {
+    $templates  = richie_get_template_names( $slug, $name, '.html' );
+    $paths      = richie_get_theme_template_dirs();
+    $paths[]    = trailingslashit( Richie_PLUGIN_DIR ) . 'templates/';
+    $paths      = apply_filters( 'richie_html_template_paths', $paths, $slug, $name );
+
+    return richie_locate_template_file( $templates, $paths );
+}
+
+/**
+ * Locate a HTML template file in the active theme or parent theme only.
+ *
+ * @param string $slug Template slug.
+ * @param string $name Template variation name.
+ * @return string|null
+ */
+function richie_locate_theme_html_template( $slug, $name = null ) {
+    return richie_locate_template_file(
+        richie_get_template_names( $slug, $name, '.html' ),
+        richie_get_theme_template_dirs()
+    );
+}
+
+/**
+ * Locate a PHP template file in the active theme or parent theme only.
+ *
+ * @param string $slug Template slug.
+ * @param string $name Template variation name.
+ * @return string|null
+ */
+function richie_locate_theme_php_template( $slug, $name = null ) {
+    return richie_locate_template_file(
+        richie_get_template_names( $slug, $name, '.php' ),
+        richie_get_theme_template_dirs()
+    );
+}
+
+/**
+ * Render a block HTML template into a full HTML document string.
+ *
+ * @param string $template_path Absolute path to the HTML template.
+ * @return string
+ */
+function richie_render_block_template_document( $template_path ) {
+    $template_contents = file_get_contents( $template_path );
+
+    if ( false === $template_contents ) {
+        return '';
+    }
+
+    return richie_render_block_template_document_from_content( $template_contents );
+}
+
+/**
+ * Render block template content into a full HTML document string.
+ *
+ * @param string $template_contents Block template markup.
+ * @return string
+ */
+function richie_render_block_template_document_from_content( $template_contents ) {
+    if ( empty( $template_contents ) ) {
+        return '';
+    }
+
+    $rendered = do_blocks( $template_contents );
+
+    ob_start();
+    wp_head();
+    $head_assets = ob_get_clean();
+
+    ob_start();
+    wp_footer();
+    $footer_assets = ob_get_clean();
+
+    $has_head = stripos( $rendered, '<head' ) !== false;
+    $has_body = stripos( $rendered, '<body' ) !== false;
+
+    if ( $has_head && $has_body ) {
+        // Template is a full document — inject assets into existing tags.
+        $rendered = preg_replace( '/<\/head>/i', $head_assets . "\n</head>", $rendered, 1 );
+        $rendered = preg_replace( '/<\/body>/i', $footer_assets . "\n</body>", $rendered, 1 );
+    } else {
+        // Template is block markup only — wrap in a full document.
+        $rendered = "<!doctype html>\n" .
+            "<html>\n" .
+            "<head>\n" . $head_assets . "\n</head>\n" .
+            "<body>\n" . $rendered . "\n" . $footer_assets . "\n</body>\n" .
+            "</html>\n";
+    }
+
+    return $rendered;
+}
+
+/**
+ * Check whether block template rendering is enabled.
+ *
+ * @param array|null $options Plugin options array. If null, reads from database.
+ * @return bool
+ */
+function richie_use_block_template( $options = null ) {
+    if ( null === $options ) {
+        $options = get_option( 'richie' );
+    }
+    return is_array( $options ) && ! empty( $options['use_block_template'] );
+}
+
+/**
+ * Resolve which template should be used for rendering, without actually rendering.
+ *
+ * Returns a descriptor array with 'type' and additional keys depending on the type:
+ *   - { type: 'block_path', path: string }  — HTML block template file to render with do_blocks().
+ *   - { type: 'block_slug', slug: string }   — Site Editor template to render by slug.
+ *   - { type: 'php', slug: string, name: string } — PHP template to load via Richie_Template_Loader.
+ *
+ * @param string     $slug    Template slug (e.g. 'richie-news').
+ * @param string     $name    Template variation name (e.g. 'article').
+ * @param array|null $options Plugin options array. If null, reads from database.
+ * @return array Template descriptor.
+ */
+function richie_resolve_template( $slug, $name, $options = null ) {
+    // 0. Explicit block template request — skip theme overrides.
+    if ( 'block' === $name && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+        $block_slug = richie_get_block_template_slug();
+        if ( richie_get_block_template_by_slug( $block_slug ) ) {
+            return array( 'type' => 'block_slug', 'slug' => $block_slug );
+        }
+    }
+
+    // 1. Theme HTML template override.
+    $theme_html = richie_locate_theme_html_template( $slug, $name );
+    if ( $theme_html ) {
+        return array( 'type' => 'block_path', 'path' => $theme_html );
+    }
+
+    // 2. Theme PHP template override.
+    $theme_php = richie_locate_theme_php_template( $slug, $name );
+    if ( $theme_php ) {
+        return array( 'type' => 'php', 'slug' => $slug, 'name' => $name );
+    }
+
+    // 3. Site Editor block template (block themes only).
+    if ( richie_use_block_template( $options ) && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+        $block_slug = richie_get_block_template_slug();
+        if ( richie_get_block_template_by_slug( $block_slug ) ) {
+            return array( 'type' => 'block_slug', 'slug' => $block_slug );
+        }
+    }
+
+    // 4. Plugin HTML template fallback.
+    $plugin_html = richie_locate_html_template( $slug, $name );
+    if ( $plugin_html ) {
+        return array( 'type' => 'block_path', 'path' => $plugin_html );
+    }
+
+    // 5. Legacy PHP template fallback.
+    return array( 'type' => 'php', 'slug' => $slug, 'name' => $name );
+}
+
+/**
+ * Get the block template slug used for Richie articles.
+ *
+ * @return string
+ */
+function richie_get_block_template_slug() {
+    return 'richie-article';
+}
+
+/**
+ * Find a block template by slug, preferring custom templates.
+ *
+ * @param string $slug Template slug.
+ * @return WP_Block_Template|null
+ */
+function richie_get_block_template_by_slug( $slug ) {
+    if ( ! function_exists( 'get_block_templates' ) ) {
+        return null;
+    }
+
+    $templates = get_block_templates(
+        array(
+            'slug__in' => array( $slug ),
+        ),
+        'wp_template'
+    );
+
+    if ( empty( $templates ) ) {
+        return null;
+    }
+
+    $priority = array(
+        'custom' => 0,
+        'theme'  => 1,
+        'plugin' => 2,
+    );
+
+    usort(
+        $templates,
+        function( $a, $b ) use ( $priority ) {
+            $a_priority = isset( $priority[ $a->source ] ) ? $priority[ $a->source ] : 99;
+            $b_priority = isset( $priority[ $b->source ] ) ? $priority[ $b->source ] : 99;
+            return $a_priority <=> $b_priority;
+        }
+    );
+
+    return $templates[0];
+}
+
+/**
+ * Render a block template by slug into a full HTML document.
+ *
+ * @param string $slug Template slug.
+ * @return string
+ */
+function richie_render_block_template_by_slug( $slug ) {
+    $template = richie_get_block_template_by_slug( $slug );
+    if ( ! $template || empty( $template->content ) ) {
+        return '';
+    }
+
+    return richie_render_block_template_document_from_content( $template->content );
+}

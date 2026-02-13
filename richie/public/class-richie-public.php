@@ -547,7 +547,8 @@ class Richie_Public {
         if ( empty( $post ) ) {
             return new WP_Error( 'no_id', 'Invalid article id', array( 'status' => 404 ) );
         } else {
-            $generated_article = $article->generate_article( $post, $version >= 3 ? Richie_Article::EXCLUDE_METADATA : Richie_Article::EXCLUDE_NONE );
+            $template_name     = isset( $data['template'] ) ? $data['template'] : 'article';
+            $generated_article = $article->generate_article( $post, $version >= 3 ? Richie_Article::EXCLUDE_METADATA : Richie_Article::EXCLUDE_NONE, $template_name );
             return $generated_article;
         }
     }
@@ -702,10 +703,14 @@ class Richie_Public {
                 'callback'            => array( $this, 'article_route_handler_v3' ),
                 'permission_callback' => array( $this, 'check_permission' ),
                 'args'                => array(
-                    'id' => array(
+                    'id'       => array(
                         'validate_callback' => function( $param ) {
                             return is_numeric( $param );
                         },
+                    ),
+                    'template' => array(
+                        'sanitize_callback' => 'sanitize_title',
+                        'default'           => 'article',
                     ),
                 ),
             )
@@ -727,6 +732,9 @@ class Richie_Public {
     public function richie_template( $template ) {
         if ( isset( $_GET['token'] ) && ! empty( $this->richie_options['access_token'] ) && hash_equals( $this->richie_options['access_token'], sanitize_text_field( wp_unslash( $_GET['token'] ) ) ) ) {
             if ( isset( $_GET['richie_news'] ) ) {
+                // Remove jquery-migrate from article output.
+                wp_deregister_script( 'jquery-migrate' );
+                wp_register_script( 'jquery-migrate', false, array(), false, false );
 
                 $name = 'article';
 
@@ -734,8 +742,22 @@ class Richie_Public {
                     $name = sanitize_title( $_GET['template'] );
                 }
 
-                $richie_template_loader = new Richie_Template_Loader();
-                $template               = $richie_template_loader->get_template_part( 'richie-news', $name, false );
+                $resolved = richie_resolve_template( 'richie-news', $name, $this->richie_options );
+
+                switch ( $resolved['type'] ) {
+                    case 'block_path':
+                        set_query_var( 'richie_block_template_path', $resolved['path'] );
+                        return Richie_PLUGIN_DIR . 'templates/richie-news-block.php';
+
+                    case 'block_slug':
+                        set_query_var( 'richie_block_template_slug', $resolved['slug'] );
+                        return Richie_PLUGIN_DIR . 'templates/richie-news-block.php';
+
+                    case 'php':
+                        $richie_template_loader = new Richie_Template_Loader();
+                        $template               = $richie_template_loader->get_template_part( $resolved['slug'], $resolved['name'], false );
+                        break;
+                }
             }
         }
         return $template;
@@ -768,6 +790,41 @@ class Richie_Public {
      */
     public function register_shortcodes() {
 
+    }
+
+    /**
+     * Register block templates for block themes.
+     */
+    public function register_block_templates() {
+        if ( ! function_exists( 'register_block_template' ) ) {
+            return;
+        }
+
+        if ( ! function_exists( 'wp_is_block_theme' ) || ! wp_is_block_theme() ) {
+            return;
+        }
+
+        $template_path = Richie_PLUGIN_DIR . 'templates/block-templates/' . richie_get_block_template_slug() . '.html';
+        if ( ! file_exists( $template_path ) ) {
+            return;
+        }
+
+        $content = file_get_contents( $template_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reading local plugin file.
+        if ( false === $content ) {
+            return;
+        }
+
+        $template_id = $this->plugin_name . '//' . richie_get_block_template_slug();
+        register_block_template(
+            $template_id,
+            array(
+                'title'       => __( 'Richie Article', 'richie' ),
+                'description' => __( 'Richie news article template.', 'richie' ),
+                'content'     => $content,
+                'post_types'  => array( 'post' ),
+                'template_types' => array( 'single' ),
+            )
+        );
     }
 }
 
