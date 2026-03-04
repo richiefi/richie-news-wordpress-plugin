@@ -204,6 +204,7 @@ class Richie {
 
         // Routes.
         $this->loader->add_action( 'rest_api_init', $plugin_public, 'register_richie_rest_api' );
+        $this->loader->add_action( 'init', $plugin_public, 'maybe_trigger_request_init_action', 0 );
 
         // Other.
         $this->loader->add_action( 'init', $plugin_public, 'register_block_templates' );
