@@ -2,6 +2,7 @@
   "name": "richie-feed-editor",
   "version": "1.0.0",
   "description": "Visual drag-and-drop editor for Richie news feeds",
+  "license": "GPL-2.0-or-later",
   "scripts": {
     "build": "wp-scripts build",
     "start": "wp-scripts start",

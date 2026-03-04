@@ -8,6 +8,11 @@ The actual plugin code is in `richie` folder.
 
 Separate plugin for migrating richie editions e-papers to wordpress. The plugin is included as git submodule in richie-editions-wp folder.
 
+## Licensing and Trademarks
+
+- `richie` and `richie-editions-wp` source code is licensed under GPL-2.0-or-later.
+- Richie brand usage is covered separately. See [TRADEMARKS.md](TRADEMARKS.md).
+
 ## Setting up dev environment
 
 Expecting podman and podman compose to be installed.

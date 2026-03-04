@@ -1,5 +1,5 @@
 # Copyright (C) 2026 Richie Oy
-# This file is distributed under the Richie Oy.
+# This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
 "Project-Id-Version: Richie News 1.8.0\n"

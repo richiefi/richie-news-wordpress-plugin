@@ -1,6 +1,7 @@
 {
   "name": "richie",
   "private": true,
+  "license": "GPL-2.0-or-later",
   "scripts": {
     "plugin-zip": "wp-scripts plugin-zip"
   },
