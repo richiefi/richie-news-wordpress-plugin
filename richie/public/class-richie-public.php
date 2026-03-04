@@ -68,6 +68,57 @@ class Richie_Public {
         $this->richie_options      = get_option( $plugin_name );
     }
 
+    /**
+     * Trigger a request-level integration hook for Richie REST routes.
+     *
+     * Runs on `init` with priority 0, so integration code can define constants
+     * (e.g. DONOTCDN) before optimization plugins start response processing.
+     *
+     * @return void
+     */
+    public function maybe_trigger_request_init_action() {
+        if ( ! $this->is_richie_rest_request() ) {
+            return;
+        }
+
+        try {
+            do_action( 'richie_request_init' );
+        } catch ( Throwable $e ) {
+            error_log( 'Error in richie_request_init action: ' . $e->getMessage() );
+        }
+    }
+
+    /**
+     * Detect whether current request targets Richie REST namespace.
+     *
+     * @return bool
+     */
+    private function is_richie_rest_request() {
+        if ( isset( $_GET['rest_route'] ) ) {
+            $rest_route = sanitize_text_field( wp_unslash( $_GET['rest_route'] ) );
+            $rest_route = ltrim( $rest_route, '/' );
+
+            if ( 0 === strpos( $rest_route, 'richie/' ) ) {
+                return true;
+            }
+        }
+
+        if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
+            return false;
+        }
+
+        $request_uri = wp_unslash( $_SERVER['REQUEST_URI'] );
+        $path        = wp_parse_url( $request_uri, PHP_URL_PATH );
+
+        if ( ! is_string( $path ) ) {
+            $path = $request_uri;
+        }
+
+        $prefix = '/' . trim( rest_get_url_prefix(), '/' ) . '/richie/';
+
+        return false !== strpos( $path, $prefix );
+    }
+
     public function get_ad_slots( $article_set ) {
         $adslots_option = get_option( $this->plugin_name . '_adslots' );
         return isset( $adslots_option['slots'] ) && isset( $adslots_option['slots'][ $article_set->term_id ] ) ? $adslots_option['slots'][ $article_set->term_id ] : array();
@@ -827,4 +878,3 @@ class Richie_Public {
         );
     }
 }
-

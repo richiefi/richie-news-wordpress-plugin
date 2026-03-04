@@ -164,6 +164,26 @@ Richie News Platform plugin provides JSON feeds to be used in Richie News Platfo
 
 == Hooks & Filters ==
 
+= richie_request_init =
+
+Action hook for request-level integrations on Richie REST requests.
+
+This action runs on `init` (priority `0`) and is triggered only for Richie API routes (`/wp-json/richie/...` or `?rest_route=/richie/...`).
+
+Use it to apply request-scoped integration behavior before optimization plugins start processing response output.
+
+**Example: disable third-party CDN/rewriter handling for Richie requests**
+
+```php
+add_action( 'richie_request_init', function() {
+    if ( ! defined( 'DONOTCDN' ) ) {
+        define( 'DONOTCDN', true );
+    }
+}, 10 );
+```
+
+**Note:** `DONOTCDN` is not a WordPress core constant. It is a convention used by some optimization/CDN plugins.
+
 = richie_article_access_entitlements =
 
 Filters the access entitlements for an article in the API response.
