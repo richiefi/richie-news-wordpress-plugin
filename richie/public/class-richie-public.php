@@ -81,7 +81,11 @@ class Richie_Public {
             return;
         }
 
-        do_action( 'richie_request_init' );
+        try {
+            do_action( 'richie_request_init' );
+        } catch ( Throwable $e ) {
+            error_log( 'Error in richie_request_init action: ' . $e->getMessage() );
+        }
     }
 
     /**
