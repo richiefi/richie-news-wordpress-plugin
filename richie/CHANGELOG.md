@@ -1,6 +1,10 @@
 # Changelog
 
 
+## 2.1.0 (2026-03-04)
+
+* feat(richie): add request init hook for REST integrations
+
 ## 2.0.0 (2026-02-13)
 
 * feat: cli tool for testing article output

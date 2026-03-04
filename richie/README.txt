@@ -2,7 +2,7 @@
 Tags: rest, feed, api
 Requires at least: 6.0
 Tested up to: 6.9
-Stable tag: 2.0.0
+Stable tag: 2.1.0
 Requires PHP: 7.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -25,6 +25,10 @@ Richie News Platform plugin provides JSON feeds to be used in Richie News Platfo
 
 == Changelog ==
 = WIP =
+
+= 2.1.0 (04.03.2026) =
+* Release 2.1.0
+
 
 = 2.0.0 (13.02.2026) =
 * support php 8.3 and wp 6.9
