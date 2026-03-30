@@ -8,8 +8,8 @@
  * @subpackage Richie/includes
  */
 
-require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-photo-asset.php';
-require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-post-type.php';
+require_once plugin_dir_path( __DIR__ ) . 'includes/class-richie-photo-asset.php';
+require_once plugin_dir_path( __DIR__ ) . 'includes/class-richie-post-type.php';
 
 
 /**
@@ -61,11 +61,11 @@ class Richie_Article {
      * @param array $assets Available asset items.
      * @param int   $version Article version.
      */
-    public function __construct( $richie_options, $assets = [], $version = 1 ) {
+    public function __construct( $richie_options, $assets = array(), $version = 1 ) {
         $this->news_options = $richie_options;
         $this->assets       = $assets;
         $this->scale_images = false;
-        $this->api_version = $version;
+        $this->api_version  = $version;
         if ( $version >= 3 ) {
             $this->scale_images = true;
         }
@@ -142,11 +142,11 @@ class Richie_Article {
     /**
      * Parse html content and return dom object
      *
-     * @param string  $content HTML string.
+     * @param string $content HTML string.
      * @return object
      */
     public function parse_dom( $content ) {
-        $dom = new IvoPetkov\HTML5DOMDocument();
+        $dom                     = new IvoPetkov\HTML5DOMDocument();
         $dom->substituteEntities = false;
         $dom->preserveWhiteSpace = false;
         libxml_use_internal_errors( true );
@@ -157,16 +157,16 @@ class Richie_Article {
     /**
      * Append mraid.js script tag to head
      *
-     * @param string  $content HTML string.
+     * @param string $content HTML string.
      */
     public function add_mraid_tag( $dom ) {
-        $head = $dom->querySelector('head');
+        $head = $dom->querySelector( 'head' );
         if ( ! $head ) {
             return;
         }
-        $first_script = $head->getElementsByTagName('script')->item(0);
-        $mraid_tag = $dom->createElement('script');
-        $mraid_tag->setAttribute('src', 'mraid.js');
+        $first_script = $head->getElementsByTagName( 'script' )->item( 0 );
+        $mraid_tag    = $dom->createElement( 'script' );
+        $mraid_tag->setAttribute( 'src', 'mraid.js' );
         if ( $first_script ) {
             // We have script in head, insert before it.
             $head->insertBefore( $mraid_tag, $first_script );
@@ -177,41 +177,193 @@ class Richie_Article {
     }
 
     /**
-     * Parse html content and return all img tag source urls
+     * Check whether a string looks like a URL or file path.
      *
-     * @param object  $dom Dom object.
-     * @param boolean $include_links Detect images in a tags.
-     * @return array
+     * Used to detect lazyload data-* attributes that hold an image URL.
+     *
+     * @param string $value Attribute value.
+     * @return bool
      */
-    public function get_article_images( $dom, $include_links = false ) {
-        $image_urls = [];
-
-        // Get all the images.
-        $images = $dom->querySelectorAll( 'body img' );
-        // Loop the images.
-        foreach ( $images as $image ) {
-            $url          = richie_make_link_absolute( $image->getAttribute( 'src' ) );
-            $image_urls[] = $url;
-            $image->setAttribute( 'src', $url );
-            $image->removeAttribute( 'srcset' );
+    private function looks_like_url( $value ) {
+        if ( '' === $value ) {
+            return false;
         }
 
-        if ( true === $include_links ) {
-            $links = $dom->getElementsByTagName( 'a' );
+        // Absolute or protocol-relative.
+        if ( preg_match( '#^(?:https?:)?//#i', $value ) ) {
+            return true;
+        }
 
-            foreach ( $links as $link ) {
-                $href = $link->getAttribute( 'href' );
-                if ( richie_is_image_url( $href ) ) {
-                    $url          = richie_make_link_absolute( $href );
-                    $image_urls[] = $url;
-                    $link->setAttribute( 'href', $url );
+        // Root-relative.
+        if ( '/' === $value[0] ) {
+            return true;
+        }
+
+        // Relative path that includes an extension (e.g. images/photo.jpg).
+        return (bool) preg_match( '#^[^?\s]+\.[a-z0-9]{2,8}(?:\?.*)?$#i', $value );
+    }
+
+    /**
+     * Extract image URLs referenced via CSS url(...) tokens in a style attribute value.
+     * Returns only URLs that pass richie_is_image_url().
+     *
+     * @param string $style_value Inline style attribute value.
+     * @return string[] Absolute image URLs.
+     */
+    private function extract_style_image_urls( $style_value ) {
+        $urls = array();
+
+        if ( ! preg_match_all( '/url\(\s*[\'"]?([^\'"\)\s]+)[\'"]?\s*\)/i', $style_value, $matches ) ) {
+            return $urls;
+        }
+
+        foreach ( $matches[1] as $raw ) {
+            if ( richie_is_image_url( $raw ) ) {
+                $urls[] = richie_make_link_absolute( $raw );
+            }
+        }
+
+        return $urls;
+    }
+
+    /**
+     * Rewrite CSS url(...) image tokens in a style attribute value using $url_map.
+     *
+     * @param string   $style_value Inline style attribute value.
+     * @param string[] $url_map     Map of absolute URL => local name.
+     * @return string Rewritten style value.
+     */
+    private function rewrite_style_image_urls( $style_value, $url_map ) {
+        return preg_replace_callback(
+            '/url\(\s*[\'"]?([^\'"\)\s]+)[\'"]?\s*\)/i',
+            function ( $m ) use ( $url_map ) {
+                $raw = $m[1];
+                if ( ! richie_is_image_url( $raw ) ) {
+                    return $m[0];
+                }
+                $abs = richie_make_link_absolute( $raw );
+                if ( isset( $url_map[ $abs ] ) ) {
+                    return 'url(' . $url_map[ $abs ] . ')';
+                }
+                // Rewrite to absolute even when not in map, so offline fetch is possible.
+                return 'url(' . $abs . ')';
+            },
+            $style_value
+        );
+    }
+
+    /**
+     * Parse HTML content, discover all image URLs, and rewrite them to local names.
+     *
+     * Handles:
+     * - <img src> (always)
+     * - <img data-src>, <img data-full>, and other data-* attributes that look like URLs (lazyload)
+     * - <img srcset> is stripped; src is filled with the first lazyload URL when src is empty
+     * - inline style="background-image: url(...)" on any element
+     * - any attribute on any element whose value passes richie_is_image_url()
+     *
+     * @param object   $dom     DOM object.
+     * @param string[] $url_map Optional map of absolute URL => local name for pre-known images
+     *                          (thumbnails, gallery attachments). When a URL is in the map the
+     *                          attribute value is rewritten to the local name; otherwise it is
+     *                          rewritten to the absolute URL so the app can still fetch it.
+     * @return array { images: string[], content: string }
+     */
+    public function get_article_images( $dom, $url_map = array() ) {
+        $image_urls = array();
+
+        // Only scan the body — head and noscript elements are not rendered article content.
+        $body = $dom->getElementsByTagName( 'body' )->item( 0 );
+
+        if ( ! $body ) {
+            return array(
+                'images'  => $image_urls,
+                'content' => $dom->saveHTML( $dom->documentElement ),
+            );
+        }
+
+        foreach ( $body->getElementsByTagName( '*' ) as $element ) {
+            // Skip contents of <noscript> and <script> — not rendered as visual HTML.
+            $parent = $element->parentNode;
+            while ( $parent ) {
+                if ( XML_ELEMENT_NODE === $parent->nodeType ) {
+                    $pname = strtolower( $parent->tagName );
+                    if ( 'noscript' === $pname || 'script' === $pname ) {
+                        continue 2;
+                    }
+                }
+                $parent = $parent->parentNode;
+            }
+
+            if ( ! $element->hasAttributes() ) {
+                continue;
+            }
+
+            $tag_name     = strtolower( $element->tagName );
+            $is_img       = 'img' === $tag_name;
+            $fallback_src = ''; // Used to fill empty src from lazyload data-* attrs.
+
+            // Collect attributes once (iterating live NamedNodeMap while modifying it is unsafe).
+            $attrs = array();
+            foreach ( $element->attributes as $attr ) {
+                $attrs[ $attr->name ] = $attr->value;
+            }
+
+            foreach ( $attrs as $attr_name => $attr_value ) {
+                $attr_value = trim( $attr_value );
+
+                if ( '' === $attr_value ) {
+                    continue;
+                }
+
+                // Inline style: extract and rewrite image url() tokens.
+                if ( 'style' === $attr_name ) {
+                    $image_urls = array_merge( $image_urls, $this->extract_style_image_urls( $attr_value ) );
+                    $element->setAttribute( 'style', $this->rewrite_style_image_urls( $attr_value, $url_map ) );
+                    continue;
+                }
+
+                // Strip srcset — the app renders at a single size. Ensure src has a value.
+                // TODO: extend to pick the best candidate and keep it in src instead of stripping.
+                if ( 'srcset' === $attr_name ) {
+                    $element->removeAttribute( 'srcset' );
+                    continue;
+                }
+
+                // For <img>: trust src unconditionally, and trust data-* when it looks like a URL.
+                // For other elements: only include clearly image URLs.
+                $is_img_src       = $is_img && 'src' === $attr_name;
+                $is_img_data_url  = $is_img && 0 === strpos( $attr_name, 'data-' ) && $this->looks_like_url( $attr_value );
+                $is_known_img_url = richie_is_image_url( $attr_value );
+
+                if ( ! $is_img_src && ! $is_img_data_url && ! $is_known_img_url ) {
+                    continue;
+                }
+
+                $abs_url      = richie_make_link_absolute( $attr_value );
+                $image_urls[] = $abs_url;
+
+                $local_value = isset( $url_map[ $abs_url ] ) ? $url_map[ $abs_url ] : $abs_url;
+                $element->setAttribute( $attr_name, $local_value );
+
+                // Track first data-* image URL as fallback for empty src.
+                if ( $is_img && 'src' !== $attr_name && '' === $fallback_src ) {
+                    $fallback_src = $local_value;
+                }
+            }
+
+            // For <img>: fill empty src from the first lazyload data-* URL.
+            if ( $is_img ) {
+                $current_src = trim( $element->getAttribute( 'src' ) );
+                if ( '' === $current_src && '' !== $fallback_src ) {
+                    $element->setAttribute( 'src', $fallback_src );
                 }
             }
         }
 
-        // Remove duplicate urls.
-        $image_urls = array_unique( $image_urls );
+        $image_urls = array_values( array_unique( $image_urls ) );
         $html       = $dom->saveHTML( $dom->documentElement );
+
         return array(
             'images'  => $image_urls,
             'content' => $html,
@@ -229,17 +381,17 @@ class Richie_Article {
      */
     public function generate_photos_array( $image_urls, &$rendered_content, $scale_image = false ) {
         if ( empty( $image_urls ) ) {
-            return [];
+            return array();
         }
 
-        $attachment_cache = [];
-        $results          = [];
+        $attachment_cache = array();
+        $results          = array();
 
         foreach ( array_unique( $image_urls ) as $url ) {
             $photo_asset = new Richie_Photo_Asset( $url, false, $scale_image );
             $results[]   = $photo_asset;
 
-            $encoded_url = richie_encode_url_path( $url );
+            $encoded_url      = richie_encode_url_path( $url );
             $rendered_content = str_replace( $url, $photo_asset->local_name, $rendered_content );
             $rendered_content = str_replace( $encoded_url, $photo_asset->local_name, $rendered_content );
         }
@@ -263,7 +415,7 @@ class Richie_Article {
             $without_metadata = true;
         }
 
-        $article       = new stdClass();
+        $article = new stdClass();
 
         if ( $this->api_version >= 3 ) {
             $article->publisher_id = strval( $original_post->ID );
@@ -286,16 +438,16 @@ class Richie_Article {
 
         if ( $external && is_string( $external ) ) {
             $article->external_browser_url = $external;
-            $article->share_link_url = $external;
+            $article->share_link_url       = $external;
         }
 
-        $my_post          = $richie_post_type->get_post( $original_post );
+        $my_post = $richie_post_type->get_post( $original_post );
 
-        if ( !isset ( $my_post->ID ) ) {
+        if ( ! isset( $my_post->ID ) ) {
             return $article; // didn't get post, return partial article (this might be because of featured post type, which points to external url)
         }
 
-        $hash          = md5( wp_json_encode( $my_post ) );
+        $hash = md5( wp_json_encode( $my_post ) );
 
         // Get metadata.
         $post_id  = $my_post->ID;
@@ -305,7 +457,6 @@ class Richie_Article {
 
         if ( ! $without_metadata ) {
             $article->hash = $hash; // TODO: Undocumented field - verify if still needed.
-
 
             if ( $richie_post_type->supports_property( 'summary' ) && ! empty( $my_post->post_excerpt ) ) {
                 $article->summary = $my_post->post_excerpt;
@@ -440,7 +591,7 @@ class Richie_Article {
                 $use_local_render = $_GET['use_local_render'] === '1';
             }
 
-            //$article->debug_content_url = $content_url;
+            // $article->debug_content_url = $content_url;
 
             if ( ! $use_local_render ) {
                 $transient_key    = 'richie_' . $hash;
@@ -470,20 +621,29 @@ class Richie_Article {
                 }
             }
 
+            // Snapshot which handles are already done before rendering, so we can find
+            // exactly the handles emitted by this article's render (not accumulated ones).
+            global $wp_scripts, $wp_styles;
+            $done_scripts_before = isset( $wp_scripts->done ) ? $wp_scripts->done : array();
+            $done_styles_before  = isset( $wp_styles->done ) ? $wp_styles->done : array();
+
             // Render locally to get assets.
             $local_rendered_content = $this->render_template( 'richie-news', $template_name, $my_post );
 
             if ( $use_local_render ) {
                 $rendered_content = $local_rendered_content;
             }
-            // $wp_scripts and $wp_styles globals should now been set
-            $article_assets = $this->get_article_assets();
+
+            // Collect only the handles newly emitted by this article render.
+            $new_script_handles = array_diff( isset( $wp_scripts->done ) ? $wp_scripts->done : array(), $done_scripts_before );
+            $new_style_handles  = array_diff( isset( $wp_styles->done ) ? $wp_styles->done : array(), $done_styles_before );
+            $article_assets     = richie_collect_registered_assets( $new_script_handles, $new_style_handles, '' );
 
             // Find local article assets (shortcodes etc).
             $local_assets = array_udiff(
                 $article_assets,
                 $this->assets,
-                function( $a, $b ) {
+                function ( $a, $b ) {
                     return strcmp( $a->remote_url, $b->remote_url );
                 }
             );
@@ -492,7 +652,12 @@ class Richie_Article {
             foreach ( $this->assets as $asset ) {
                 $local_name       = ltrim( $asset->local_name, '/' );
                 $rendered_content = str_replace( $asset->remote_url, $local_name, $rendered_content );
-                $regex            = '/(?<!app-assets)' . preg_quote( wp_make_link_relative( $asset->remote_url ), '/' ) . '/';
+                // Also match the relative form with query string (e.g. /style.css?ver=1.0).
+                $rel = richie_make_link_relative_with_query( $asset->remote_url );
+                if ( '' === $rel ) {
+                    continue;
+                }
+                $regex            = '/(?<!app-assets)' . preg_quote( $rel, '/' ) . '/';
                 $rendered_content = preg_replace( $regex, $local_name, $rendered_content );
             }
 
@@ -500,65 +665,52 @@ class Richie_Article {
             foreach ( $local_assets as $asset ) {
                 $local_name       = ltrim( $asset->local_name, '/' );
                 $rendered_content = str_replace( $asset->remote_url, $local_name, $rendered_content );
-                $regex            = '/(?<!app-assets)' . preg_quote( wp_make_link_relative( $asset->remote_url ), '/' ) . '/';
+                $rel              = richie_make_link_relative_with_query( $asset->remote_url );
+                if ( '' === $rel ) {
+                    continue;
+                }
+                $regex            = '/(?<!app-assets)' . preg_quote( $rel, '/' ) . '/';
                 $rendered_content = preg_replace( $regex, $local_name, $rendered_content );
             }
 
+            // Strip any remaining ?ver= query strings from already-rewritten local paths so the
+            // app can resolve them without version-aware cache busting.
+            $rendered_content = preg_replace( '#((?:app-assets|wp-content|wp-includes)/[^"\']+?)\?ver=[^"\']+#', '$1', $rendered_content );
+
             $article_photos = array();
 
-            $main_gallery = [];
+            $main_gallery = array();
             $thumbnail_id = get_post_thumbnail_id( $my_post );
+            $all_sizes    = get_intermediate_image_sizes();
+            $all_sizes[]  = 'full'; // Append full size also.
 
-            $dom    = $this->parse_dom( $rendered_content );
-
-            $this->add_mraid_tag( $dom );
-
-            $rendered_article_images = $this->get_article_images( $dom );
-            $image_urls              = $rendered_article_images['images'];
-
-
-            // Save the HTML with img srcset removed.
-            $rendered_content = $rendered_article_images['content'];
-
-            $all_sizes          = get_intermediate_image_sizes();
-            $all_sizes[]        = 'full'; // Append full size also.
-            $all_gallery_images = [];
+            // Build a URL map so get_article_images() can rewrite known images to local names
+            // in a single DOM pass, instead of doing post-hoc str_replace on rendered HTML.
+            // Map: absolute variant URL => canonical full-size Richie_Photo_Asset local_name.
+            $url_map            = array(); // absolute variant URL => local_name
+            $photo_asset_map    = array(); // canonical URL => Richie_Photo_Asset
+            $all_gallery_images = array();
 
             if ( $thumbnail_id ) {
-                $thumbnail  = wp_get_attachment_image_url( $thumbnail_id, 'full' );
-                $remote_url = richie_make_link_absolute( $thumbnail );
+                $thumbnail                         = wp_get_attachment_image_url( $thumbnail_id, 'full' );
+                $canonical_url                     = richie_make_link_absolute( $thumbnail );
+                $photo_asset                       = new Richie_Photo_Asset( $canonical_url, false, $this->scale_images );
+                $photo_asset->caption              = get_the_post_thumbnail_caption( $my_post );
+                $photo_asset_map[ $canonical_url ] = $photo_asset;
 
                 foreach ( $all_sizes as $size ) {
-                    $thumbnail_url = null;
-                    if ( 'full' === $size ) {
-                        // We already have full url.
-                        $thumbnail_url = $thumbnail;
-                    } else {
-                        $thumbnail_url = wp_get_attachment_image_url( $thumbnail_id, $size );
-                    }
-                    if ( false !== strpos( $rendered_content, $thumbnail_url ) ) {
-                        $photo_asset = new Richie_Photo_Asset( $remote_url, false, $this->scale_images);
-                        $photo_asset->caption = get_the_post_thumbnail_caption( $my_post );
-
-                        $rendered_content = str_replace( $thumbnail_url, $photo_asset->local_name, $rendered_content );
-                        $main_gallery[]   = $photo_asset;
-                        $all_gallery_images[] = $thumbnail_url;
-
-                        // Remove from general image array, since we have already handled this url.
-                        $index = array_search( $thumbnail_url, $image_urls );
-                        if ( false !== $index ) {
-                            unset( $image_urls[ $index ] );
-                        }
+                    $size_url = ( 'full' === $size ) ? $thumbnail : wp_get_attachment_image_url( $thumbnail_id, $size );
+                    if ( ! empty( $size_url ) ) {
+                        $url_map[ richie_make_link_absolute( $size_url ) ] = $photo_asset->local_name;
                     }
                 }
             }
 
             if ( ! $disable_url_handling ) {
-                // Find galleries in post and append it to photos array.
                 $galleries = get_post_galleries( $my_post, false );
 
                 foreach ( $galleries as $gallery ) {
-                    $gallery_photos = [];
+                    $gallery_photos = array();
 
                     if ( false !== $gallery ) {
                         $ids = explode( ',', $gallery['ids'] );
@@ -568,34 +720,20 @@ class Richie_Article {
                                 continue;
                             }
                             $attachment_url = wp_get_attachment_url( $attachment->ID );
+                            $canonical_url  = richie_make_link_absolute( $attachment_url );
 
-                            $photo_asset          = new Richie_Photo_Asset( $attachment_url, false, $this->scale_images );
-                            $photo_asset->caption = $attachment->post_excerpt;
+                            $photo_asset                       = new Richie_Photo_Asset( $attachment_url, false, $this->scale_images );
+                            $photo_asset->caption              = $attachment->post_excerpt;
+                            $photo_asset_map[ $canonical_url ] = $photo_asset;
+                            $gallery_photos[]                  = $photo_asset;
+                            $all_gallery_images[]              = $canonical_url;
 
-                            $local_name   = $photo_asset->local_name;
-                            $absolute_url = richie_make_link_absolute( $attachment_url );
-
-                            if ( false !== strpos( $rendered_content, $absolute_url ) ) {
-                                $rendered_content = str_replace( $absolute_url, $local_name, $rendered_content );
-                            } else {
-                                $rendered_content = str_replace( $attachment_url, $local_name, $rendered_content );
-                            }
-
-                            $gallery_photos [] = $photo_asset;
-
-                            $all_gallery_images[] = $attachment_url;
-
-                            // Get all variants and filter from main gallery.
+                            // Map all size variants of this attachment to its local name.
+                            $url_map[ $canonical_url ] = $photo_asset->local_name;
                             foreach ( $all_sizes as $size ) {
                                 $img = wp_get_attachment_image_src( $attachment_id, $size );
-
                                 if ( false !== $img ) {
-                                    // Remove from general image array, since this is in WordPress gallery.
-                                    $url   = $img[0];
-                                    $index = array_search( $url, $image_urls );
-                                    if ( false !== $index ) {
-                                        unset( $image_urls[ $index ] );
-                                    }
+                                    $url_map[ richie_make_link_absolute( $img[0] ) ] = $photo_asset->local_name;
                                 }
                             }
                         }
@@ -604,6 +742,42 @@ class Richie_Article {
                     if ( ! empty( $gallery_photos ) ) {
                         $article_photos[] = $gallery_photos;
                     }
+                }
+            }
+
+            $dom = $this->parse_dom( $rendered_content );
+            $this->add_mraid_tag( $dom );
+
+            // Single DOM pass: discover all image URLs and rewrite known ones to local names.
+            $rendered_article_images = $this->get_article_images( $dom, $url_map );
+            $image_urls              = $rendered_article_images['images'];
+            $rendered_content        = $rendered_article_images['content'];
+
+            // Separate out thumbnail and gallery URLs from the general image list.
+            if ( $thumbnail_id ) {
+                $thumbnail     = wp_get_attachment_image_url( $thumbnail_id, 'full' );
+                $canonical_url = richie_make_link_absolute( $thumbnail );
+
+                foreach ( $all_sizes as $size ) {
+                    $size_url     = ( 'full' === $size ) ? $thumbnail : wp_get_attachment_image_url( $thumbnail_id, $size );
+                    $abs_size_url = richie_make_link_absolute( $size_url );
+                    $index        = array_search( $abs_size_url, $image_urls, true );
+
+                    if ( false !== $index ) {
+                        if ( isset( $photo_asset_map[ $canonical_url ] ) && empty( $main_gallery ) ) {
+                            $main_gallery[] = $photo_asset_map[ $canonical_url ];
+                        }
+                        $all_gallery_images[] = $abs_size_url;
+                        unset( $image_urls[ $index ] );
+                        break; // Only need to find it once — all sizes map to the same asset.
+                    }
+                }
+            }
+
+            foreach ( $all_gallery_images as $gallery_url ) {
+                $index = array_search( $gallery_url, $image_urls, true );
+                if ( false !== $index ) {
+                    unset( $image_urls[ $index ] );
                 }
             }
 
