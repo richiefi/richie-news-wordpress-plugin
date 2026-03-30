@@ -269,7 +269,7 @@ class Richie_Article {
      *                          rewritten to the absolute URL so the app can still fetch it.
      * @return array { images: string[], content: string }
      */
-    public function get_article_images( $dom, $url_map = array() ) {
+    public function get_article_images( $dom, $url_map = array(), &$attachment_cache = array() ) {
         $image_urls = array();
 
         // Only scan the body — head and noscript elements are not rendered article content.
@@ -300,8 +300,9 @@ class Richie_Article {
             }
 
             $tag_name     = strtolower( $element->tagName );
-            $is_img       = 'img' === $tag_name;
+            $is_img       = 'img' === $tag_name || 'source' === $tag_name;
             $fallback_src = ''; // Used to fill empty src from lazyload data-* attrs.
+            $srcset_value = ''; // Collected from srcset / data-*srcset for best-candidate resolution.
 
             // Collect attributes once (iterating live NamedNodeMap while modifying it is unsafe).
             $attrs = array();
@@ -323,14 +324,23 @@ class Richie_Article {
                     continue;
                 }
 
-                // Strip srcset — the app renders at a single size. Ensure src has a value.
-                // TODO: extend to pick the best candidate and keep it in src instead of stripping.
-                if ( 'srcset' === $attr_name ) {
-                    $element->removeAttribute( 'srcset' );
+                // Strip srcset-format attributes (srcset, data-srcset, data-lazy-srcset, etc.).
+                // Save the value first so we can pick the best candidate URL from it.
+                // Other data-* attributes (data-src, data-full, data-valign, ...) are NOT matched here
+                // and continue to be handled by the generic data-* URL detection below.
+                $is_srcset_attr = ( 'srcset' === $attr_name ) ||
+                    ( 0 === strpos( $attr_name, 'data-' ) && preg_match( '/srcset$/i', $attr_name ) );
+
+                if ( $is_srcset_attr ) {
+                    // Keep the srcset value with the most entries for best-candidate selection.
+                    if ( substr_count( $attr_value, ',' ) >= substr_count( $srcset_value, ',' ) ) {
+                        $srcset_value = $attr_value;
+                    }
+                    $element->removeAttribute( $attr_name );
                     continue;
                 }
 
-                // For <img>: trust src unconditionally, and trust data-* when it looks like a URL.
+                // For <img>/<source>: trust src unconditionally, and trust data-* when it looks like a URL.
                 // For other elements: only include clearly image URLs.
                 $is_img_src       = $is_img && 'src' === $attr_name;
                 $is_img_data_url  = $is_img && 0 === strpos( $attr_name, 'data-' ) && $this->looks_like_url( $attr_value );
@@ -352,11 +362,37 @@ class Richie_Article {
                 }
             }
 
-            // For <img>: fill empty src from the first lazyload data-* URL.
+            // For <img>/<source>: fill empty src from the first lazyload data-* URL.
             if ( $is_img ) {
                 $current_src = trim( $element->getAttribute( 'src' ) );
                 if ( '' === $current_src && '' !== $fallback_src ) {
-                    $element->setAttribute( 'src', $fallback_src );
+                    $current_src = $fallback_src;
+                    $element->setAttribute( 'src', $current_src );
+                }
+
+                // Resolve best image: prefer WP media library full size, then best srcset candidate.
+                // Skip if src is already a local name (i.e. already in url_map — known attachment).
+                $known_local_names = array_values( $url_map );
+                if ( '' !== $current_src && ! in_array( $current_src, $known_local_names, true ) ) {
+                    $abs_src  = richie_make_link_absolute( $current_src );
+                    $best_url = richie_resolve_best_image_url( $abs_src, $srcset_value, $attachment_cache );
+
+                    if ( $best_url !== $abs_src && '' !== $best_url ) {
+                        // A better (larger) URL was found — update src and register it.
+                        $best_local = isset( $url_map[ $best_url ] ) ? $url_map[ $best_url ] : $best_url;
+                        $element->setAttribute( 'src', $best_local );
+                        $image_urls[] = $best_url;
+
+                        // Also rewrite any data-* attributes that still point to the original src.
+                        foreach ( $attrs as $attr_name => $attr_value ) {
+                            if ( 0 === strpos( $attr_name, 'data-' ) ) {
+                                $current_val = $element->getAttribute( $attr_name );
+                                if ( $current_val === $abs_src || $current_val === $current_src ) {
+                                    $element->setAttribute( $attr_name, $best_local );
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -690,6 +726,8 @@ class Richie_Article {
             $url_map            = array(); // absolute variant URL => local_name
             $photo_asset_map    = array(); // canonical URL => Richie_Photo_Asset
             $all_gallery_images = array();
+            // Pre-populate attachment cache with IDs we already know, avoiding redundant DB queries.
+            $attachment_cache   = array();
 
             if ( $thumbnail_id ) {
                 $thumbnail                         = wp_get_attachment_image_url( $thumbnail_id, 'full' );
@@ -698,10 +736,16 @@ class Richie_Article {
                 $photo_asset->caption              = get_the_post_thumbnail_caption( $my_post );
                 $photo_asset_map[ $canonical_url ] = $photo_asset;
 
+                // Pre-populate cache so get_article_images() won't re-query for the thumbnail.
+                $attachment_cache[ $canonical_url ] = $thumbnail_id;
+
                 foreach ( $all_sizes as $size ) {
                     $size_url = ( 'full' === $size ) ? $thumbnail : wp_get_attachment_image_url( $thumbnail_id, $size );
                     if ( ! empty( $size_url ) ) {
-                        $url_map[ richie_make_link_absolute( $size_url ) ] = $photo_asset->local_name;
+                        $abs_size_url              = richie_make_link_absolute( $size_url );
+                        $url_map[ $abs_size_url ]  = $photo_asset->local_name;
+                        // Cache all size variant URLs as well.
+                        $attachment_cache[ $abs_size_url ] = $thumbnail_id;
                     }
                 }
             }
@@ -729,11 +773,14 @@ class Richie_Article {
                             $all_gallery_images[]              = $canonical_url;
 
                             // Map all size variants of this attachment to its local name.
-                            $url_map[ $canonical_url ] = $photo_asset->local_name;
+                            $url_map[ $canonical_url ]              = $photo_asset->local_name;
+                            $attachment_cache[ $canonical_url ]     = (int) $attachment_id;
                             foreach ( $all_sizes as $size ) {
                                 $img = wp_get_attachment_image_src( $attachment_id, $size );
                                 if ( false !== $img ) {
-                                    $url_map[ richie_make_link_absolute( $img[0] ) ] = $photo_asset->local_name;
+                                    $abs_img_url                        = richie_make_link_absolute( $img[0] );
+                                    $url_map[ $abs_img_url ]            = $photo_asset->local_name;
+                                    $attachment_cache[ $abs_img_url ]   = (int) $attachment_id;
                                 }
                             }
                         }
@@ -749,7 +796,7 @@ class Richie_Article {
             $this->add_mraid_tag( $dom );
 
             // Single DOM pass: discover all image URLs and rewrite known ones to local names.
-            $rendered_article_images = $this->get_article_images( $dom, $url_map );
+            $rendered_article_images = $this->get_article_images( $dom, $url_map, $attachment_cache );
             $image_urls              = $rendered_article_images['images'];
             $rendered_content        = $rendered_article_images['content'];
 

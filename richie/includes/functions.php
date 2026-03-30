@@ -614,6 +614,122 @@ function richie_force_url_scheme( $url ) {
 }
 
 /**
+ * Parse a srcset attribute value and return the URL of the best (largest) candidate.
+ *
+ * Handles width descriptors (300w), pixel-density descriptors (2x), and bare URLs.
+ * Returns false if the string is empty or no valid entry is found.
+ *
+ * @param string $srcset_value The srcset attribute value.
+ * @return string|false Best candidate URL, or false on failure.
+ */
+function richie_parse_srcset_best_url( $srcset_value ) {
+    $srcset_value = trim( $srcset_value );
+    if ( '' === $srcset_value ) {
+        return false;
+    }
+
+    // Split on commas that are not inside parentheses (e.g. data URIs or url()).
+    $entries = preg_split( '/,\s*(?=[^\s,]+\s*(?:\d+[wx]\s*,|\d+[wx]\s*$|$))/', $srcset_value );
+    if ( empty( $entries ) ) {
+        return false;
+    }
+
+    $best_url     = false;
+    $best_width   = -1;
+    $best_density = -1.0;
+    $has_width    = false;
+    $has_density  = false;
+    $last_url     = false;
+
+    foreach ( $entries as $entry ) {
+        $parts = preg_split( '/\s+/', trim( $entry ), 2 );
+        if ( empty( $parts[0] ) ) {
+            continue;
+        }
+        $url        = $parts[0];
+        $descriptor = isset( $parts[1] ) ? trim( $parts[1] ) : '';
+        $last_url   = $url;
+
+        if ( preg_match( '/^(\d+)w$/i', $descriptor, $m ) ) {
+            $has_width = true;
+            if ( (int) $m[1] > $best_width ) {
+                $best_width = (int) $m[1];
+                $best_url   = $url;
+            }
+        } elseif ( preg_match( '/^([\d.]+)x$/i', $descriptor, $m ) ) {
+            $has_density = true;
+            if ( (float) $m[1] > $best_density ) {
+                $best_density = (float) $m[1];
+                $best_url     = $url;
+            }
+        }
+    }
+
+    // If we found width or density descriptors, return the winner.
+    if ( $has_width || $has_density ) {
+        return $best_url;
+    }
+
+    // No descriptors — return the last entry (largest is conventionally last).
+    return $last_url;
+}
+
+/**
+ * Resolve the best available image URL for an <img> src.
+ *
+ * Strategy (in priority order):
+ * 1. If same-origin: try attachment lookup to get the full-size URL from the media library.
+ * 2. If a srcset value is provided: parse it and pick the largest candidate.
+ * 3. Fall back to the original $src_url.
+ *
+ * Results of attachment lookups are memoized in $attachment_cache (keyed by base URL
+ * with size suffix stripped, value is attachment ID or 0 if not found).
+ *
+ * @param string $src_url         The current image src URL.
+ * @param string $srcset_value    Optional srcset attribute value for fallback.
+ * @param array  $attachment_cache By-reference cache array to avoid duplicate DB queries.
+ * @return string Best URL to use.
+ */
+function richie_resolve_best_image_url( $src_url, $srcset_value = '', &$attachment_cache = array() ) {
+    if ( '' === $src_url ) {
+        // No src — try srcset directly.
+        $from_srcset = richie_parse_srcset_best_url( $srcset_value );
+        return $from_srcset ? $from_srcset : '';
+    }
+
+    $site_host = wp_parse_url( get_site_url(), PHP_URL_HOST );
+    $src_host  = wp_parse_url( $src_url, PHP_URL_HOST );
+
+    // Only attempt attachment lookup for same-origin URLs.
+    if ( $src_host && $src_host !== $site_host ) {
+        // External URL — try srcset fallback, otherwise keep src.
+        $from_srcset = richie_parse_srcset_best_url( $srcset_value );
+        return $from_srcset ? $from_srcset : $src_url;
+    }
+
+    // Strip size suffix (e.g. -300x200 before the extension) for the lookup key.
+    $base_url  = preg_replace( '/(-\d+x\d+)(\.[a-z0-9]+)$/i', '$2', $src_url );
+    $cache_key = $base_url;
+
+    if ( ! array_key_exists( $cache_key, $attachment_cache ) ) {
+        $attachment_cache[ $cache_key ] = (int) richie_attachment_url_to_postid( $base_url );
+    }
+
+    $attachment_id = $attachment_cache[ $cache_key ];
+
+    if ( $attachment_id ) {
+        $full_url = wp_get_attachment_image_url( $attachment_id, 'full' );
+        if ( $full_url ) {
+            return richie_make_link_absolute( $full_url );
+        }
+    }
+
+    // No attachment found — try srcset.
+    $from_srcset = richie_parse_srcset_best_url( $srcset_value );
+    return $from_srcset ? $from_srcset : $src_url;
+}
+
+/**
  * Build template file names for HTML templates.
  *
  * @param string $slug Template slug.

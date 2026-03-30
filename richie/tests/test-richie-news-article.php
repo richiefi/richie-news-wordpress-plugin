@@ -333,4 +333,134 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         $this->assertObjectHasProperty( 'assets', $article );
         $this->assertObjectHasProperty( 'photos', $article );
     }
+
+    private function make_stub_with_template( $template ) {
+        $stub = $this->getMockBuilder( Richie_Article::class )
+            ->setConstructorArgs( array( $this->options, $this->assets ) )
+            ->onlyMethods( array( 'render_template', 'get_article_assets' ) )
+            ->getMock();
+        $stub->method( 'get_article_assets' )->willReturn( array() );
+        $stub->method( 'render_template' )->willReturn( $template );
+        return $stub;
+    }
+
+    public function test_srcset_best_candidate_replaces_small_src() {
+        $template = '<html><head></head><body>'
+            . '<img src="http://example.org/wp-content/uploads/photo-300x200.jpg"'
+            . ' srcset="http://example.org/wp-content/uploads/photo-300x200.jpg 300w,'
+            . ' http://example.org/wp-content/uploads/photo-1024x768.jpg 1024w">'
+            . '</body></html>';
+
+        $stub = $this->make_stub_with_template( $template );
+        $post = self::factory()->post->create_and_get();
+
+        $article = $stub->generate_article( $post );
+
+        // srcset must be stripped.
+        $this->assertStringNotContainsString( 'srcset', $article->content_html_document );
+        // Best candidate (1024w) should be used in src.
+        $this->assertStringContainsString( 'photo-1024x768.jpg', $article->content_html_document );
+        // Small variant should not be in src.
+        $this->assertStringNotContainsString( 'photo-300x200.jpg', $article->content_html_document );
+        // 1024w photo should appear in the photos array.
+        $photo_local_names = array_map( function ( $p ) { return $p->local_name; }, $article->photos[0] );
+        $this->assertContains( 'wp-content/uploads/photo-1024x768.jpg', $photo_local_names );
+    }
+
+    public function test_data_srcset_parsed_and_stripped() {
+        $template = '<html><head></head><body>'
+            . '<img src="" data-src="http://example.org/wp-content/uploads/lazy-300x200.jpg"'
+            . ' data-srcset="http://example.org/wp-content/uploads/lazy-300x200.jpg 300w,'
+            . ' http://example.org/wp-content/uploads/lazy-1024x768.jpg 1024w">'
+            . '</body></html>';
+
+        $stub = $this->make_stub_with_template( $template );
+        $post = self::factory()->post->create_and_get();
+
+        $article = $stub->generate_article( $post );
+
+        // data-srcset must be stripped.
+        $this->assertStringNotContainsString( 'data-srcset', $article->content_html_document );
+        // Best candidate (1024w) should be in src.
+        $this->assertStringContainsString( 'lazy-1024x768.jpg', $article->content_html_document );
+    }
+
+    public function test_data_lazy_srcset_stripped() {
+        $template = '<html><head></head><body>'
+            . '<img src="http://example.org/wp-content/uploads/img.jpg"'
+            . ' data-lazy-srcset="http://example.org/wp-content/uploads/img-300.jpg 300w,'
+            . ' http://example.org/wp-content/uploads/img-1024.jpg 1024w">'
+            . '</body></html>';
+
+        $stub = $this->make_stub_with_template( $template );
+        $post = self::factory()->post->create_and_get();
+
+        $article = $stub->generate_article( $post );
+
+        $this->assertStringNotContainsString( 'data-lazy-srcset', $article->content_html_document );
+    }
+
+    public function test_modula_data_full_preserved_and_rewritten() {
+        $template = '<html><head></head><body>'
+            . '<img class="pic"'
+            . ' src="http://example.org/wp-content/uploads/photo-300x200.jpg"'
+            . ' data-full="http://example.org/wp-content/uploads/photo.jpg"'
+            . ' data-valign="middle">'
+            . '</body></html>';
+
+        $stub = $this->make_stub_with_template( $template );
+        $post = self::factory()->post->create_and_get();
+
+        $article = $stub->generate_article( $post );
+
+        // data-full must be preserved (not stripped).
+        $this->assertStringContainsString( 'data-full=', $article->content_html_document );
+        // data-valign must be preserved unchanged.
+        $this->assertStringContainsString( 'data-valign="middle"', $article->content_html_document );
+        // data-full should be rewritten to local name.
+        $this->assertStringContainsString( 'data-full="wp-content/uploads/photo.jpg"', $article->content_html_document );
+        // The full-size URL from data-full should appear in photos.
+        $all_local_names = array();
+        foreach ( $article->photos as $group ) {
+            foreach ( $group as $photo ) {
+                $all_local_names[] = $photo->local_name;
+            }
+        }
+        $this->assertContains( 'wp-content/uploads/photo.jpg', $all_local_names );
+    }
+
+    public function test_attachment_lookup_resolves_full_size() {
+        // Create a WP attachment (simulates a media library image).
+        $post          = self::factory()->post->create_and_get();
+        $attachment_id = self::factory()->attachment->create_object(
+            'full-image.jpg',
+            $post->ID,
+            array(
+                'post_mime_type' => 'image/jpeg',
+                'post_type'      => 'attachment',
+            )
+        );
+
+        $full_url  = wp_get_attachment_url( $attachment_id );
+        // Simulate a thumbnail-sized variant URL by renaming.
+        $thumb_url = str_replace( 'full-image.jpg', 'full-image-150x150.jpg', $full_url );
+
+        $template = '<html><head></head><body>'
+            . '<img src="' . esc_attr( $thumb_url ) . '">'
+            . '</body></html>';
+
+        $stub = $this->make_stub_with_template( $template );
+
+        $article = $stub->generate_article( $post );
+
+        // The full-size URL should appear in photos (attachment lookup should find it).
+        $all_local_names = array();
+        foreach ( $article->photos as $group ) {
+            foreach ( $group as $photo ) {
+                $all_local_names[] = $photo->local_name;
+            }
+        }
+        // full-image.jpg is the canonical; the thumbnail variant should have been resolved to it.
+        $this->assertContains( 'wp-content/uploads/full-image.jpg', $all_local_names );
+    }
 }

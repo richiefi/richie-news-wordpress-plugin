@@ -71,4 +71,39 @@ class FunctionTest extends WP_UnitTestCase {
             $this->assertEquals( $case[1], richie_make_local_name( $case[0] ) );
         }
     }
+
+    // --- richie_parse_srcset_best_url() tests ---
+
+    public function test_parse_srcset_picks_highest_width() {
+        $srcset = 'photo-300x200.jpg 300w, photo-800x533.jpg 800w, photo-1600x1067.jpg 1600w';
+        $result = richie_parse_srcset_best_url( $srcset );
+        $this->assertEquals( 'photo-1600x1067.jpg', $result );
+    }
+
+    public function test_parse_srcset_picks_highest_density() {
+        $srcset = 'photo.jpg 1x, photo@2x.jpg 2x, photo@3x.jpg 3x';
+        $result = richie_parse_srcset_best_url( $srcset );
+        $this->assertEquals( 'photo@3x.jpg', $result );
+    }
+
+    public function test_parse_srcset_no_descriptor_returns_last() {
+        $srcset = 'photo-small.jpg, photo-large.jpg';
+        $result = richie_parse_srcset_best_url( $srcset );
+        $this->assertEquals( 'photo-large.jpg', $result );
+    }
+
+    public function test_parse_srcset_single_entry_no_descriptor() {
+        $result = richie_parse_srcset_best_url( 'photo.jpg' );
+        $this->assertEquals( 'photo.jpg', $result );
+    }
+
+    public function test_parse_srcset_empty_returns_false() {
+        $this->assertFalse( richie_parse_srcset_best_url( '' ) );
+        $this->assertFalse( richie_parse_srcset_best_url( '   ' ) );
+    }
+
+    public function test_parse_srcset_single_width_entry() {
+        $result = richie_parse_srcset_best_url( 'photo-1024x768.jpg 1024w' );
+        $this->assertEquals( 'photo-1024x768.jpg', $result );
+    }
 }
