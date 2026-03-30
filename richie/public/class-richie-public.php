@@ -677,8 +677,26 @@ class Richie_Public {
             $general_assets = array_merge( $general_assets, $block_assets );
         }
 
-        // Reset "done" state so subsequent wp_head()/wp_footer() calls
-        // (e.g. in render_template) can still output these assets.
+        // Reset ->done so subsequent wp_head()/wp_footer() calls (in render_template) can
+        // re-output asset tags for the article. Also clear accumulated inline script data
+        // (wp_add_inline_script data lives in ->registered[handle]->extra['before'/'after'/'data']
+        // and is never consumed — it accumulates on every wp_head() call that triggers
+        // wp_add_inline_script hooks, even for handles that are never queued/done). Clearing all
+        // registered handles' extra data prevents duplication on cache-miss requests where
+        // get_assets() and render_template() both call wp_head() in the same PHP process.
+        foreach ( $wp_scripts->registered as $handle => $script ) {
+            unset(
+                $wp_scripts->registered[ $handle ]->extra['before'],
+                $wp_scripts->registered[ $handle ]->extra['after'],
+                $wp_scripts->registered[ $handle ]->extra['data']
+            );
+        }
+        foreach ( $wp_styles->registered as $handle => $style ) {
+            unset(
+                $wp_styles->registered[ $handle ]->extra['before'],
+                $wp_styles->registered[ $handle ]->extra['after']
+            );
+        }
         $wp_scripts->done = array();
         $wp_styles->done  = array();
 
