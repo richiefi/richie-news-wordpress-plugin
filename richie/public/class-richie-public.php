@@ -633,6 +633,13 @@ class Richie_Public {
         require_once plugin_dir_path( __DIR__ ) . 'includes/class-richie-app-asset.php';
 
         $transient_key = RICHIE_ASSET_CACHE_KEY;
+
+        // Allow cache flush via ?flush_cache=1 (useful during development).
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        if ( ! empty( $_GET['flush_cache'] ) ) {
+            delete_transient( $transient_key );
+        }
+
         $cached_assets = get_transient( $transient_key );
 
         if ( ! empty( $cached_assets ) ) {
