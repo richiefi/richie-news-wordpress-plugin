@@ -25,7 +25,7 @@
 function richie_key_value_sort( $array ) {
     usort(
         $array,
-        function( $a, $b ) {
+        function ( $a, $b ) {
             if ( $a['key'] === $b['key'] ) {
                 return strcmp( $a['value'], $b['value'] );
             }
@@ -49,7 +49,7 @@ function richie_key_value_sort( $array ) {
  */
 function richie_build_query( $params ) {
     $sorted = richie_key_value_sort( $params );
-    $mapper = function( $param ) {
+    $mapper = function ( $param ) {
         return $param['key'] . '=' . $param['value'];
     };
     $pairs  = array_map( $mapper, $sorted );
@@ -74,7 +74,7 @@ function richie_attachment_url_to_postid( $url ) {
     $site_url   = wp_parse_url( $dir['url'] );
     $image_path = wp_parse_url( $path );
 
-    //force the protocols to match if needed
+    // force the protocols to match if needed
     if ( isset( $image_path['scheme'] ) && ( $image_path['scheme'] !== $site_url['scheme'] ) ) {
         $path = str_replace( $image_path['scheme'], $site_url['scheme'], $path );
     }
@@ -120,7 +120,7 @@ function richie_make_link_absolute( $url ) {
 
 function richie_make_local_name( $url ) {
     // If scheme not included, prepend it
-    if (!preg_match('#^http(s)?://#', $url)) {
+    if ( ! preg_match( '#^http(s)?://#', $url ) ) {
         $url = set_url_scheme( $url );
     }
 
@@ -130,7 +130,7 @@ function richie_make_local_name( $url ) {
     // remove local host
     $url = str_replace( get_site_url(), '', $url );
 
-    $url_parts = wp_parse_url($url);
+    $url_parts = wp_parse_url( $url );
 
     // get domain
     $domain = isset( $url_parts['host'] ) ? $url_parts['host'] : '';
@@ -162,7 +162,7 @@ function richie_get_image_id( $image_url ) {
 }
 
 /**
- * Detect if url points to an image based on extension
+ * Detect if url points to an image based on MIME type or extension.
  *
  * @param string $image_url Url to the image.
  * @return boolean
@@ -171,46 +171,393 @@ function richie_is_image_url( $image_url ) {
     if ( ! isset( $image_url ) ) {
         return false;
     }
-    $allowed_extensions = array( 'png', 'jpg', 'gif' );
+
     $path = wp_parse_url( $image_url, PHP_URL_PATH );
+
     if ( $path ) {
         $filetype = wp_check_filetype( $path );
-        $extension = $filetype['ext'];
-        if ( in_array( $extension, $allowed_extensions ) ) {
+
+        // MIME type check is most reliable (covers webp, avif, svg etc).
+        if ( ! empty( $filetype['type'] ) && 0 === strpos( $filetype['type'], 'image/' ) ) {
+            return true;
+        }
+
+        // Fallback: explicit list for formats WordPress may not map via MIME.
+        if ( in_array( $filetype['ext'], array( 'png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'svg' ), true ) ) {
             return true;
         }
     }
+
     return false;
 }
 
 /**
- * Get assets from global $wp_scripts and $wp_styles
+ * Convert a local filesystem path under ABSPATH to a site URL.
  *
- * @return array
+ * @param string $local_path Absolute filesystem path.
+ * @return string|false URL on success, false when path is outside ABSPATH.
+ */
+function richie_local_path_to_url( $local_path ) {
+    $normalized      = wp_normalize_path( $local_path );
+    $normalized_base = trailingslashit( wp_normalize_path( ABSPATH ) );
+
+    if ( 0 !== strpos( $normalized, $normalized_base ) ) {
+        return false;
+    }
+
+    $relative = ltrim( substr( $normalized, strlen( $normalized_base ) ), '/' );
+
+    if ( '' === $relative ) {
+        return false;
+    }
+
+    return get_site_url( null, '/' . $relative );
+}
+
+/**
+ * Return the best available URL for a registered WP dependency.
+ *
+ * Gutenberg block styles sometimes register with src=false and store the
+ * local filesystem path in extra['path'] instead of a URL.
+ *
+ * @param _WP_Dependency $dependency Registered script or style.
+ * @return string|false URL string, or false when not determinable.
+ */
+function richie_get_registered_asset_url( $dependency ) {
+    if ( ! empty( $dependency->src ) ) {
+        return $dependency->src;
+    }
+
+    if ( ! empty( $dependency->extra['path'] ) ) {
+        return richie_local_path_to_url( $dependency->extra['path'] );
+    }
+
+    return false;
+}
+
+/**
+ * Collect Richie_App_Asset objects for the given script and style handles.
+ *
+ * Only handles that are registered and whose URL ends in .js/.css (and is not
+ * a wp-admin asset) are included.
+ *
+ * @param string[] $script_handles Script handles to collect.
+ * @param string[] $style_handles  Style handles to collect.
+ * @param string   $local_prefix   Prefix for local_name (e.g. 'app-assets/').
+ * @return Richie_App_Asset[]
+ */
+function richie_collect_registered_assets( $script_handles, $style_handles, $local_prefix ) {
+    require_once plugin_dir_path( __DIR__ ) . 'includes/class-richie-app-asset.php';
+
+    global $wp_scripts, $wp_styles;
+
+    $assets = array();
+
+    foreach ( $script_handles as $handle ) {
+        if ( ! isset( $wp_scripts->registered[ $handle ] ) ) {
+            continue;
+        }
+        $script     = $wp_scripts->registered[ $handle ];
+        $remote_url = richie_get_registered_asset_url( $script );
+
+        if ( is_string( $remote_url ) && '.js' === substr( $remote_url, -3 ) && false === strpos( $remote_url, 'wp-admin' ) ) {
+            $assets[] = new Richie_App_Asset( $script, $local_prefix );
+        }
+    }
+
+    foreach ( $style_handles as $handle ) {
+        if ( ! isset( $wp_styles->registered[ $handle ] ) ) {
+            continue;
+        }
+        $style      = $wp_styles->registered[ $handle ];
+        $remote_url = richie_get_registered_asset_url( $style );
+
+        if ( ! is_string( $remote_url ) || false !== strpos( $remote_url, 'wp-admin' ) ) {
+            continue;
+        }
+
+        if ( '.css' === substr( $remote_url, -4 ) || false !== strpos( $remote_url, '.css?' ) ) {
+            // For path-backed styles ($style->src is false/empty), Richie_App_Asset constructor
+            // reads $dependency->src directly and would produce a bogus asset. Override src
+            // with the resolved URL before constructing the asset, then restore it.
+            $original_src = $style->src;
+            if ( empty( $style->src ) ) {
+                $style->src = $remote_url;
+            }
+            $asset      = new Richie_App_Asset( $style, $local_prefix );
+            $style->src = $original_src;
+            // Skip degenerate assets where the URL had no path component.
+            if ( $asset->local_name !== $local_prefix && '' !== $asset->local_name ) {
+                $assets[] = $asset;
+            }
+        }
+    }
+
+    return $assets;
+}
+
+/**
+ * Get assets from script and style handles already emitted during the current request.
+ *
+ * Uses ->done (handles already output) instead of do_items() which has side
+ * effects and misses previously emitted handles.
+ *
+ * @param string $local_prefix Prefix for local_name (e.g. 'app-assets/').
+ * @return Richie_App_Asset[]
+ */
+function richie_get_emitted_assets( $local_prefix = 'app-assets/' ) {
+    global $wp_scripts, $wp_styles;
+
+    $script_handles = isset( $wp_scripts->done ) ? $wp_scripts->done : array();
+    $style_handles  = isset( $wp_styles->done ) ? $wp_styles->done : array();
+
+    return richie_collect_registered_assets( $script_handles, $style_handles, $local_prefix );
+}
+
+/**
+ * Get assets from global $wp_scripts and $wp_styles (article-level assets).
+ *
+ * @return Richie_App_Asset[]
  */
 function richie_get_article_assets() {
-    require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-app-asset.php';
+    return richie_get_emitted_assets( '' );
+}
 
-    // Get all scripts.
-    global $wp_scripts, $wp_styles;
-    $article_assets = array();
-    foreach ( $wp_scripts->do_items() as $script_name ) {
-        $script = $wp_scripts->registered[ $script_name ];
-        $remote_url = $script->src;
-        if ( ( substr( $remote_url, -3 ) === '.js' ) && ! strpos( $remote_url, 'wp-admin' ) ) {
-            $article_assets[] = new Richie_App_Asset( $script, '' );
-        }
-    }
-    // Print all loaded Styles (CSS).
-    foreach ( $wp_styles->do_items() as $style_name ) {
-        $style = $wp_styles->registered[ $style_name ];
-        $remote_url = $style->src;
-        if ( ( substr( $remote_url, -4 ) === '.css' ) && ! strpos( $remote_url, 'wp-admin' ) ) {
-            $article_assets[] = new Richie_App_Asset( $style, '' );
-        }
+/**
+ * Check whether a URL is same-origin (matches the current site host, or is root-relative).
+ *
+ * @param string $url URL to check.
+ * @return bool
+ */
+function richie_is_same_origin_url( $url ) {
+    if ( ! is_string( $url ) || '' === $url ) {
+        return false;
     }
 
-    return $article_assets;
+    $parsed = wp_parse_url( $url );
+
+    if ( false === $parsed ) {
+        return false;
+    }
+
+    // Root-relative or relative URL — same origin by definition.
+    if ( empty( $parsed['host'] ) ) {
+        return true;
+    }
+
+    return wp_parse_url( get_site_url(), PHP_URL_HOST ) === $parsed['host'];
+}
+
+/**
+ * Resolve a URL that may be relative to the given base URL into an absolute URL.
+ *
+ * @param string $base_url     Absolute URL of the document containing the reference.
+ * @param string $relative_url URL (may be relative, root-relative, absolute, etc.).
+ * @return string Absolute URL, or empty string for unsupported schemes.
+ */
+function richie_resolve_url( $base_url, $relative_url ) {
+    $relative_url = trim( $relative_url );
+
+    if ( '' === $relative_url ) {
+        return '';
+    }
+
+    // Non-http schemes that are not useful to include as assets.
+    if ( preg_match( '#^(?:data:|javascript:|mailto:|tel:|about:)#i', $relative_url ) ) {
+        return '';
+    }
+
+    // Already absolute.
+    if ( preg_match( '#^https?://#i', $relative_url ) ) {
+        return $relative_url;
+    }
+
+    // Protocol-relative.
+    if ( 0 === strpos( $relative_url, '//' ) ) {
+        return set_url_scheme( $relative_url );
+    }
+
+    // Root-relative.
+    if ( 0 === strpos( $relative_url, '/' ) ) {
+        return get_site_url( null, $relative_url );
+    }
+
+    // True relative: resolve against the directory of the base URL.
+    $base_parts = wp_parse_url( $base_url );
+
+    if ( false === $base_parts || empty( $base_parts['host'] ) ) {
+        // Can't resolve without a proper base; fall back to site root.
+        return get_site_url( null, '/' . $relative_url );
+    }
+
+    $base_path = isset( $base_parts['path'] ) ? $base_parts['path'] : '/';
+    $base_dir  = trailingslashit( dirname( $base_path ) );
+    $path      = richie_normalize_path( $base_dir . $relative_url );
+
+    $scheme = isset( $base_parts['scheme'] ) ? $base_parts['scheme'] : 'https';
+    $host   = $base_parts['host'];
+    $port   = isset( $base_parts['port'] ) ? ':' . $base_parts['port'] : '';
+
+    return $scheme . '://' . $host . $port . '/' . ltrim( $path, '/' );
+}
+
+/**
+ * Convert a same-origin URL to a local filesystem path.
+ *
+ * @param string $url URL to resolve.
+ * @return string|false Absolute filesystem path when it exists, false otherwise.
+ */
+function richie_url_to_local_path( $url ) {
+    if ( ! richie_is_same_origin_url( $url ) ) {
+        return false;
+    }
+
+    $path = wp_parse_url( $url, PHP_URL_PATH );
+
+    if ( ! is_string( $path ) || '' === $path ) {
+        return false;
+    }
+
+    $local_path = ABSPATH . ltrim( $path, '/' );
+
+    return file_exists( $local_path ) ? $local_path : false;
+}
+
+/**
+ * Parse a CSS document and return all URLs it references.
+ *
+ * Covers @import rules and url() tokens (background images, fonts, etc.).
+ * All URLs are resolved to absolute form using $base_url.
+ *
+ * @param string $css      CSS content.
+ * @param string $base_url Absolute URL of the CSS file, for resolving relative references.
+ * @return string[] Unique list of absolute URLs.
+ */
+function richie_parse_css_urls( $css, $base_url ) {
+    $urls = array();
+
+    if ( '' === trim( $css ) ) {
+        return $urls;
+    }
+
+    // @import "path" or @import url("path") or @import url(path).
+    if ( preg_match_all( '/@import\s+(?:url\(\s*)?[\'"]?([^\'"\)\s;]+)[\'"]?\s*\)?/i', $css, $matches ) ) {
+        foreach ( $matches[1] as $raw ) {
+            $resolved = richie_resolve_url( $base_url, $raw );
+            if ( '' !== $resolved ) {
+                $urls[] = $resolved;
+            }
+        }
+    }
+
+    // url("path"), url('path'), url(path) — catches @font-face src, background-image, etc.
+    if ( preg_match_all( '/url\(\s*[\'"]?([^\'"\)\s]+)[\'"]?\s*\)/i', $css, $matches ) ) {
+        foreach ( $matches[1] as $raw ) {
+            $resolved = richie_resolve_url( $base_url, $raw );
+            if ( '' !== $resolved ) {
+                $urls[] = $resolved;
+            }
+        }
+    }
+
+    return array_values( array_unique( $urls ) );
+}
+
+/**
+ * Build a relative link (path + query) from an absolute or protocol-relative URL.
+ *
+ * Unlike wp_make_link_relative() this preserves the query string, which is
+ * needed to match versioned asset URLs like style.css?ver=1.2 in HTML content.
+ *
+ * @param string $url Absolute or protocol-relative URL.
+ * @return string Relative URL (path + optional query string).
+ */
+function richie_make_link_relative_with_query( $url ) {
+    $path = wp_parse_url( $url, PHP_URL_PATH );
+
+    if ( ! is_string( $path ) || '' === $path ) {
+        return wp_make_link_relative( $url );
+    }
+
+    $query = wp_parse_url( $url, PHP_URL_QUERY );
+
+    return $path . ( is_string( $query ) && '' !== $query ? '?' . $query : '' );
+}
+
+/**
+ * Discover CSS sub-resource dependencies for the given list of app assets.
+ *
+ * Reads each .css asset from the local filesystem and parses it for @import
+ * rules and url() references (fonts, background images, etc.). Processes
+ * nested imports recursively (BFS) up to same-origin files that exist on disk.
+ *
+ * The Richie app does not crawl CSS/JS for sub-resources, so all dependencies
+ * must be explicitly listed in the asset feed.
+ *
+ * @param Richie_App_Asset[] $assets       Already-collected asset list.
+ * @param string             $local_prefix Local-name prefix (e.g. 'app-assets/').
+ * @return Richie_App_Asset[] New dependency assets (does not include original $assets).
+ */
+function richie_discover_css_dependencies( $assets, $local_prefix ) {
+    require_once plugin_dir_path( __DIR__ ) . 'includes/class-richie-app-asset.php';
+
+    $queue = array(); // CSS URLs to process.
+    $seen  = array(); // Prevent infinite loops.
+    $found = array(); // local_name => Richie_App_Asset.
+
+    // Seed the queue with CSS assets.
+    foreach ( $assets as $asset ) {
+        if ( isset( $asset->remote_url ) && false !== strpos( $asset->remote_url, '.css' ) ) {
+            $queue[] = $asset->remote_url;
+        }
+    }
+
+    while ( ! empty( $queue ) ) {
+        $css_url = array_shift( $queue );
+        // Normalise key: strip version query arg so the same file isn't processed twice.
+        $cache_key = remove_query_arg( 'ver', $css_url );
+
+        if ( isset( $seen[ $cache_key ] ) ) {
+            continue;
+        }
+
+        $seen[ $cache_key ] = true;
+        $local_path         = richie_url_to_local_path( $css_url );
+
+        if ( false === $local_path || ! is_readable( $local_path ) ) {
+            continue;
+        }
+
+        $css = file_get_contents( $local_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+
+        if ( false === $css ) {
+            continue;
+        }
+
+        foreach ( richie_parse_css_urls( $css, $css_url ) as $dep_url ) {
+            if ( ! richie_is_same_origin_url( $dep_url ) ) {
+                continue;
+            }
+
+            // Only include files that actually exist on disk.
+            if ( false === richie_url_to_local_path( $dep_url ) ) {
+                continue;
+            }
+
+            $dep                             = new stdClass();
+            $dep->src                        = $dep_url;
+            $dep->ver                        = null;
+            $dep_asset                       = new Richie_App_Asset( $dep, $local_prefix );
+            $found[ $dep_asset->local_name ] = $dep_asset;
+
+            // Queue CSS files for recursive processing.
+            if ( false !== strpos( $dep_url, '.css' ) ) {
+                $queue[] = $dep_url;
+            }
+        }
+    }
+
+    return array_values( $found );
 }
 
 
@@ -219,12 +566,12 @@ function richie_get_article_assets() {
  */
 function richie_normalize_path( $path ) {
     $normalized_path = wp_normalize_path( $path );
-    $path_segments = explode ('/', $normalized_path );
-    $stack = array();
+    $path_segments   = explode( '/', $normalized_path );
+    $stack           = array();
     foreach ( $path_segments as $seg ) {
         if ( $seg === '..' ) {
             // Ignore this and remove last one
-            array_pop($stack);
+            array_pop( $stack );
             continue;
         }
 
@@ -236,13 +583,17 @@ function richie_normalize_path( $path ) {
         $stack[] = $seg;
     }
 
-    return implode('/', $stack);
+    return implode( '/', $stack );
 }
 
 function richie_encode_url_path( $url ) {
-    $encoded = preg_replace_callback('#://([^/]+)/([^?]+)#', function ($match) {
-        return '://' . $match[1] . '/' . join('/', array_map('rawurlencode', explode('/', $match[2])));
-    }, $url);
+    $encoded = preg_replace_callback(
+        '#://([^/]+)/([^?]+)#',
+        function ( $match ) {
+            return '://' . $match[1] . '/' . join( '/', array_map( 'rawurlencode', explode( '/', $match[2] ) ) );
+        },
+        $url
+    );
 
     return $encoded;
 }
@@ -251,7 +602,7 @@ function richie_force_url_scheme( $url ) {
     // this should handle also protocol relative urls
     $parsed_url = wp_parse_url( $url );
 
-    if ( $parsed_url !== false) {
+    if ( $parsed_url !== false ) {
         if ( empty( $parsed_url['scheme'] ) ) {
             if ( isset( $parsed_url['host'] ) ) {
                 // absolute url without protocol, set it based on site protocol
@@ -352,10 +703,10 @@ function richie_get_template_names( $slug, $name = null, $extension = '.html' ) 
  * @return string|null
  */
 function richie_locate_html_template( $slug, $name = null ) {
-    $templates  = richie_get_template_names( $slug, $name, '.html' );
-    $paths      = richie_get_theme_template_dirs();
-    $paths[]    = trailingslashit( Richie_PLUGIN_DIR ) . 'templates/';
-    $paths      = apply_filters( 'richie_html_template_paths', $paths, $slug, $name );
+    $templates = richie_get_template_names( $slug, $name, '.html' );
+    $paths     = richie_get_theme_template_dirs();
+    $paths[]   = trailingslashit( Richie_PLUGIN_DIR ) . 'templates/';
+    $paths     = apply_filters( 'richie_html_template_paths', $paths, $slug, $name );
 
     return richie_locate_template_file( $templates, $paths );
 }
@@ -475,38 +826,58 @@ function richie_resolve_template( $slug, $name, $options = null ) {
     if ( 'block' === $name && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
         $block_slug = richie_get_block_template_slug();
         if ( richie_get_block_template_by_slug( $block_slug ) ) {
-            return array( 'type' => 'block_slug', 'slug' => $block_slug );
+            return array(
+				'type' => 'block_slug',
+				'slug' => $block_slug,
+            );
         }
     }
 
     // 1. Theme HTML template override.
     $theme_html = richie_locate_theme_html_template( $slug, $name );
     if ( $theme_html ) {
-        return array( 'type' => 'block_path', 'path' => $theme_html );
+        return array(
+			'type' => 'block_path',
+			'path' => $theme_html,
+        );
     }
 
     // 2. Theme PHP template override.
     $theme_php = richie_locate_theme_php_template( $slug, $name );
     if ( $theme_php ) {
-        return array( 'type' => 'php', 'slug' => $slug, 'name' => $name );
+        return array(
+			'type' => 'php',
+			'slug' => $slug,
+			'name' => $name,
+        );
     }
 
     // 3. Site Editor block template (block themes only).
     if ( richie_use_block_template( $options ) && function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
         $block_slug = richie_get_block_template_slug();
         if ( richie_get_block_template_by_slug( $block_slug ) ) {
-            return array( 'type' => 'block_slug', 'slug' => $block_slug );
+            return array(
+				'type' => 'block_slug',
+				'slug' => $block_slug,
+            );
         }
     }
 
     // 4. Plugin HTML template fallback.
     $plugin_html = richie_locate_html_template( $slug, $name );
     if ( $plugin_html ) {
-        return array( 'type' => 'block_path', 'path' => $plugin_html );
+        return array(
+			'type' => 'block_path',
+			'path' => $plugin_html,
+        );
     }
 
     // 5. Legacy PHP template fallback.
-    return array( 'type' => 'php', 'slug' => $slug, 'name' => $name );
+    return array(
+		'type' => 'php',
+		'slug' => $slug,
+		'name' => $name,
+    );
 }
 
 /**
@@ -548,7 +919,7 @@ function richie_get_block_template_by_slug( $slug ) {
 
     usort(
         $templates,
-        function( $a, $b ) use ( $priority ) {
+        function ( $a, $b ) use ( $priority ) {
             $a_priority = isset( $priority[ $a->source ] ) ? $priority[ $a->source ] : 99;
             $b_priority = isset( $priority[ $b->source ] ) ? $priority[ $b->source ] : 99;
             return $a_priority <=> $b_priority;
