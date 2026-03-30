@@ -163,6 +163,21 @@ def main() -> int:
         else:
             failures += 1
 
+    article_assets = article_data.get("assets", [])
+    if isinstance(article_assets, list):
+        for asset in article_assets:
+            if not isinstance(asset, dict):
+                continue
+            local_name = asset.get("local_name")
+            remote_url = asset.get("remote_url")
+            if not local_name or not remote_url:
+                continue
+            dest_path = safe_output_path(output_dir, local_name)
+            if download_file(remote_url, dest_path):
+                downloads += 1
+            else:
+                failures += 1
+
     app_assets = assets_data.get("app_assets", [])
     if isinstance(app_assets, list):
         for asset in app_assets:

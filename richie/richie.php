@@ -43,6 +43,9 @@ define( 'Richie_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
  */
 
 defined( 'RICHIE_ASSET_CACHE_KEY' ) or define( 'RICHIE_ASSET_CACHE_KEY', 'richie_assets_cache' );
+// Operators can set this to true in wp-config.php to include all registered
+// block styles in the global asset feed (not just those emitted per-article).
+defined( 'RICHIE_INCLUDE_ALL_BLOCK_STYLES' ) or define( 'RICHIE_INCLUDE_ALL_BLOCK_STYLES', false );
 
 
 /**
