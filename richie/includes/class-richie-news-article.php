@@ -379,7 +379,8 @@ class Richie_Article {
             }
 
             $tag_name     = strtolower( $element->tagName );
-            $is_img       = 'img' === $tag_name || 'source' === $tag_name;
+            $is_img       = 'img' === $tag_name;
+            $is_source    = 'source' === $tag_name;
             $fallback_src = ''; // Used to fill empty src from lazyload data-* attrs.
             $srcset_value = ''; // Collected from srcset / data-*srcset for best-candidate resolution.
 
@@ -419,11 +420,12 @@ class Richie_Article {
                     continue;
                 }
 
-                // For <img>/<source>: trust src unconditionally, and trust data-* when it looks like a URL.
+                // For <img>: trust src unconditionally, and trust data-* when it looks like a URL.
+                // For <source>: srcset was already handled above; skip remaining attrs here.
                 // For other elements: only include clearly image URLs.
                 $is_img_src       = $is_img && 'src' === $attr_name;
                 $is_img_data_url  = $is_img && 0 === strpos( $attr_name, 'data-' ) && $this->looks_like_url( $attr_value );
-                $is_known_img_url = richie_is_image_url( $attr_value );
+                $is_known_img_url = ! $is_source && richie_is_image_url( $attr_value );
 
                 if ( ! $is_img_src && ! $is_img_data_url && ! $is_known_img_url ) {
                     continue;
@@ -440,7 +442,19 @@ class Richie_Article {
                 }
             }
 
-            // For <img>/<source>: fill empty src from the first lazyload data-* URL.
+            // For <source> inside <picture>: srcset was stripped; write back the best
+            // candidate as a single-entry srcset so the source isn't left empty.
+            if ( $is_source && '' !== $srcset_value ) {
+                $best_url = richie_parse_srcset_best_url( $srcset_value );
+                if ( $best_url ) {
+                    $abs_best   = richie_make_link_absolute( $best_url );
+                    $local_best = isset( $url_map[ $abs_best ] ) ? $url_map[ $abs_best ] : $abs_best;
+                    $element->setAttribute( 'srcset', $local_best );
+                    $image_urls[] = $abs_best;
+                }
+            }
+
+            // For <img>: fill empty src from the first lazyload data-* URL.
             if ( $is_img ) {
                 $current_src = trim( $element->getAttribute( 'src' ) );
                 if ( '' === $current_src && '' !== $fallback_src ) {
