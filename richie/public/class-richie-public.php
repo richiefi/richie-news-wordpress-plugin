@@ -649,6 +649,18 @@ class Richie_Public {
 
         global $wp_scripts, $wp_styles;
 
+        // Snapshot wp_localize_script() data (extra['data']) for all currently queued handles
+        // before wp_head() emits them. After wp_head(), we clear all extra data to prevent
+        // inline script duplication when render_template() calls wp_head() a second time.
+        // Localized data is set once (not via hooks) and won't re-attach, so we restore it
+        // for handles that were queued at this point.
+        $localized_data_snapshot = array();
+        foreach ( $wp_scripts->queue as $handle ) {
+            if ( isset( $wp_scripts->registered[ $handle ]->extra['data'] ) ) {
+                $localized_data_snapshot[ $handle ] = $wp_scripts->registered[ $handle ]->extra['data'];
+            }
+        }
+
         ob_start();
         // These will populate $wp_scripts->done and $wp_styles->done.
         wp_head();
@@ -684,6 +696,7 @@ class Richie_Public {
         // wp_add_inline_script hooks, even for handles that are never queued/done). Clearing all
         // registered handles' extra data prevents duplication on cache-miss requests where
         // get_assets() and render_template() both call wp_head() in the same PHP process.
+        //
         foreach ( $wp_scripts->registered as $handle => $script ) {
             unset(
                 $wp_scripts->registered[ $handle ]->extra['before'],
@@ -697,6 +710,13 @@ class Richie_Public {
                 $wp_styles->registered[ $handle ]->extra['after']
             );
         }
+
+        foreach ( $localized_data_snapshot as $handle => $data ) {
+            if ( isset( $wp_scripts->registered[ $handle ] ) ) {
+                $wp_scripts->registered[ $handle ]->extra['data'] = $data;
+            }
+        }
+
         $wp_scripts->done = array();
         $wp_styles->done  = array();
 
