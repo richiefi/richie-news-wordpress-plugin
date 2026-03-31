@@ -13,13 +13,6 @@ x-phpunit-common: &phpunit-common
     - "testsuite:/tmp"
 
 services:
-  wordpress_phpunit_7_4:
-    <<: *phpunit-common
-    build:
-      context: './docker/phpunit'
-      args:
-        PHP_VERSION: "7.4"
-
   wordpress_phpunit_8_0:
     <<: *phpunit-common
     build:

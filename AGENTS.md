@@ -33,7 +33,7 @@ plugin/
 ## Coding Standards
 
 - Follow [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/)
-- PHP 7.4+ compatibility required
+- PHP 8.0+ compatibility required
 - WordPress 6.0+ minimum
 - Run `composer phpcs` to check standards
 

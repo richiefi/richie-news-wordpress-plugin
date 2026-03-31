@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSIONS=("7_4" "8_0" "8_4")
+VERSIONS=("8_0" "8_4")
 
 for VERSION in "${VERSIONS[@]}"; do
     echo "=== Testing with PHP $VERSION ==="

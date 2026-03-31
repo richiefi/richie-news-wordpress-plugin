@@ -2,6 +2,7 @@
     "version": "2.1.0",
     "license": "GPL-2.0-or-later",
     "require": {
+        "php": ">=8.0",
         "ivopetkov/html5-dom-document-php": "2.*"
     }
 }
