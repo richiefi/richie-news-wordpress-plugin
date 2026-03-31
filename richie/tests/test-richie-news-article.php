@@ -463,4 +463,66 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         // full-image.jpg is the canonical; the thumbnail variant should have been resolved to it.
         $this->assertContains( 'wp-content/uploads/full-image.jpg', $all_local_names );
     }
+
+    public function test_inline_style_font_urls_discovered_as_assets() {
+        // Create a temp font file on disk so richie_url_to_local_path() finds it.
+        $font_dir  = ABSPATH . 'wp-content/themes/richie-test-inline/fonts/';
+        $font_file = $font_dir . 'test-font.woff2';
+        wp_mkdir_p( $font_dir );
+        file_put_contents( $font_file, 'fake-woff2' );
+
+        $template = '<html><head>'
+            . '<style>@font-face { font-family: TestFont; src: url(\'/wp-content/themes/richie-test-inline/fonts/test-font.woff2\') format(\'woff2\'); }</style>'
+            . '</head><body>Content</body></html>';
+
+        $stub    = $this->make_stub_with_template( $template );
+        $post    = self::factory()->post->create_and_get();
+        $article = $stub->generate_article( $post );
+
+        $asset_local_names = array_map( function ( $a ) { return $a->local_name; }, $article->assets );
+        $this->assertContains( 'wp-content/themes/richie-test-inline/fonts/test-font.woff2', $asset_local_names, 'Font from inline @font-face should be in article assets' );
+
+        // The <style> content should be rewritten to use the local name.
+        $this->assertStringContainsString( 'wp-content/themes/richie-test-inline/fonts/test-font.woff2', $article->content_html_document );
+        $this->assertStringNotContainsString( '/wp-content/themes/richie-test-inline/fonts/test-font.woff2', $article->content_html_document );
+
+        // Clean up.
+        unlink( $font_file );
+        rmdir( $font_dir );
+        rmdir( ABSPATH . 'wp-content/themes/richie-test-inline/' );
+    }
+
+    public function test_inline_style_background_url_discovered_as_asset() {
+        $uploads_dir = ABSPATH . 'wp-content/uploads/';
+        $bg_file     = $uploads_dir . 'richie-test-inline-bg.jpg';
+        file_put_contents( $bg_file, 'fake-jpg' );
+
+        $template = '<html><head></head><body>'
+            . '<style>.hero { background-image: url(\'/wp-content/uploads/richie-test-inline-bg.jpg\'); }</style>'
+            . '<div class="hero">Hi</div>'
+            . '</body></html>';
+
+        $stub    = $this->make_stub_with_template( $template );
+        $post    = self::factory()->post->create_and_get();
+        $article = $stub->generate_article( $post );
+
+        $asset_local_names = array_map( function ( $a ) { return $a->local_name; }, $article->assets );
+        $this->assertContains( 'wp-content/uploads/richie-test-inline-bg.jpg', $asset_local_names, 'Background image from inline <style> should be in article assets' );
+
+        // Clean up.
+        unlink( $bg_file );
+    }
+
+    public function test_inline_style_external_urls_skipped() {
+        $template = '<html><head>'
+            . '<style>@font-face { font-family: ExtFont; src: url(\'https://fonts.example.com/external.woff2\') format(\'woff2\'); }</style>'
+            . '</head><body>Content</body></html>';
+
+        $stub    = $this->make_stub_with_template( $template );
+        $post    = self::factory()->post->create_and_get();
+        $article = $stub->generate_article( $post );
+
+        $asset_remote_urls = array_map( function ( $a ) { return $a->remote_url; }, $article->assets );
+        $this->assertNotContains( 'https://fonts.example.com/external.woff2', $asset_remote_urls, 'External font URL should not appear in article assets' );
+    }
 }

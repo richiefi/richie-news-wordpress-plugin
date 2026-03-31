@@ -8,6 +8,7 @@
  * @subpackage Richie/includes
  */
 
+require_once plugin_dir_path( __DIR__ ) . 'includes/class-richie-asset.php';
 require_once plugin_dir_path( __DIR__ ) . 'includes/class-richie-photo-asset.php';
 require_once plugin_dir_path( __DIR__ ) . 'includes/class-richie-post-type.php';
 
@@ -126,13 +127,6 @@ class Richie_Article {
         return $rendered_content;
     }
 
-    private function append_wpp_shadow( $url ) {
-        if ( isset( $_GET['wpp_shadow'] ) ) {
-            return add_query_arg( 'wpp_shadow', sanitize_text_field( wp_unslash( $_GET['wpp_shadow'] ) ), $url );
-        } else {
-            return $url;
-        }
-    }
 
     public function get_article_assets() {
         // Expects global $wp_scripts and $wp_styles.
@@ -201,6 +195,90 @@ class Richie_Article {
 
         // Relative path that includes an extension (e.g. images/photo.jpg).
         return (bool) preg_match( '#^[^?\s]+\.[a-z0-9]{2,8}(?:\?.*)?$#i', $value );
+    }
+
+    /**
+     * Scan all <style> elements in the DOM for url() references (fonts, background images,
+     * @import etc.), emit them as Richie_Asset objects, and rewrite the url() tokens
+     * in the <style> content to use local names.
+     *
+     * Only same-origin URLs that exist on disk are included.
+     *
+     * @param DOMDocument $dom DOM object (modified in place).
+     * @return Richie_Asset[] Discovered assets.
+     */
+    private function extract_inline_style_assets( $dom ) {
+        $assets   = array();
+        $url_map  = array(); // original URL => local_name, for rewriting.
+        $seen     = array(); // Dedup discovered URLs.
+
+        foreach ( $dom->getElementsByTagName( 'style' ) as $element ) {
+            $css_text = $element->textContent;
+            if ( '' === trim( $css_text ) ) {
+                continue;
+            }
+
+            $urls = richie_parse_css_urls( $css_text, get_site_url() . '/' );
+
+            foreach ( $urls as $url ) {
+                if ( isset( $seen[ $url ] ) ) {
+                    continue;
+                }
+                $seen[ $url ] = true;
+
+                if ( ! richie_is_same_origin_url( $url ) ) {
+                    continue;
+                }
+
+                if ( false === richie_url_to_local_path( $url ) ) {
+                    continue;
+                }
+
+                $asset                      = new Richie_Asset( $url );
+                $assets[]                   = $asset;
+                $url_map[ $url ]            = $asset->local_name;
+
+                // Also map the root-relative form (without host).
+                $parsed = wp_parse_url( $url );
+                if ( isset( $parsed['path'] ) ) {
+                    $root_rel              = $parsed['path'];
+                    $url_map[ $root_rel ]  = $asset->local_name;
+                }
+            }
+
+            if ( empty( $url_map ) ) {
+                continue;
+            }
+
+            // Rewrite url() tokens in the <style> content to local names.
+            $rewritten = preg_replace_callback(
+                '/url\(\s*[\'"]?([^\'"\)\s]+)[\'"]?\s*\)/i',
+                function ( $m ) use ( $url_map ) {
+                    $raw = $m[1];
+                    // Try absolute URL first.
+                    $abs = richie_make_link_absolute( $raw );
+                    if ( isset( $url_map[ $abs ] ) ) {
+                        return 'url(' . $url_map[ $abs ] . ')';
+                    }
+                    // Try root-relative.
+                    if ( isset( $url_map[ $raw ] ) ) {
+                        return 'url(' . $url_map[ $raw ] . ')';
+                    }
+                    return $m[0];
+                },
+                $css_text
+            );
+
+            if ( $rewritten !== $css_text ) {
+                // Replace text node safely — avoids DOMDocument HTML-encoding CSS chars.
+                while ( $element->firstChild ) {
+                    $element->removeChild( $element->firstChild );
+                }
+                $element->appendChild( $dom->createTextNode( $rewritten ) );
+            }
+        }
+
+        return $assets;
     }
 
     /**
@@ -397,12 +475,14 @@ class Richie_Article {
             }
         }
 
-        $image_urls = array_values( array_unique( $image_urls ) );
-        $html       = $dom->saveHTML( $dom->documentElement );
+        $image_urls    = array_values( array_unique( $image_urls ) );
+        $inline_assets = $this->extract_inline_style_assets( $dom );
+        $html          = $dom->saveHTML( $dom->documentElement );
 
         return array(
-            'images'  => $image_urls,
-            'content' => $html,
+            'images'        => $image_urls,
+            'content'       => $html,
+            'inline_assets' => $inline_assets,
         );
     }
 
@@ -524,7 +604,7 @@ class Richie_Article {
             if ( $thumbnail_id ) {
                 $thumbnail          = wp_get_attachment_image_url( $thumbnail_id, 'full' );
                 $remote_url         = richie_make_link_absolute( $thumbnail );
-                $article->image_url = $this->append_wpp_shadow( $remote_url );
+                $article->image_url = $remote_url;
             }
         }
 
@@ -613,8 +693,6 @@ class Richie_Article {
                 $content_args['template'] = $template_name;
             }
             $content_url = add_query_arg( $content_args, get_permalink( $post_id ) );
-
-            $content_url = $this->append_wpp_shadow( $content_url );
 
             $disable_url_handling = false;
 
@@ -852,6 +930,11 @@ class Richie_Article {
             if ( ! empty( $other_images ) ) {
                 $arr          = $this->generate_photos_array( $other_images, $rendered_content, false );
                 $local_assets = array_merge( $local_assets, $arr );
+            }
+
+            // Merge inline <style> sub-resources (fonts, background images) into article assets.
+            if ( ! empty( $rendered_article_images['inline_assets'] ) ) {
+                $local_assets = array_merge( $local_assets, $rendered_article_images['inline_assets'] );
             }
 
             $article->content_html_document = $rendered_content;
