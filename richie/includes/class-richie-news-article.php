@@ -348,7 +348,8 @@ class Richie_Article {
      * @return array { images: string[], content: string }
      */
     public function get_article_images( $dom, $url_map = array(), &$attachment_cache = array() ) {
-        $image_urls = array();
+        $image_urls      = array();
+        $superseded_urls = array(); // Small variant URLs replaced by a better resolved URL.
 
         // Only scan the body — head and noscript elements are not rendered article content.
         $body = $dom->getElementsByTagName( 'body' )->item( 0 );
@@ -428,9 +429,8 @@ class Richie_Article {
                     continue;
                 }
 
-                $abs_url      = richie_make_link_absolute( $attr_value );
+                $abs_url     = richie_make_link_absolute( $attr_value );
                 $image_urls[] = $abs_url;
-
                 $local_value = isset( $url_map[ $abs_url ] ) ? $url_map[ $abs_url ] : $abs_url;
                 $element->setAttribute( $attr_name, $local_value );
 
@@ -456,7 +456,12 @@ class Richie_Article {
                     $best_url = richie_resolve_best_image_url( $abs_src, $srcset_value, $attachment_cache );
 
                     if ( $best_url !== $abs_src && '' !== $best_url ) {
-                        // A better (larger) URL was found — update src and register it.
+                        // A better URL was resolved — replace src with it and remove the original
+                        // URL from image_urls entirely. Multiple attributes (src, data-src, etc.)
+                        // may have added the same original URL; removing all occurrences ensures
+                        // the superseded URL doesn't end up as an unused photo entry.
+                        $image_urls        = array_values( array_diff( $image_urls, array( $abs_src ) ) );
+                        $superseded_urls[] = $abs_src;
                         $best_local = isset( $url_map[ $best_url ] ) ? $url_map[ $best_url ] : $best_url;
                         $element->setAttribute( 'src', $best_local );
                         $image_urls[] = $best_url;
@@ -480,9 +485,10 @@ class Richie_Article {
         $html          = $dom->saveHTML( $dom->documentElement );
 
         return array(
-            'images'        => $image_urls,
-            'content'       => $html,
-            'inline_assets' => $inline_assets,
+            'images'         => $image_urls,
+            'content'        => $html,
+            'inline_assets'  => $inline_assets,
+            'superseded_urls' => $superseded_urls,
         );
     }
 
@@ -925,7 +931,12 @@ class Richie_Article {
             }
 
             // Find images not in post content and add them to assets.
-            $other_images = array_diff( array_diff( $rendered_article_images['images'], $image_urls ), array_unique( $all_gallery_images ) );
+            // Exclude superseded URLs (small variants replaced by a better resolved size).
+            $other_images = array_diff(
+                array_diff( $rendered_article_images['images'], $image_urls ),
+                array_unique( $all_gallery_images ),
+                $rendered_article_images['superseded_urls']
+            );
 
             if ( ! empty( $other_images ) ) {
                 $arr          = $this->generate_photos_array( $other_images, $rendered_content, false );
