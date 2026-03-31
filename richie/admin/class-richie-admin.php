@@ -788,7 +788,7 @@ class Richie_Admin {
             )
         );
 
-        $options = get_option( $this->settings_option_name );
+        $options = get_option( $this->settings_option_name, array() );
         if ( ! isset( $options['access_token'] ) ) {
             $options['access_token'] = bin2hex( random_bytes( 16 ) );
             update_option( $this->settings_option_name, $options );

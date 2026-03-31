@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => '__root__',
-        'pretty_version' => 'dev-master',
-        'version' => 'dev-master',
-        'reference' => 'c3770296cd420659343cc143354e955e324eff7f',
+        'pretty_version' => '2.1.0',
+        'version' => '2.1.0.0',
+        'reference' => null,
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,18 +11,18 @@
     ),
     'versions' => array(
         '__root__' => array(
-            'pretty_version' => 'dev-master',
-            'version' => 'dev-master',
-            'reference' => 'c3770296cd420659343cc143354e955e324eff7f',
+            'pretty_version' => '2.1.0',
+            'version' => '2.1.0.0',
+            'reference' => null,
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
         'ivopetkov/html5-dom-document-php' => array(
-            'pretty_version' => 'v2.7.0',
-            'version' => '2.7.0.0',
-            'reference' => 'cbbe2d5d03acc020ec78c72fdb20302cb3cdc872',
+            'pretty_version' => 'v2.10.1',
+            'version' => '2.10.1.0',
+            'reference' => '9111101f918ad0c5f5bd054ea14d1660961825f7',
             'type' => 'library',
             'install_path' => __DIR__ . '/../ivopetkov/html5-dom-document-php',
             'aliases' => array(),
