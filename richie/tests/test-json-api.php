@@ -733,4 +733,42 @@ class Test_JSON_API extends WP_UnitTestCase {
         array_map( 'unlink', glob( $base_dir . '*' ) );
         rmdir( $base_dir );
     }
+
+    /**
+     * On a cold-cache request, get_assets() runs wp_head() to collect emitted handles,
+     * then clears extra['data'] from all registered scripts to prevent duplication.
+     * This also strips any wp_localize_script() / wp_add_inline_script() payloads that
+     * were attached during wp_enqueue_scripts — those hooks do not re-fire when
+     * render_template() later calls wp_head(), so the localized data is lost.
+     *
+     * Currently failing: the inline script payload is absent from content_html_document
+     * on cold-cache requests.
+     */
+    public function test_wp_localize_script_payload_present_on_cold_cache_article_request() {
+        delete_transient( RICHIE_ASSET_CACHE_KEY );
+
+        // Enqueue a script and localize it — simulating what a theme/plugin does on
+        // wp_enqueue_scripts. In the test environment this fires before the request.
+        wp_enqueue_script( 'richie-test-localized', '/wp-includes/js/jquery/jquery.min.js', array(), '3.7', false );
+        wp_localize_script( 'richie-test-localized', 'RichieTestConfig', array( 'key' => 'expected-value' ) );
+
+        $id = self::factory()->post->create( array( 'post_content' => 'content' ) );
+
+        $request = new WP_REST_Request( 'GET', '/richie/v1/article/' . $id );
+        $request->set_query_params( array( 'token' => 'testtoken' ) );
+        $response = $this->server->dispatch( $request );
+
+        $this->assertEquals( 200, $response->get_status() );
+        $article = $response->data;
+
+        // The localized config object must appear in the rendered HTML.
+        $this->assertStringContainsString(
+            'expected-value',
+            $article->content_html_document,
+            'wp_localize_script payload must be present in article HTML on cold-cache requests'
+        );
+
+        wp_dequeue_script( 'richie-test-localized' );
+        wp_deregister_script( 'richie-test-localized' );
+    }
 }
