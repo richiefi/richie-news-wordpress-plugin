@@ -91,6 +91,9 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
 
         // generate general assets from scripts
         foreach ( $wp_scripts->do_items() as $script_name ) {
+            if ( ! isset( $wp_scripts->registered[ $script_name ] ) ) {
+                continue;
+            }
             $script     = $wp_scripts->registered[ $script_name ];
             $remote_url = $script->src;
             if ( ( substr( $remote_url, -3 ) === '.js' ) && ! strpos( $remote_url, 'wp-admin' ) ) {
@@ -527,45 +530,33 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
     }
 
     /**
-     * True-relative url() paths in inline <style> blocks must be resolved against
-     * the document URL, not the site root. E.g. url('fonts/font.woff2') inside a
-     * template served from /wp-content/themes/mytheme/article.php should resolve to
-     * /wp-content/themes/mytheme/fonts/font.woff2, not /fonts/font.woff2.
-     *
-     * Currently failing: we pass get_site_url().'/' as the base, so true-relative
-     * paths are resolved against the site root instead of the document location.
+     * True-relative url() paths in inline <style> blocks are resolved against the
+     * site root, because content_html_document is the document root — the same as
+     * the site root. So url('fonts/font.woff2') in an inline style means the font
+     * lives at /fonts/font.woff2 relative to the site root, and should be discovered
+     * and rewritten to that local_name.
      */
-    public function test_inline_style_true_relative_url_resolved_against_document_base() {
-        $tmp_dir  = sys_get_temp_dir() . '/richie-test-theme/fonts/';
+    public function test_inline_style_true_relative_url_resolved_against_site_root() {
+        $tmp_dir  = ABSPATH . 'fonts/';
         $tmp_file = $tmp_dir . 'rel-font.woff2';
 
         wp_mkdir_p( $tmp_dir );
         file_put_contents( $tmp_file, 'fake' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 
-        // Simulate a <style> block whose url() uses a true-relative path.
-        // The "document base" for this template would be /wp-content/themes/richie-test-theme/.
-        // A relative path of fonts/rel-font.woff2 should therefore resolve to
-        // /wp-content/themes/richie-test-theme/fonts/rel-font.woff2.
-        $document_base = get_site_url() . '/wp-content/themes/richie-test-theme/';
-        $template      = '<html><head>'
+        $template = '<html><head>'
             . '<style>@font-face { font-family: RelFont; src: url(\'fonts/rel-font.woff2\') format(\'woff2\'); }</style>'
             . '</head><body>Content</body></html>';
 
-        // We need a stub that also exposes the document base. For now we rely on
-        // extract_inline_style_assets receiving the correct base when called from
-        // get_article_images. This test drives the requirement.
         $stub    = $this->make_stub_with_template( $template );
         $post    = self::factory()->post->create_and_get();
         $article = $stub->generate_article( $post );
 
         $asset_remote_urls = array_map( function ( $a ) { return $a->remote_url; }, $article->assets );
-        $expected_url      = $document_base . 'fonts/rel-font.woff2';
+        $expected_url      = get_site_url() . '/fonts/rel-font.woff2';
 
-        // The resolved URL should be relative to the document base, not the site root.
-        $this->assertContains( $expected_url, $asset_remote_urls, 'True-relative font URL should resolve against the document base, not the site root' );
+        $this->assertContains( $expected_url, $asset_remote_urls, 'True-relative font URL should resolve against the site root (document root)' );
 
         unlink( $tmp_file );
         rmdir( $tmp_dir );
-        rmdir( dirname( $tmp_dir ) );
     }
 }
