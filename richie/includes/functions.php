@@ -418,6 +418,17 @@ function richie_url_to_local_path( $url ) {
         return false;
     }
 
+    // On subdirectory installs (e.g. example.com/news), WordPress is mounted at a
+    // path prefix. Strip that prefix before mapping to the filesystem so that
+    // /news/wp-content/... resolves to <ABSPATH>/wp-content/... correctly.
+    $site_path = wp_parse_url( home_url(), PHP_URL_PATH );
+    if ( is_string( $site_path ) && '' !== $site_path && '/' !== $site_path ) {
+        $site_path = trailingslashit( $site_path );
+        if ( 0 === strpos( $path, $site_path ) ) {
+            $path = '/' . substr( $path, strlen( $site_path ) );
+        }
+    }
+
     $local_path = ABSPATH . ltrim( $path, '/' );
 
     return file_exists( $local_path ) ? $local_path : false;
