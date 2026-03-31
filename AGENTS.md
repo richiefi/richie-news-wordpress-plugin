@@ -132,6 +132,27 @@ When working on REST API endpoints or feed generation, fetch relevant docs for r
 - `/wp-json/richie/v1/assets` - App assets
 - `/wp-json/richie/v1/search?q=<search_string>&token=abcd` - Search articles
 
+## Article Asset Discovery
+
+The Richie app renders articles offline — `content_html_document` is the document root. Every asset referenced in the HTML (images, fonts, CSS, JS) must be available to the app before rendering. Assets can be included either in the global asset feed (`/wp-json/richie/v1/assets`) or in the article-level `photos`/`assets` fields. Missing assets cause rendering failures with no network fallback.
+
+### Key behaviours
+
+- **`photos`** — images referenced in article HTML. Each entry must have a corresponding reference in the HTML; unused photo entries waste bandwidth.
+- **`assets`** — scripts, stylesheets, fonts, and other non-image files.
+- **`content_html_document`** is the offline document root. All asset `local_name` values are paths relative to it.
+- **`srcset` is stripped** from `<img>` — the best candidate is resolved (WP attachment lookup → srcset parsing) and written to `src`. `<source>` inside `<picture>` gets the best candidate written back as a single-entry `srcset`.
+- **Inline `<style>` blocks** are scanned for `url()` references. Same-origin, on-disk assets are added to `assets` and the url() tokens are rewritten to local names.
+- **`get_post_galleries()`** only detects native WordPress `[gallery]` shortcodes. Third-party gallery plugins (Modula, etc.) are not detected — their images go through the general image discovery path.
+
+### Third-party plugin compatibility
+
+When a third-party plugin's output causes asset discovery issues, **make a general fix** rather than plugin-specific hacks. For example:
+
+- If a plugin renders images at a non-standard size with the full-size URL in a custom attribute, fix the general attribute scanning logic.
+- If a plugin uses a custom gallery block, rely on the DOM-level image scan rather than adding special-case detection for that plugin.
+- Plugin-specific code paths become maintenance burden and break when plugins are updated.
+
 ## Developing
 
 When developing new feature, keep session diary in `PROGRESS.md` file in the root of the feature's directory.
