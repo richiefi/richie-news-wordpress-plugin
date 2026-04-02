@@ -402,6 +402,21 @@ function richie_resolve_url( $base_url, $relative_url ) {
 }
 
 /**
+ * Return true if the URL's file extension is a recognised static web asset type.
+ *
+ * Used to guard asset-discovery paths against accidentally including non-asset
+ * files (e.g. /wp-config.php) that happen to exist on disk.
+ *
+ * @param string $url URL to check.
+ * @return bool
+ */
+function richie_is_allowed_asset_url( $url ) {
+    static $allowed = array( 'css', 'js', 'woff', 'woff2', 'ttf', 'otf', 'eot', 'svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'ico' );
+    $ext = strtolower( pathinfo( wp_parse_url( $url, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
+    return in_array( $ext, $allowed, true );
+}
+
+/**
  * Convert a same-origin URL to a local filesystem path.
  *
  * @param string $url URL to resolve.
@@ -552,6 +567,11 @@ function richie_discover_css_dependencies( $assets, $local_prefix ) {
 
             // Only include files that actually exist on disk.
             if ( false === richie_url_to_local_path( $dep_url ) ) {
+                continue;
+            }
+
+            // Only include recognised static asset types.
+            if ( ! richie_is_allowed_asset_url( $dep_url ) ) {
                 continue;
             }
 

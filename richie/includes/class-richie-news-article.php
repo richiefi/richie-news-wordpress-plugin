@@ -234,6 +234,10 @@ class Richie_Article {
                     continue;
                 }
 
+                if ( ! richie_is_allowed_asset_url( $url ) ) {
+                    continue;
+                }
+
                 $asset                      = new Richie_Asset( $url );
                 $assets[]                   = $asset;
                 $url_map[ $url ]            = $asset->local_name;
