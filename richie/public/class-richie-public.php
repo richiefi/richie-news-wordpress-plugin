@@ -629,14 +629,17 @@ class Richie_Public {
      *
      * @return array
      */
-    public function get_assets() {
+    public function get_assets( $request = null ) {
         require_once plugin_dir_path( __DIR__ ) . 'includes/class-richie-app-asset.php';
 
         $transient_key = RICHIE_ASSET_CACHE_KEY;
 
-        // Allow cache flush via ?flush_cache=1 (useful during development).
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        if ( ! empty( $_GET['flush_cache'] ) ) {
+        // Allow cache flush via ?flush_cache=1, but only for authenticated requests.
+        // Prevents unauthenticated callers from forcing expensive cache regeneration.
+        $flush = $request instanceof WP_REST_Request
+            ? ! empty( $request->get_param( 'flush_cache' ) )
+            : false;
+        if ( $flush && $this->check_permission( $request ) ) {
             delete_transient( $transient_key );
         }
 
@@ -750,8 +753,8 @@ class Richie_Public {
         return $all_assets;
     }
 
-    public function asset_feed_handler() {
-        $assets = $this->get_assets();
+    public function asset_feed_handler( $request ) {
+        $assets = $this->get_assets( $request );
 
         $etag = md5( wp_json_encode( $assets ) );
 
