@@ -645,8 +645,8 @@ class Richie_Public {
 
         $cached_assets = get_transient( $transient_key );
 
-        if ( ! empty( $cached_assets ) ) {
-            // Cache exists, return it.
+        if ( false !== $cached_assets ) {
+            // Cache exists (may be empty array if no assets found), return it.
             return $cached_assets;
         }
 
