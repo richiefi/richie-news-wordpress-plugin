@@ -352,8 +352,9 @@ class Richie_Article {
      * @return array { images: string[], content: string }
      */
     public function get_article_images( $dom, $url_map = array(), &$attachment_cache = array() ) {
-        $image_urls      = array();
-        $superseded_urls = array(); // Small variant URLs replaced by a better resolved URL.
+        $image_urls        = array();
+        $superseded_urls   = array(); // Small variant URLs replaced by a better resolved URL.
+        $known_local_names = array_values( $url_map ); // Pre-computed for in_array() checks inside the loop.
 
         // Only scan the body — head and noscript elements are not rendered article content.
         $body = $dom->getElementsByTagName( 'body' )->item( 0 );
@@ -468,7 +469,6 @@ class Richie_Article {
 
                 // Resolve best image: prefer WP media library full size, then best srcset candidate.
                 // Skip if src is already a local name (i.e. already in url_map — known attachment).
-                $known_local_names = array_values( $url_map );
                 if ( '' !== $current_src && ! in_array( $current_src, $known_local_names, true ) ) {
                     $abs_src  = richie_make_link_absolute( $current_src );
                     $best_url = richie_resolve_best_image_url( $abs_src, $srcset_value, $attachment_cache );
