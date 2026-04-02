@@ -839,15 +839,19 @@ class Richie_Article {
                 $photo_asset_map[ $canonical_url ] = $photo_asset;
 
                 // Pre-populate cache so get_article_images() won't re-query for the thumbnail.
+                // richie_resolve_best_image_url() keys the cache by the base URL (size suffix
+                // stripped), so store under that key in addition to the full variant URLs.
                 $attachment_cache[ $canonical_url ] = $thumbnail_id;
 
                 foreach ( $all_sizes as $size ) {
                     $size_url = ( 'full' === $size ) ? $thumbnail : wp_get_attachment_image_url( $thumbnail_id, $size );
                     if ( ! empty( $size_url ) ) {
-                        $abs_size_url              = richie_make_link_absolute( $size_url );
-                        $url_map[ $abs_size_url ]  = $photo_asset->local_name;
-                        // Cache all size variant URLs as well.
+                        $abs_size_url                      = richie_make_link_absolute( $size_url );
+                        $url_map[ $abs_size_url ]          = $photo_asset->local_name;
                         $attachment_cache[ $abs_size_url ] = $thumbnail_id;
+                        // Also store under the base URL (suffix stripped) — the key used by richie_resolve_best_image_url().
+                        $base_key                          = preg_replace( '/(-\d+x\d+)(\.[a-z0-9]+)$/i', '$2', $abs_size_url );
+                        $attachment_cache[ $base_key ]     = $thumbnail_id;
                     }
                 }
             }
@@ -875,14 +879,16 @@ class Richie_Article {
                             $all_gallery_images[]              = $canonical_url;
 
                             // Map all size variants of this attachment to its local name.
-                            $url_map[ $canonical_url ]              = $photo_asset->local_name;
-                            $attachment_cache[ $canonical_url ]     = (int) $attachment_id;
+                            $url_map[ $canonical_url ]          = $photo_asset->local_name;
+                            $attachment_cache[ $canonical_url ] = (int) $attachment_id;
                             foreach ( $all_sizes as $size ) {
                                 $img = wp_get_attachment_image_src( $attachment_id, $size );
                                 if ( false !== $img ) {
                                     $abs_img_url                        = richie_make_link_absolute( $img[0] );
                                     $url_map[ $abs_img_url ]            = $photo_asset->local_name;
                                     $attachment_cache[ $abs_img_url ]   = (int) $attachment_id;
+                                    $base_key                           = preg_replace( '/(-\d+x\d+)(\.[a-z0-9]+)$/i', '$2', $abs_img_url );
+                                    $attachment_cache[ $base_key ]      = (int) $attachment_id;
                                 }
                             }
                         }
