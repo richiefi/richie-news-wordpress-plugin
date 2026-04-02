@@ -659,8 +659,10 @@ function richie_parse_srcset_best_url( $srcset_value ) {
         return false;
     }
 
-    // Split on commas that are not inside parentheses (e.g. data URIs or url()).
-    $entries = preg_split( '/,\s*(?=[^\s,]+\s*(?:\d+[wx]\s*,|\d+[wx]\s*$|$))/', $srcset_value );
+    // Split on commas. Per the HTML spec, URLs in srcset must percent-encode commas
+    // (%2C), so plain comma splitting is safe. Each entry is trimmed; empty entries
+    // (e.g. from a trailing comma) are discarded.
+    $entries = array_values( array_filter( array_map( 'trim', explode( ',', $srcset_value ) ) ) );
     if ( empty( $entries ) ) {
         return false;
     }
