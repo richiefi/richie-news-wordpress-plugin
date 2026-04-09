@@ -4,25 +4,25 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "42af3f8ce9b20f0f47fa24d67e34ccaf",
+    "content-hash": "7fa1da9d2721a8c33900e223c328b589",
     "packages": [
         {
             "name": "ivopetkov/html5-dom-document-php",
-            "version": "v2.7.0",
+            "version": "v2.10.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ivopetkov/html5-dom-document-php.git",
-                "reference": "cbbe2d5d03acc020ec78c72fdb20302cb3cdc872"
+                "reference": "9111101f918ad0c5f5bd054ea14d1660961825f7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ivopetkov/html5-dom-document-php/zipball/cbbe2d5d03acc020ec78c72fdb20302cb3cdc872",
-                "reference": "cbbe2d5d03acc020ec78c72fdb20302cb3cdc872",
+                "url": "https://api.github.com/repos/ivopetkov/html5-dom-document-php/zipball/9111101f918ad0c5f5bd054ea14d1660961825f7",
+                "reference": "9111101f918ad0c5f5bd054ea14d1660961825f7",
                 "shasum": ""
             },
             "require": {
                 "ext-dom": "*",
-                "php": "7.0.*|7.1.*|7.2.*|7.3.*|7.4.*|8.0.*|8.1.*|8.2.*|8.3.*"
+                "php": "8.0.*|8.1.*|8.2.*|8.3.*|8.4.*|8.5.*"
             },
             "require-dev": {
                 "ivopetkov/docs-generator": "1.*"
@@ -47,9 +47,19 @@
             "description": "HTML5 DOMDocument PHP library (extends DOMDocument)",
             "support": {
                 "issues": "https://github.com/ivopetkov/html5-dom-document-php/issues",
-                "source": "https://github.com/ivopetkov/html5-dom-document-php/tree/v2.7.0"
+                "source": "https://github.com/ivopetkov/html5-dom-document-php/tree/v2.10.1"
             },
-            "time": "2023-11-24T17:25:06+00:00"
+            "funding": [
+                {
+                    "url": "https://www.paypal.me/ivopetkovcom",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/ivopetkov",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-01-31T19:15:37+00:00"
         }
     ],
     "packages-dev": [],

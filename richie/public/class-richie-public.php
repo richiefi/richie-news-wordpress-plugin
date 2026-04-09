@@ -11,7 +11,7 @@
 
 ?>
 <?php
-require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-post-type.php';
+require_once plugin_dir_path( __DIR__ ) . 'includes/class-richie-post-type.php';
 
 /**
  * The public-facing functionality of the plugin.
@@ -60,12 +60,12 @@ class Richie_Public {
      * @param    string $version      The version of this plugin.
      */
 	public function __construct( $plugin_name, $version ) {
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-news-article.php';
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-template-loader.php';
+        require_once plugin_dir_path( __DIR__ ) . 'includes/class-richie-news-article.php';
+        require_once plugin_dir_path( __DIR__ ) . 'includes/class-richie-template-loader.php';
 
-		$this->plugin_name         = $plugin_name;
-        $this->version             = $version;
-        $this->richie_options      = get_option( $plugin_name );
+		$this->plugin_name    = $plugin_name;
+        $this->version        = $version;
+        $this->richie_options = get_option( $plugin_name );
     }
 
     /**
@@ -134,9 +134,9 @@ class Richie_Public {
             $richie_news_sources = isset( $sourcelist['published'] ) ? $sourcelist['published'] : array();
         }
 
-        $posts       = array();
-        $found_ids   = array();
-        $errors      = array();
+        $posts     = array();
+        $found_ids = array();
+        $errors    = array();
 
         // Check for custom collection order
         if ( $unpublished ) {
@@ -170,8 +170,8 @@ class Richie_Public {
         }
 
         // Get ad slots indexed by UUID
-        $adslots_option = get_option( $this->plugin_name . '_adslots' );
-        $adslots_raw = isset( $adslots_option['slots'][ $article_set->term_id ] )
+        $adslots_option  = get_option( $this->plugin_name . '_adslots' );
+        $adslots_raw     = isset( $adslots_option['slots'][ $article_set->term_id ] )
             ? $adslots_option['slots'][ $article_set->term_id ]
             : array();
         $adslots_by_uuid = array();
@@ -221,7 +221,6 @@ class Richie_Public {
             if ( ! $allow_duplicates ) {
                 $args['post__not_in'] = $found_ids;
             }
-
 
             if ( isset( $source['categories'] ) && ! empty( $source['categories'] ) ) {
                 $args['cat'] = $source['categories'];
@@ -357,8 +356,8 @@ class Richie_Public {
                 } elseif ( $item['type'] === 'ad' ) {
                     $ad_id = $item['id'];
                     if ( isset( $adslots_by_uuid[ $ad_id ] ) ) {
-                        $slot       = $adslots_by_uuid[ $ad_id ];
-                        $attributes = $slot['attributes'];
+                        $slot                  = $adslots_by_uuid[ $ad_id ];
+                        $attributes            = $slot['attributes'];
                         $attributes['updated'] = date( 'c', $slot['updated'] );
 
                         array_push(
@@ -429,23 +428,26 @@ class Richie_Public {
             }
         }
 
-        return array( 'articles' => $articles, 'errors' => $errors );
+        return array(
+			'articles' => $articles,
+			'errors'   => $errors,
+        );
     }
 
     public function get_section_article( $article ) {
         $section_article = array(
-            'layout'               => $article['article_attributes']['list_layout_style'],
+            'layout' => $article['article_attributes']['list_layout_style'],
         );
 
         if ( 'ad' !== $article['article_attributes']['list_layout_style'] ) {
-            $post              = $article['original_post'];
-            $article_instance  = new Richie_Article( $this->richie_options );
-            $generated_article = $article_instance->generate_article( $post, Richie_Article::EXCLUDE_CONTENT );
+            $post                            = $article['original_post'];
+            $article_instance                = new Richie_Article( $this->richie_options );
+            $generated_article               = $article_instance->generate_article( $post, Richie_Article::EXCLUDE_CONTENT );
             $section_article['publisher_id'] = $article['id'];
 
             $premium_categories = isset( $this->richie_options['premium_categories'] ) ? (array) $this->richie_options['premium_categories'] : array();
             if ( ! empty( $premium_categories ) ) {
-                $post_categories              = wp_get_post_categories( $post->ID );
+                $post_categories               = wp_get_post_categories( $post->ID );
                 $section_article['is_premium'] = ! empty( array_intersect( $post_categories, $premium_categories ) );
             }
 
@@ -458,7 +460,7 @@ class Richie_Public {
                 $section_article['collection_header_title'] = $article['article_attributes']['collection_header_title'];
             }
 
-            if ( isset( $article['article_attributes']['background_color' ] ) ) {
+            if ( isset( $article['article_attributes']['background_color'] ) ) {
                 $section_article['background_color'] = $article['article_attributes']['background_color'];
             }
 
@@ -483,7 +485,12 @@ class Richie_Public {
             );
         }
 
-        return array_filter( $section_article, function( $v ) { return ! is_null( $v ); } );
+        return array_filter(
+            $section_article,
+            function ( $v ) {
+                return ! is_null( $v );
+            }
+        );
     }
 
     public function feed_route_handler( $data ) {
@@ -502,7 +509,7 @@ class Richie_Public {
         }
 
         $articles = $result['articles'];
-        $errors = $result['errors'];
+        $errors   = $result['errors'];
 
         if ( ! headers_sent() ) {
             $etag = 'W/"' . md5( wp_json_encode( $articles ) ) . '"';
@@ -574,7 +581,7 @@ class Richie_Public {
         $assets = $this->get_assets();
 
         if ( false === $assets ) {
-            $assets = [];
+            $assets = array();
         }
 
         $article      = new Richie_Article( $this->richie_options, $assets, $version );
@@ -622,73 +629,132 @@ class Richie_Public {
      *
      * @return array
      */
-    public function get_assets() {
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-richie-app-asset.php';
+    public function get_assets( $request = null ) {
+        require_once plugin_dir_path( __DIR__ ) . 'includes/class-richie-app-asset.php';
 
         $transient_key = RICHIE_ASSET_CACHE_KEY;
+
+        // Allow cache flush via ?flush_cache=1, but only for authenticated requests.
+        // Prevents unauthenticated callers from forcing expensive cache regeneration.
+        $flush = $request instanceof WP_REST_Request
+            ? ! empty( $request->get_param( 'flush_cache' ) )
+            : false;
+        if ( $flush && $this->check_permission( $request ) ) {
+            delete_transient( $transient_key );
+        }
+
         $cached_assets = get_transient( $transient_key );
 
-        if ( !empty( $cached_assets ) ) {
-            // Cache exists, return it.
+        if ( false !== $cached_assets ) {
+            // Cache exists (may be empty array if no assets found), return it.
             return $cached_assets;
         }
 
-        $general_assets = [];
-
         global $wp_scripts, $wp_styles;
 
+        // Snapshot wp_localize_script() data (extra['data']) for all currently queued handles
+        // before wp_head() emits them. After wp_head(), we clear all extra data to prevent
+        // inline script duplication when render_template() calls wp_head() a second time.
+        // Localized data is set once (not via hooks) and won't re-attach, so we restore it
+        // for handles that were queued at this point.
+        $localized_data_snapshot = array();
+        foreach ( $wp_scripts->queue as $handle ) {
+            if ( isset( $wp_scripts->registered[ $handle ]->extra['data'] ) ) {
+                $localized_data_snapshot[ $handle ] = $wp_scripts->registered[ $handle ]->extra['data'];
+            }
+        }
+
         ob_start();
-        // These will cause styles/scripts to be included in global variables.
+        // These will populate $wp_scripts->done and $wp_styles->done.
         wp_head();
         wp_footer();
         ob_end_clean();
 
-        foreach ( $wp_scripts->do_items() as $script_name ) {
-            $script     = $wp_scripts->registered[ $script_name ];
-            $remote_url = $script->src;
-            if ( ( substr( $remote_url, -3 ) === '.js' ) && ! strpos( $remote_url, 'wp-admin' ) ) {
-                $general_assets[] = new Richie_App_Asset( $script );
+        // Read from ->done (handles already output), not do_items() which re-runs output.
+        $general_assets = richie_get_emitted_assets( 'app-assets/' );
+
+        // Discover CSS sub-resources (fonts, @import, url() — e.g. @font-face).
+        // The Richie app does not crawl CSS for sub-resources, so they must be listed explicitly.
+        $css_deps = richie_discover_css_dependencies( $general_assets, 'app-assets/' );
+
+        // When RICHIE_INCLUDE_ALL_BLOCK_STYLES is true, add all registered WP block styles to
+        // the global feed so they are available without requiring an article render first.
+        if ( defined( 'RICHIE_INCLUDE_ALL_BLOCK_STYLES' ) && RICHIE_INCLUDE_ALL_BLOCK_STYLES ) {
+            $block_handles = array();
+            foreach ( $wp_styles->registered as $handle => $style ) {
+                $url = richie_get_registered_asset_url( $style );
+                if ( is_string( $url ) && ( false !== strpos( $url, 'wp-includes/blocks' ) || 0 === strpos( $handle, 'wp-block-' ) ) ) {
+                    $block_handles[] = $handle;
+                }
             }
+            $block_assets   = richie_collect_registered_assets( array(), $block_handles, 'app-assets/' );
+            $css_deps       = array_merge( $css_deps, richie_discover_css_dependencies( $block_assets, 'app-assets/' ) );
+            $general_assets = array_merge( $general_assets, $block_assets );
         }
-        // Print all loaded Styles (CSS).
-        foreach ( $wp_styles->do_items() as $style_name ) {
-            $style      = $wp_styles->registered[ $style_name ];
-            $remote_url = $style->src;
-            if ( ( substr( $remote_url, -4 ) === '.css' ) && ! strpos( $remote_url, 'wp-admin' ) ) {
-                $general_assets[] = new Richie_App_Asset( $style );
+
+        // Reset ->done so subsequent wp_head()/wp_footer() calls (in render_template) can
+        // re-output asset tags for the article. Also clear accumulated inline script data
+        // (wp_add_inline_script data lives in ->registered[handle]->extra['before'/'after'/'data']
+        // and is never consumed — it accumulates on every wp_head() call that triggers
+        // wp_add_inline_script hooks, even for handles that are never queued/done). Clearing all
+        // registered handles' extra data prevents duplication on cache-miss requests where
+        // get_assets() and render_template() both call wp_head() in the same PHP process.
+        //
+        foreach ( $wp_scripts->registered as $handle => $script ) {
+            unset(
+                $wp_scripts->registered[ $handle ]->extra['before'],
+                $wp_scripts->registered[ $handle ]->extra['after'],
+                $wp_scripts->registered[ $handle ]->extra['data']
+            );
+        }
+        foreach ( $wp_styles->registered as $handle => $style ) {
+            unset(
+                $wp_styles->registered[ $handle ]->extra['before'],
+                $wp_styles->registered[ $handle ]->extra['after']
+            );
+        }
+
+        foreach ( $localized_data_snapshot as $handle => $data ) {
+            if ( isset( $wp_scripts->registered[ $handle ] ) ) {
+                $wp_scripts->registered[ $handle ]->extra['data'] = $data;
             }
         }
 
-        // Reset "done" state so subsequent wp_head()/wp_footer() calls
-        // (e.g. in render_template) can still output these assets.
         $wp_scripts->done = array();
         $wp_styles->done  = array();
 
         $custom_assets = get_option( $this->plugin_name . '_assets' );
 
         if ( false === $custom_assets ) {
-            $custom_assets = [];
+            $custom_assets = array();
         }
 
-        $all_assets = [];
+        $all_assets = array();
 
-        // Map assets by localname. Custom assets will override general assets with same local name.
+        // Map assets by local_name. Later entries override earlier ones, so custom assets
+        // added last will override auto-discovered assets with the same local_name.
         foreach ( $general_assets as $asset ) {
-            $all_assets[$asset->local_name] = $asset;
+            $all_assets[ $asset->local_name ] = $asset;
+        }
+
+        foreach ( $css_deps as $asset ) {
+            // Only add if not already present — explicit assets take precedence.
+            if ( ! isset( $all_assets[ $asset->local_name ] ) ) {
+                $all_assets[ $asset->local_name ] = $asset;
+            }
         }
 
         foreach ( $custom_assets as $asset ) {
-            $all_assets[$asset->local_name] = $asset;
+            $all_assets[ $asset->local_name ] = $asset;
         }
 
-        // Get just the values from the array.
         $all_assets = array_values( $all_assets );
         set_transient( $transient_key, $all_assets, HOUR_IN_SECONDS ); // Cache for one hour.
         return $all_assets;
     }
 
-    public function asset_feed_handler() {
-        $assets = $this->get_assets();
+    public function asset_feed_handler( $request ) {
+        $assets = $this->get_assets( $request );
 
         $etag = md5( wp_json_encode( $assets ) );
 
@@ -755,7 +821,7 @@ class Richie_Public {
                 'permission_callback' => array( $this, 'check_permission' ),
                 'args'                => array(
                     'id'       => array(
-                        'validate_callback' => function( $param ) {
+                        'validate_callback' => function ( $param ) {
                             return is_numeric( $param );
                         },
                     ),
@@ -822,7 +888,6 @@ class Richie_Public {
     public function enqueue_styles() {
 
         wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/richie-public.css', array(), $this->version, 'all' );
-
     }
 
     /**
@@ -833,14 +898,12 @@ class Richie_Public {
     public function enqueue_scripts() {
 
         wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/richie-public.js', array( 'jquery' ), $this->version, false );
-
     }
 
     /**
      * Register short codes
      */
     public function register_shortcodes() {
-
     }
 
     /**
@@ -869,10 +932,10 @@ class Richie_Public {
         register_block_template(
             $template_id,
             array(
-                'title'       => __( 'Richie Article', 'richie' ),
-                'description' => __( 'Richie news article template.', 'richie' ),
-                'content'     => $content,
-                'post_types'  => array( 'post' ),
+                'title'          => __( 'Richie Article', 'richie' ),
+                'description'    => __( 'Richie news article template.', 'richie' ),
+                'content'        => $content,
+                'post_types'     => array( 'post' ),
                 'template_types' => array( 'single' ),
             )
         );

@@ -23,6 +23,13 @@ class Test_JSON_API extends WP_UnitTestCase {
     }
 
     public function tearDown(): void {
+        // Clean up any test styles/scripts registered by individual tests.
+        foreach ( array( 'richie-test-block-style', 'richie-test-path-backed', 'richie-test-css-deps', 'richie-test-override-css' ) as $handle ) {
+            wp_dequeue_style( $handle );
+            wp_deregister_style( $handle );
+        }
+        delete_transient( RICHIE_ASSET_CACHE_KEY );
+        delete_option( 'richie_assets' );
         delete_option( 'richie' );
         parent::tearDown();
     }
@@ -338,7 +345,6 @@ class Test_JSON_API extends WP_UnitTestCase {
         $this->assertEquals( $article->photos[0][1]->local_name, 'external.url/testing/image.jpg' );
         $this->assertEquals( $article->photos[0][1]->remote_url, 'https://external.url/testing/image.jpg' );
         $this->assertStringContainsString( 'src="external.url/testing/image.jpg"', $article->content_html_document );
-
     }
 
     public function test_get_single_v1_article_with_images() {
@@ -372,7 +378,6 @@ class Test_JSON_API extends WP_UnitTestCase {
         $this->assertEquals( $article->photos[0][1]->remote_url, 'https://external.url/testing/image.jpg' );
         $this->assertEquals( $article->photos[0][1]->scale_to_device_dimensions, true );
         $this->assertStringContainsString( 'src="external.url/testing/image.jpg"', $article->content_html_document );
-
     }
 
     public function test_get_news_feed_items_with_tags() {
@@ -483,7 +488,7 @@ class Test_JSON_API extends WP_UnitTestCase {
         $original = array_shift( $assets );
         // update original item with new overridden remote
         update_option( 'richie_assets', json_decode( '[{"local_name": "' . $original->local_name . '", "remote_url": "http://another.org/some/script.js?ver=1.5"}]' ) );
-        delete_transient(RICHIE_ASSET_CACHE_KEY); // clear cache
+        delete_transient( RICHIE_ASSET_CACHE_KEY ); // clear cache
 
         $request  = new WP_REST_Request( 'GET', '/richie/v1/assets' );
         $response = $this->server->dispatch( $request );
@@ -495,4 +500,275 @@ class Test_JSON_API extends WP_UnitTestCase {
         $this->assertEquals( $first->remote_url, 'http://another.org/some/script.js?ver=1.5' );
     }
 
+    // --- New tests for asset discovery fixes ---
+
+
+    /**
+     * Test that webp images are discovered (richie_is_image_url was too restrictive).
+     */
+    public function test_webp_image_is_discovered() {
+        $id = self::factory()->post->create(
+            array( 'post_content' => '<img src="/wp-content/uploads/photo.webp" />' )
+        );
+
+        $request = new WP_REST_Request( 'GET', '/richie/v1/article/' . $id );
+        $request->set_query_params( array( 'token' => 'testtoken' ) );
+        $response = $this->server->dispatch( $request );
+
+        $this->assertEquals( 200, $response->get_status() );
+        $article = $response->data;
+        $this->assertNotEmpty( $article->photos, 'Expected photos array to be non-empty' );
+        $local_names = array_map(
+            function ( $photo ) {
+                return $photo->local_name; },
+            $article->photos[0]
+        );
+        $this->assertContains( 'wp-content/uploads/photo.webp', $local_names );
+        $this->assertStringContainsString( 'src="wp-content/uploads/photo.webp"', $article->content_html_document );
+    }
+
+    /**
+     * Test that lazyloaded images (data-src) are discovered and src gets a fallback value.
+     */
+    public function test_lazyload_data_src_image_discovered() {
+        $id = self::factory()->post->create(
+            array(
+                'post_content' => '<img class="lazyload" src="" data-src="/wp-content/uploads/lazy.jpg" />',
+            )
+        );
+
+        $request = new WP_REST_Request( 'GET', '/richie/v1/article/' . $id );
+        $request->set_query_params( array( 'token' => 'testtoken' ) );
+        $response = $this->server->dispatch( $request );
+
+        $this->assertEquals( 200, $response->get_status() );
+        $article = $response->data;
+        $this->assertNotEmpty( $article->photos, 'Expected photos array to be non-empty' );
+        $local_names = array_map(
+            function ( $photo ) {
+                return $photo->local_name; },
+            $article->photos[0]
+        );
+        $this->assertContains( 'wp-content/uploads/lazy.jpg', $local_names );
+        // src should be filled in from data-src so article renders in app.
+        $this->assertStringContainsString( 'src="wp-content/uploads/lazy.jpg"', $article->content_html_document );
+        // data-src should also be rewritten to local name.
+        $this->assertStringContainsString( 'data-src="wp-content/uploads/lazy.jpg"', $article->content_html_document );
+    }
+
+    /**
+     * Test that background-image in inline style attributes is discovered.
+     */
+    public function test_inline_style_background_image_discovered() {
+        $id = self::factory()->post->create(
+            array(
+                'post_content' => '<div style="background-image: url(\'/wp-content/uploads/hero.jpg\')">content</div>',
+            )
+        );
+
+        $request = new WP_REST_Request( 'GET', '/richie/v1/article/' . $id );
+        $request->set_query_params( array( 'token' => 'testtoken' ) );
+        $response = $this->server->dispatch( $request );
+
+        $this->assertEquals( 200, $response->get_status() );
+        $article = $response->data;
+        $this->assertNotEmpty( $article->photos, 'Expected photos array to be non-empty' );
+        $local_names = array_map(
+            function ( $photo ) {
+                return $photo->local_name; },
+            $article->photos[0]
+        );
+        $this->assertContains( 'wp-content/uploads/hero.jpg', $local_names );
+        // style url() should be rewritten to local name.
+        $this->assertStringContainsString( 'url(wp-content/uploads/hero.jpg)', $article->content_html_document );
+    }
+
+    /**
+     * Test that an emitted style is rewritten to use app-assets/ prefix in article HTML.
+     * This ensures the do_items() vs ->done fix works.
+     */
+    public function test_emitted_style_rewritten_in_article() {
+        $id = self::factory()->post->create( array( 'post_content' => 'content' ) );
+
+        wp_enqueue_style(
+            'richie-test-block-style',
+            '/wp-includes/blocks/button/style.min.css',
+            array(),
+            '6.7.5'
+        );
+
+        delete_transient( RICHIE_ASSET_CACHE_KEY );
+
+        $request = new WP_REST_Request( 'GET', '/richie/v1/article/' . $id );
+        $request->set_query_params( array( 'token' => 'testtoken' ) );
+        $response = $this->server->dispatch( $request );
+
+        $this->assertEquals( 200, $response->get_status() );
+        $article = $response->data;
+        // The href should use the app-assets/ local name, not the raw path with version.
+        $this->assertStringContainsString( 'href="app-assets/wp-includes/blocks/button/style.min.css"', $article->content_html_document );
+        $this->assertStringNotContainsString( 'href="/wp-includes/blocks/button/style.min.css?ver=6.7.5"', $article->content_html_document );
+
+        wp_dequeue_style( 'richie-test-block-style' );
+        wp_deregister_style( 'richie-test-block-style' );
+    }
+
+    /**
+     * Test that CSS dependency sub-resources (fonts, @import, url()) appear in asset feed.
+     * This is the main fix: the Richie app does not crawl CSS, so the plugin must.
+     */
+    public function test_asset_feed_discovers_css_font_and_import_dependencies() {
+        $uploads  = wp_get_upload_dir();
+        $base_dir = trailingslashit( $uploads['basedir'] ) . 'richie-css-deps-test/';
+        $base_url = trailingslashit( $uploads['baseurl'] ) . 'richie-css-deps-test/';
+
+        wp_mkdir_p( $base_dir );
+
+        // main.css imports extra.css and references a background image.
+        file_put_contents( $base_dir . 'main.css', "@import url('extra.css');\n.hero { background: url('bg.png'); }\n" );
+        // extra.css references a font via @font-face.
+        file_put_contents( $base_dir . 'extra.css', "@font-face { font-family: Test; src: url('font.woff2') format('woff2'); }\n" );
+        // Create the actual dependency files so local path check passes.
+        file_put_contents( $base_dir . 'bg.png', 'fake-png' );
+        file_put_contents( $base_dir . 'font.woff2', 'fake-font' );
+
+        wp_enqueue_style( 'richie-test-css-deps', $base_url . 'main.css', array(), null );
+
+        delete_transient( RICHIE_ASSET_CACHE_KEY );
+
+        $request  = new WP_REST_Request( 'GET', '/richie/v1/assets' );
+        $response = $this->server->dispatch( $request );
+
+        $this->assertEquals( 200, $response->get_status() );
+
+        $local_names = array_column( (array) $response->data['app_assets'], 'local_name' );
+
+        $uploads_rel = str_replace( get_site_url() . '/', '', $base_url );
+
+        $this->assertContains( 'app-assets/' . $uploads_rel . 'extra.css', $local_names, 'extra.css imported via @import should be in asset feed' );
+        $this->assertContains( 'app-assets/' . $uploads_rel . 'bg.png', $local_names, 'bg.png referenced via url() should be in asset feed' );
+        $this->assertContains( 'app-assets/' . $uploads_rel . 'font.woff2', $local_names, 'font.woff2 from @font-face should be in asset feed' );
+
+        // Clean up.
+        wp_dequeue_style( 'richie-test-css-deps' );
+        wp_deregister_style( 'richie-test-css-deps' );
+        array_map( 'unlink', glob( $base_dir . '*' ) );
+        rmdir( $base_dir );
+    }
+
+    /**
+     * Test that path-backed styles (src=false, extra['path'] set) appear in the asset feed.
+     * Gutenberg block styles often use this pattern.
+     */
+    public function test_path_backed_style_in_asset_feed() {
+        $style_relative_path = '/wp-includes/blocks/search/style.css';
+        $style_path          = ABSPATH . ltrim( $style_relative_path, '/' );
+
+        // Skip if the file doesn't exist in this WP installation.
+        if ( ! file_exists( $style_path ) ) {
+            $this->markTestSkipped( 'WP core search block style not found.' );
+        }
+
+        wp_register_style( 'richie-test-path-backed', false, array(), false );
+        wp_style_add_data( 'richie-test-path-backed', 'path', $style_path );
+        wp_enqueue_style( 'richie-test-path-backed' );
+
+        delete_transient( RICHIE_ASSET_CACHE_KEY );
+
+        $request  = new WP_REST_Request( 'GET', '/richie/v1/assets' );
+        $response = $this->server->dispatch( $request );
+
+        $this->assertEquals( 200, $response->get_status() );
+
+        $local_names = array_column( (array) $response->data['app_assets'], 'local_name' );
+        $this->assertContains( 'app-assets' . $style_relative_path, $local_names );
+
+        $remote_urls  = array_column( (array) $response->data['app_assets'], 'remote_url' );
+        $expected_url = get_site_url( null, $style_relative_path );
+        $this->assertContains( $expected_url, $remote_urls );
+
+        wp_dequeue_style( 'richie-test-path-backed' );
+        wp_deregister_style( 'richie-test-path-backed' );
+    }
+
+    /**
+     * Test that manual richie_assets option entries override auto-discovered CSS dependencies.
+     */
+    public function test_custom_assets_override_discovered_css_dependencies() {
+        $uploads  = wp_get_upload_dir();
+        $base_dir = trailingslashit( $uploads['basedir'] ) . 'richie-css-override-test/';
+        $base_url = trailingslashit( $uploads['baseurl'] ) . 'richie-css-override-test/';
+
+        wp_mkdir_p( $base_dir );
+
+        file_put_contents( $base_dir . 'main.css', ".hero { background: url('bg.png'); }\n" );
+        file_put_contents( $base_dir . 'bg.png', 'fake-png' );
+
+        wp_enqueue_style( 'richie-test-override-css', $base_url . 'main.css', array(), null );
+
+        $uploads_rel  = str_replace( get_site_url() . '/', '', $base_url );
+        $override_url = 'https://cdn.example.com/custom/bg.png';
+        $local_name   = 'app-assets/' . $uploads_rel . 'bg.png';
+
+        update_option( 'richie_assets', json_decode( '[{"local_name": "' . $local_name . '", "remote_url": "' . $override_url . '"}]' ) );
+        delete_transient( RICHIE_ASSET_CACHE_KEY );
+
+        $request  = new WP_REST_Request( 'GET', '/richie/v1/assets' );
+        $response = $this->server->dispatch( $request );
+
+        $this->assertEquals( 200, $response->get_status() );
+
+        $assets_map = array();
+        foreach ( $response->data['app_assets'] as $asset ) {
+            $assets_map[ $asset->local_name ] = $asset->remote_url;
+        }
+
+        $this->assertArrayHasKey( $local_name, $assets_map, 'bg.png should appear in asset feed' );
+        $this->assertEquals( $override_url, $assets_map[ $local_name ], 'Manual override should win over auto-discovered URL' );
+
+        // Clean up.
+        wp_dequeue_style( 'richie-test-override-css' );
+        wp_deregister_style( 'richie-test-override-css' );
+        delete_option( 'richie_assets' );
+        array_map( 'unlink', glob( $base_dir . '*' ) );
+        rmdir( $base_dir );
+    }
+
+    /**
+     * On a cold-cache request, get_assets() runs wp_head() to collect emitted handles,
+     * then clears extra['data'] from all registered scripts to prevent duplication.
+     * This also strips any wp_localize_script() / wp_add_inline_script() payloads that
+     * were attached during wp_enqueue_scripts — those hooks do not re-fire when
+     * render_template() later calls wp_head(), so the localized data is lost.
+     *
+     * Currently failing: the inline script payload is absent from content_html_document
+     * on cold-cache requests.
+     */
+    public function test_wp_localize_script_payload_present_on_cold_cache_article_request() {
+        delete_transient( RICHIE_ASSET_CACHE_KEY );
+
+        // Enqueue a script and localize it — simulating what a theme/plugin does on
+        // wp_enqueue_scripts. In the test environment this fires before the request.
+        wp_enqueue_script( 'richie-test-localized', '/wp-includes/js/jquery/jquery.min.js', array(), '3.7', false );
+        wp_localize_script( 'richie-test-localized', 'RichieTestConfig', array( 'key' => 'expected-value' ) );
+
+        $id = self::factory()->post->create( array( 'post_content' => 'content' ) );
+
+        $request = new WP_REST_Request( 'GET', '/richie/v1/article/' . $id );
+        $request->set_query_params( array( 'token' => 'testtoken' ) );
+        $response = $this->server->dispatch( $request );
+
+        $this->assertEquals( 200, $response->get_status() );
+        $article = $response->data;
+
+        // The localized config object must appear in the rendered HTML.
+        $this->assertStringContainsString(
+            'expected-value',
+            $article->content_html_document,
+            'wp_localize_script payload must be present in article HTML on cold-cache requests'
+        );
+
+        wp_dequeue_script( 'richie-test-localized' );
+        wp_deregister_script( 'richie-test-localized' );
+    }
 }
