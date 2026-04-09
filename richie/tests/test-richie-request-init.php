@@ -76,7 +76,9 @@ class Test_Richie_Request_Init extends WP_UnitTestCase {
         $_GET['rest_route']      = '/richie/v1/article/45';
         $_SERVER['REQUEST_URI']  = '/index.php?rest_route=/richie/v1/article/45&token=testing';
 
+        ini_set( 'error_log', '/dev/null' ); // phpcs:ignore WordPress.PHP.IniSet.Risky
         do_action( 'init' );
+        ini_restore( 'error_log' );
 
         remove_action( 'richie_request_init', array( $this, 'throw_on_request_init' ) );
         add_action( 'richie_request_init', array( $this, 'on_request_init' ) );

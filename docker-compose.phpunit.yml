@@ -13,19 +13,13 @@ x-phpunit-common: &phpunit-common
     - "testsuite:/tmp"
 
 services:
-  wordpress_phpunit_8_0:
+  wordpress_phpunit:
     <<: *phpunit-common
+    image: wordpress_phpunit:${PHP_VERSION:-8.0}
     build:
       context: './docker/phpunit'
       args:
-        PHP_VERSION: "8.0"
-
-  wordpress_phpunit_8_4:
-    <<: *phpunit-common
-    build:
-      context: './docker/phpunit'
-      args:
-        PHP_VERSION: "8.4"
+        PHP_VERSION: "${PHP_VERSION:-8.0}"
 
   mysql_phpunit:
     container_name: mysql_phpunit
@@ -41,4 +35,3 @@ services:
 
 volumes:
   testsuite: {}
-

@@ -69,7 +69,7 @@ Tests require a database, so use Podman Compose:
 podman compose -f docker-compose.phpunit.yml up -d
 
 # Run tests
-podman compose -f docker-compose.phpunit.yml run --rm wordpress_phpunit_8_0 phpunit
+PHP_VERSION=8.0 podman compose -f docker-compose.phpunit.yml run --rm --build wordpress_phpunit phpunit
 ```
 
 Test files are in each plugin's `tests/` directory (`richie/tests/`, `richie-editions-wp/tests/`).

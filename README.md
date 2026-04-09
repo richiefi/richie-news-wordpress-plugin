@@ -80,7 +80,7 @@ podman compose -f docker-compose.yml -f docker-compose.phpunit.yml up -d
 ```
 
 ```shell
-podman compose -f docker-compose.phpunit.yml run --rm wordpress_phpunit_8_0 /app/bin/install-wp-tests.sh wordpress_test root '' mysql_phpunit latest true
+PHP_VERSION=8.0 podman compose -f docker-compose.phpunit.yml run --rm --build wordpress_phpunit /app/bin/install-wp-tests.sh wordpress_test root '' host.containers.internal latest true
 ```
 
 This installs wordpress and tests into an isolated container. Plugin code is mapped under `/app`.
@@ -88,7 +88,7 @@ This installs wordpress and tests into an isolated container. Plugin code is map
 ### Running tests
 
 ```shell
-podman compose -f docker-compose.phpunit.yml run --rm wordpress_phpunit_8_0 phpunit
+PHP_VERSION=8.0 podman compose -f docker-compose.phpunit.yml run --rm wordpress_phpunit phpunit
 ```
 
 ## Troubleshooting
