@@ -1,11 +1,14 @@
 steps:
   - label: "Tests (PHP 8.0)"
     command:
-      - "PHP_VERSION=8.0 docker compose -f docker-compose.phpunit.yml run --rm --build wordpress_phpunit /app/bin/install-wp-tests.sh wordpress_test root '' host.containers.internal latest true"
-      - "PHP_VERSION=8.0 docker compose -f docker-compose.phpunit.yml run --rm wordpress_phpunit sh -c 'cd /app && phpunit'"
-      - "PHP_VERSION=8.0 docker compose -f docker-compose.phpunit.yml run --rm wordpress_phpunit sh -c 'cd /app-editions && phpunit'"
+      - "/app/bin/install-wp-tests.sh wordpress_test root '' host.containers.internal latest true"
+      - "cd /app && phpunit"
+      - "cd /app-editions && phpunit"
+    env:
+      PHP_VERSION: "8.0"
     plugins:
       - docker-compose#v5.4.0:
+          run: wordpress_phpunit
           config:
             - docker-compose.phpunit.yml
 
@@ -13,10 +16,13 @@ steps:
 
   - label: "Tests (PHP 8.4)"
     command:
-      - "PHP_VERSION=8.4 docker compose -f docker-compose.phpunit.yml run --rm --build wordpress_phpunit /app/bin/install-wp-tests.sh wordpress_test root '' host.containers.internal latest true"
-      - "PHP_VERSION=8.4 docker compose -f docker-compose.phpunit.yml run --rm wordpress_phpunit sh -c 'cd /app && phpunit'"
-      - "PHP_VERSION=8.4 docker compose -f docker-compose.phpunit.yml run --rm wordpress_phpunit sh -c 'cd /app-editions && phpunit'"
+      - "/app/bin/install-wp-tests.sh wordpress_test root '' host.containers.internal latest true"
+      - "cd /app && phpunit"
+      - "cd /app-editions && phpunit"
+    env:
+      PHP_VERSION: "8.4"
     plugins:
       - docker-compose#v5.4.0:
+          run: wordpress_phpunit
           config:
             - docker-compose.phpunit.yml
