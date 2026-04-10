@@ -2,7 +2,7 @@
 Tags: rest, feed, api
 Requires at least: 6.0
 Tested up to: 6.9
-Stable tag: 2.1.0
+Stable tag: 3.0.0
 Requires PHP: 8.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -24,7 +24,19 @@ Richie News Platform plugin provides JSON feeds to be used in Richie News Platfo
 3. Configure required settings under 'Settings -> Richie'.
 
 == Changelog ==
-= WIP =
+
+= 3.0.0 (10.04.2026) =
+* Release 3.0.0
+* PHP 7.4 is no longer supported. PHP 7.4 reached EOL in December 2022 and the codebase already uses PHP 8.0+ features.
+* fix: add flush_cache query param to bust asset transient
+* fix: clear inline script/style extra data after get_assets() wp_head() run
+* feat: discover inline <style> sub-resources as article assets
+* feat!: drop PHP 7.4 support, require PHP 8.0+
+* fix: improve image URL detection and add asset discovery helpers
+* feat: resolve best image size from srcset and WP attachment lookup
+* fix: resolve PHP 8.4 deprecation errors in tests
+* fix: rework article image discovery for lazyload, inline styles and srcset
+* fix: use emitted asset handles and add CSS dependency discovery in asset feed
 
 = 2.1.0 (04.03.2026) =
 * Release 2.1.0
