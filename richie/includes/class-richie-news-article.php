@@ -739,6 +739,7 @@ class Richie_Article {
                     $response = wp_remote_get(
                         $content_url,
                         array(
+                            'headers'   => richie_get_server_request_headers(),
                             'sslverify' => false,
                             'timeout'   => 15,
                         )

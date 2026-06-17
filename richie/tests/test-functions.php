@@ -30,6 +30,27 @@ class FunctionTest extends WP_UnitTestCase {
         $this->assertEquals($url, 'https://richie.fi//image.png');
     }
 
+    public function test_server_request_headers_include_plugin_version() {
+        $headers = richie_get_server_request_headers();
+
+        $this->assertEquals( 'richie', $headers['X-Richie-Plugin'] );
+        $this->assertEquals( Richie_VERSION, $headers['X-Richie-Plugin-Version'] );
+        $this->assertStringContainsString( 'Richie News/' . Richie_VERSION, $headers['User-Agent'] );
+    }
+
+    public function test_server_request_headers_preserve_existing_headers() {
+        $headers = richie_get_server_request_headers(
+            array(
+                'Authorization' => 'Bearer test',
+                'User-Agent'    => 'Custom Agent',
+            )
+        );
+
+        $this->assertEquals( 'Bearer test', $headers['Authorization'] );
+        $this->assertEquals( 'Custom Agent', $headers['User-Agent'] );
+        $this->assertEquals( Richie_VERSION, $headers['X-Richie-Plugin-Version'] );
+    }
+
     public function test_normalize_path_no_dots() {
         $path = richie_normalize_path('/test/path/somewhere.jpg');
         $this->assertEquals($path, '/test/path/somewhere.jpg');

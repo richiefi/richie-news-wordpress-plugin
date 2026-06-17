@@ -118,6 +118,25 @@ function richie_make_link_absolute( $url ) {
     }
 }
 
+/**
+ * Build request headers for calls made by the Richie News plugin.
+ *
+ * @param array $headers Existing request headers.
+ * @return array Headers with Richie plugin version metadata.
+ */
+function richie_get_server_request_headers( $headers = array() ) {
+    $version = defined( 'Richie_VERSION' ) ? Richie_VERSION : 'unknown';
+
+    return array_merge(
+        array(
+            'User-Agent'              => sprintf( 'Richie News/%s; WordPress/%s', $version, get_bloginfo( 'version' ) ),
+            'X-Richie-Plugin'         => 'richie',
+            'X-Richie-Plugin-Version' => $version,
+        ),
+        $headers
+    );
+}
+
 function richie_make_local_name( $url ) {
     // If scheme not included, prepend it
     if ( ! preg_match( '#^http(s)?://#', $url ) ) {
