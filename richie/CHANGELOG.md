@@ -1,6 +1,10 @@
 # Changelog
 
 
+## 3.1.0 (2026-06-26)
+
+* feat: send plugin version with Richie requests
+
 ## 3.0.0 (2026-04-10)
 
 ### ⚠ BREAKING CHANGES

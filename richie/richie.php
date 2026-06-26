@@ -16,7 +16,7 @@
  * Plugin Name:       Richie News
  * Plugin URI:        https://www.richie.fi
  * Description:       Richie news platform plugin. Provides news API for native applications.
- * Version:           3.0.0
+ * Version:           3.1.0
  * Author:            Richie Oy
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -34,7 +34,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'Richie_VERSION', '3.0.0' );
+define( 'Richie_VERSION', '3.1.0' );
 define( 'Richie_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'Richie_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
