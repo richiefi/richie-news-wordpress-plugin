@@ -48,9 +48,10 @@ module.exports = {
   },
   hooks: {
     "after:bump": "npm run build:feed-editor",
-    "before:git:release": [
+    "before:git:beforeRelease": [
       "node scripts/sync-wp-version.mjs richie ${version}",
-      "npm run -w richie plugin-zip && mkdir -p releases && mv richie/richie.zip releases/richie-news-${version}.zip"
-    ]
+      "git add richie/README.txt richie/richie.php"
+    ],
+    "before:release": "npm run -w richie plugin-zip && mkdir -p releases && mv richie/richie.zip releases/richie-news-${version}.zip"
   },
 };
