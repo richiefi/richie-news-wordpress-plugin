@@ -516,6 +516,21 @@ class Test_Richie_News_Article extends WP_UnitTestCase {
         unlink( $bg_file );
     }
 
+    public function test_inline_style_attribute_background_image_discovered_as_photo() {
+        $template = '<html><head></head><body>'
+            . '<div style="background-image: url(\'/wp-content/uploads/hero.jpg\')">content</div>'
+            . '</body></html>';
+
+        $stub    = $this->make_stub_with_template( $template );
+        $post    = self::factory()->post->create_and_get();
+        $article = $stub->generate_article( $post );
+
+        $this->assertNotEmpty( $article->photos, 'Expected photos array to be non-empty' );
+        $photo_local_names = array_map( function ( $photo ) { return $photo->local_name; }, $article->photos[0] );
+        $this->assertContains( 'wp-content/uploads/hero.jpg', $photo_local_names );
+        $this->assertStringContainsString( 'url(wp-content/uploads/hero.jpg)', $article->content_html_document );
+    }
+
     public function test_inline_style_external_urls_skipped() {
         $template = '<html><head>'
             . '<style>@font-face { font-family: ExtFont; src: url(\'https://fonts.example.com/external.woff2\') format(\'woff2\'); }</style>'

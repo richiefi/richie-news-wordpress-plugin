@@ -557,33 +557,6 @@ class Test_JSON_API extends WP_UnitTestCase {
     }
 
     /**
-     * Test that background-image in inline style attributes is discovered.
-     */
-    public function test_inline_style_background_image_discovered() {
-        $id = self::factory()->post->create(
-            array(
-                'post_content' => '<div style="background-image: url(\'/wp-content/uploads/hero.jpg\')">content</div>',
-            )
-        );
-
-        $request = new WP_REST_Request( 'GET', '/richie/v1/article/' . $id );
-        $request->set_query_params( array( 'token' => 'testtoken' ) );
-        $response = $this->server->dispatch( $request );
-
-        $this->assertEquals( 200, $response->get_status() );
-        $article = $response->data;
-        $this->assertNotEmpty( $article->photos, 'Expected photos array to be non-empty' );
-        $local_names = array_map(
-            function ( $photo ) {
-                return $photo->local_name; },
-            $article->photos[0]
-        );
-        $this->assertContains( 'wp-content/uploads/hero.jpg', $local_names );
-        // style url() should be rewritten to local name.
-        $this->assertStringContainsString( 'url(wp-content/uploads/hero.jpg)', $article->content_html_document );
-    }
-
-    /**
      * Test that an emitted style is rewritten to use app-assets/ prefix in article HTML.
      * This ensures the do_items() vs ->done fix works.
      */
